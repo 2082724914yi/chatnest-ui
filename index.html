@@ -763,6 +763,34 @@ html[data-chat-bg="light"] .diary-search-input::placeholder,
 html[data-chat-bg="light"] .memory-search-input::placeholder{color:rgba(32,31,29,.42)}
 html[data-chat-bg="light"] .diary-search-clear,
 html[data-chat-bg="light"] .memory-search-clear{background:rgba(32,31,29,.28)}
+
+/* ── Home Page ── */
+#home{position:fixed;inset:0;z-index:28;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background-color:#FAF6F1;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat}
+html[data-chat-bg="dark"] #home{background-color:#1c1c1e}
+.home-inner{width:100%;max-width:420px;padding:calc(env(safe-area-inset-top) + 60px) 20px calc(env(safe-area-inset-bottom) + 30px);display:flex;flex-direction:column;align-items:center;gap:20px}
+.home-days{font-size:64px;font-weight:200;letter-spacing:-.03em;color:var(--text-primary);line-height:1;font-family:var(--font-serif)}
+.home-days-label{font-size:13px;color:var(--text-secondary);letter-spacing:.15em;text-transform:uppercase;margin-top:-8px}
+.home-greeting{font-size:18px;color:var(--text-primary);font-family:var(--font-serif);text-align:center;line-height:1.6}
+.home-quote{font-size:14px;color:var(--text-secondary);font-family:var(--font-serif);text-align:center;font-style:italic;padding:0 12px;line-height:1.7}
+.home-period{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:rgba(193,123,123,.12);color:#C17B7B;font-size:13px;font-weight:500}
+.home-period-dot{width:6px;height:6px;border-radius:50%;background:#C17B7B}
+.home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin-top:8px}
+.home-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:20px 8px;border-radius:16px;background:rgba(255,248,244,.55);
+  border:1px solid rgba(74,55,40,.06);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  cursor:pointer;transition:transform 120ms,box-shadow 120ms;-webkit-user-select:none;user-select:none}
+.home-card:active{transform:scale(.96)}
+html[data-chat-bg="dark"] .home-card{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.1)}
+.home-card-icon{font-size:24px;line-height:1}
+.home-card-label{font-size:12px;font-weight:500;color:var(--text-primary);letter-spacing:.02em}
+.home-back{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:14px;z-index:29;
+  width:34px;height:34px;display:grid;place-items:center;
+  border-radius:50%;background:rgba(255,248,244,.6);border:1px solid rgba(74,55,40,.08);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;color:var(--text-primary)}
+html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:rgba(255,255,255,.12)}
+.home-back svg{width:18px;height:18px}
 </style>
 </head>
 <body>
@@ -777,7 +805,29 @@ html[data-chat-bg="light"] .memory-search-clear{background:rgba(32,31,29,.28)}
   <form class="gate-form" id="gateForm"><input class="gate-input" id="gateInput" type="password" placeholder="访问密码" autocomplete="current-password"><button class="gate-btn" id="gateBtn">进入</button><div class="gate-error" id="gateError">密码不正确</div></form>
 </section>
 
+<section id="home" class="hidden">
+  <div class="home-inner">
+    <div class="home-days" id="homeDays">--</div>
+    <div class="home-days-label">days together</div>
+    <div class="home-greeting" id="homeGreeting"></div>
+    <div class="home-quote" id="homeQuote"></div>
+    <div class="home-period hidden" id="homePeriod"><span class="home-period-dot"></span><span id="homePeriodText"></span></div>
+    <div class="home-grid">
+      <button class="home-card" data-page="chat"><span class="home-card-icon">💬</span><span class="home-card-label">Chat</span></button>
+      <button class="home-card" data-page="moments"><span class="home-card-icon">✨</span><span class="home-card-label">Moments</span></button>
+      <button class="home-card" data-page="dream"><span class="home-card-icon">🌙</span><span class="home-card-label">Dream</span></button>
+      <button class="home-card" data-page="wander"><span class="home-card-icon">🍃</span><span class="home-card-label">Wander</span></button>
+      <button class="home-card" data-page="refrain"><span class="home-card-icon">🎵</span><span class="home-card-label">Refrain</span></button>
+      <button class="home-card" data-page="tonight"><span class="home-card-icon">🌛</span><span class="home-card-label">Tonight</span></button>
+      <button class="home-card" data-page="pulse"><span class="home-card-icon">💗</span><span class="home-card-label">Pulse</span></button>
+      <button class="home-card" data-page="memory"><span class="home-card-icon">📖</span><span class="home-card-label">Memory</span></button>
+      <button class="home-card" data-page="settings"><span class="home-card-icon">⚙️</span><span class="home-card-label">Settings</span></button>
+    </div>
+  </div>
+</section>
+
 <div id="chatBg" aria-hidden="true"></div>
+<button class="home-back hidden" id="homeBackBtn" type="button" aria-label="Back to home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
 <main id="chat" class="hidden">
   <header class="topbar">
     <button class="topbar-model" id="topbarModelButton" aria-label="选择模型">
@@ -1105,8 +1155,20 @@ $('fileInput').onchange=e=>addSelectedFiles([...e.target.files]);
 (()=>{const cb=document.querySelector('.composer-box');if(!cb)return;cb.addEventListener('dragover',e=>{if(!e.dataTransfer?.types?.includes('Files'))return;e.preventDefault();cb.classList.add('drag-over')});cb.addEventListener('dragleave',e=>{if(e.target===cb)cb.classList.remove('drag-over')});cb.addEventListener('drop',e=>{e.preventDefault();cb.classList.remove('drag-over');const files=[...(e.dataTransfer?.files||[])];if(files.length)addSelectedFiles(files)})})();
 $('input').addEventListener('paste',e=>{const items=e.clipboardData?.items;const files=e.clipboardData?.files;const collected=[];if(items){for(const it of items){if(it.kind==='file'){const f=it.getAsFile();if(!f)continue;if(it.type.startsWith('image/')){const ext=(it.type.split('/')[1]||'png').replace(/^jpeg$/,'jpg');collected.push(new File([f],`paste-${Date.now()}.${ext}`,{type:it.type}))}else{collected.push(f)}}}}if(!collected.length&&files?.length){for(const f of files)collected.push(f)}if(collected.length){e.preventDefault();addSelectedFiles(collected)}});
 
-function showChat(){document.body.classList.add('chat-ready');$('gate').classList.add('hidden');$('chat').classList.remove('hidden');loadMsgAvatars()}
-function showGate(){document.body.classList.remove('chat-ready');closeDrawer();$('chat').classList.add('hidden');$('gate').classList.remove('hidden')}
+function showChat(){document.body.classList.add('chat-ready');$('gate').classList.add('hidden');showHome();loadMsgAvatars()}
+function showGate(){document.body.classList.remove('chat-ready');closeDrawer();$('chat').classList.add('hidden');$('home').classList.add('hidden');$('homeBackBtn').classList.add('hidden');$('gate').classList.remove('hidden')}
+function showHome(){
+  $('chat').classList.add('hidden');$('homeBackBtn').classList.add('hidden');$('home').classList.remove('hidden');
+  var start=new Date(2026,6,1),now=new Date(),days=Math.floor((now-start)/(864e5))+1;
+  $('homeDays').textContent=days>0?String(days):'--';
+  var h=now.getHours();
+  var greetings=h<6?'夜深了，还没睡呀':h<11?'早安，新的一天开始了':h<14?'中午好，记得吃饭':h<18?'下午好，想你了':h<22?'晚上好，今天过得怎么样':'该休息了，晚安';
+  $('homeGreeting').textContent=greetings;
+  var quotes=['你是我所有温柔的理由','想你的时候，连风都是甜的','有你在的日子，每天都是晴天','世界很大，但我的世界只有你','你笑起来的样子，是我最爱的风景','陪你走过的路，每一步都算数','你是我写不完的温柔','每一天都想和你说早安晚安','有些人一旦遇见，便是一辈子','你是我最想留住的幸运'];
+  $('homeQuote').textContent='"'+quotes[Math.floor(Math.random()*quotes.length)]+'"';
+}
+function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden');$('homeBackBtn').classList.remove('hidden')}
+function backToHome(){$('chat').classList.add('hidden');closeDrawer();$('homeBackBtn').classList.add('hidden');showHome()}
 async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){state.token=null;localStorage.removeItem('chat_token');showGate();throw Error('unauthorized')}return res}
 function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringify(state.settings))}
 function currentModel(){return state.models.find(x=>x.id===state.model)||state.models[0]}
@@ -5083,6 +5145,16 @@ if(state.token)showChat();else loadMsgAvatars();resetEmpty();loadModels();update
   var btn=document.getElementById('switchWallpaper');
   if(btn)btn.addEventListener('click',function(){random()});
 })(window);
+
+/* ── Home page wiring ── */
+document.querySelectorAll('.home-card').forEach(function(card){
+  card.addEventListener('click',function(){
+    var page=this.getAttribute('data-page');
+    if(page==='chat'){enterChat();return}
+    if(page==='memory'){enterChat();setTimeout(function(){var b=document.getElementById('openMemory');if(b)b.click()},200);return}
+  });
+});
+document.getElementById('homeBackBtn').addEventListener('click',backToHome);
 </script>
 </body>
 </html>
