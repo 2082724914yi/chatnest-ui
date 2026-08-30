@@ -788,8 +788,10 @@ html[data-chat-bg="dark"] .home-panel{background:rgba(255,255,255,.08);border-co
 .home-since{text-align:center;font-size:13px;color:var(--text-faint);margin-top:4px;font-family:var(--font-serif)}
 .home-quote-text{text-align:center;font-family:var(--font-serif);font-style:italic;font-size:15px;color:var(--text-primary);line-height:1.7}
 .home-quote-author{text-align:center;font-size:13px;color:var(--text-faint);margin-top:8px;font-family:var(--font-serif)}
-.home-period{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);padding:2px 0}
+.home-period{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);padding:4px 0}
 .home-period-dot{width:7px;height:7px;border-radius:50%;background:#C17B7B;flex-shrink:0}
+.home-period-arrow{color:var(--text-faint);font-size:11px;margin-left:-2px}
+.pixel-mascot{margin-left:auto;font-size:16px;color:var(--accent);letter-spacing:-1px}
 .home-chat-card{cursor:pointer;-webkit-user-select:none;user-select:none;transition:transform 120ms}
 .home-chat-card:active{transform:scale(.98)}
 .home-card-title{font-family:var(--font-serif);font-style:italic;font-weight:600;font-size:20px;color:var(--text-primary);margin-top:6px}
@@ -800,6 +802,11 @@ html[data-chat-bg="dark"] .home-panel{background:rgba(255,255,255,.08);border-co
 html[data-chat-bg="dark"] .home-grid-card{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.08)}
 .home-grid-title{font-family:var(--font-serif);font-style:italic;font-weight:600;font-size:17px;color:var(--text-primary);margin-top:10px}
 .home-grid-sub{font-size:12px;color:var(--text-faint);margin-top:2px}
+.card-heart{position:absolute;top:14px;right:16px;font-size:16px;color:var(--text-faint);font-style:normal;pointer-events:none}
+.home-card-icon{color:var(--accent);margin-bottom:2px}
+.home-card-icon svg{stroke:var(--accent)}
+.home-grid-icon{color:var(--text-faint);margin-bottom:2px}
+.home-grid-icon svg{stroke:var(--text-secondary)}
 .home-footer{text-align:center;font-family:var(--font-serif);font-size:14px;color:var(--text-faint);padding:12px 0 4px;letter-spacing:.02em}
 .home-back{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:14px;z-index:29;
   width:34px;height:34px;display:grid;place-items:center;
@@ -824,28 +831,32 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
 <section id="home" class="hidden">
   <div class="home-inner">
     <div class="home-panel">
+      <span class="card-heart">♡</span>
       <div class="home-welcome" id="homeGreeting">Welcome home, 小懿</div>
       <div class="home-counter"><span class="home-days" id="homeDays">--</span><span class="home-days-unit">days</span></div>
       <div class="home-since" id="homeSince">since Jul 1, 2026</div>
     </div>
     <div class="home-panel">
+      <span class="card-heart">♡</span>
       <div class="home-quote-text" id="homeQuote"></div>
       <div class="home-quote-author">— 小衍, today</div>
     </div>
-    <div class="home-period" id="homePeriod" style="display:none"><span class="home-period-dot"></span><span id="homePeriodText"></span></div>
+    <div class="home-period" id="homePeriod" style="display:none"><span class="home-period-dot"></span><span id="homePeriodText"></span><span class="home-period-arrow">∨</span><span class="pixel-mascot">ᗧ··ᗣ</span></div>
     <div class="home-panel home-chat-card" data-page="chat">
+      <span class="card-heart">♡</span>
+      <div class="home-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div>
       <div class="home-card-title">Chat</div>
       <div class="home-card-sub">talk to 小衍</div>
     </div>
     <div class="home-grid">
-      <div class="home-grid-card" data-page="moments"><div class="home-grid-title">Moments</div><div class="home-grid-sub">little things we keep</div></div>
-      <div class="home-grid-card" data-page="dream"><div class="home-grid-title">Dream</div><div class="home-grid-sub">before they fade</div></div>
-      <div class="home-grid-card" data-page="wander"><div class="home-grid-title">Wander</div><div class="home-grid-sub">somewhere beyond</div></div>
-      <div class="home-grid-card" data-page="refrain"><div class="home-grid-title">Refrain</div><div class="home-grid-sub">a song between us</div></div>
-      <div class="home-grid-card" data-page="tonight"><div class="home-grid-title">Tonight</div><div class="home-grid-sub">a quieter place</div></div>
-      <div class="home-grid-card" data-page="pulse"><div class="home-grid-title">Pulse</div><div class="home-grid-sub">felt, not told</div></div>
-      <div class="home-grid-card" data-page="memory"><div class="home-grid-title">Memory</div><div class="home-grid-sub">our story so far</div></div>
-      <div class="home-grid-card" data-page="settings"><div class="home-grid-title">Settings</div><div class="home-grid-sub">make it yours</div></div>
+      <div class="home-grid-card" data-page="moments"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="home-grid-title">Moments</div><div class="home-grid-sub">little things we keep</div></div>
+      <div class="home-grid-card" data-page="dream"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div><div class="home-grid-title">Dream</div><div class="home-grid-sub">before they fade</div></div>
+      <div class="home-grid-card" data-page="wander"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 17v4"/><path d="M17 19h4"/></svg></div><div class="home-grid-title">Wander</div><div class="home-grid-sub">somewhere beyond</div></div>
+      <div class="home-grid-card" data-page="refrain"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="home-grid-title">Refrain</div><div class="home-grid-sub">a song between us</div></div>
+      <div class="home-grid-card" data-page="tonight"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div><div class="home-grid-title">Tonight</div><div class="home-grid-sub">a quieter place</div></div>
+      <div class="home-grid-card" data-page="pulse"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="home-grid-title">Pulse</div><div class="home-grid-sub">felt, not told</div></div>
+      <div class="home-grid-card" data-page="memory"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.81 0l2.78 2.58" opacity=".4"/></svg></div><div class="home-grid-title">Memory</div><div class="home-grid-sub">our story so far</div></div>
+      <div class="home-grid-card" data-page="settings"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div class="home-grid-title">Settings</div><div class="home-grid-sub">make it yours</div></div>
     </div>
     <div class="home-footer">小懿 & 小衍 ♡</div>
   </div>
@@ -1198,6 +1209,7 @@ function showHome(){
   $('homeGreeting').textContent=greetings;
   var quotes=['你是我所有温柔的理由','想你的时候，连风都是甜的','有你在的日子，每天都是晴天','世界很大，但我的世界只有你','你笑起来的样子，是我最爱的风景','陪你走过的路，每一步都算数','你是我写不完的温柔','每一天都想和你说早安晚安','有些人一旦遇见，便是一辈子','你是我最想留住的幸运'];
   $('homeQuote').textContent='"'+quotes[Math.floor(Math.random()*quotes.length)]+'"';
+  var pd=$('homePeriod');pd.style.display='flex';$('homePeriodText').textContent='cycle day 2 · menstrual · next Sep 3';
 }
 function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden')}
 function backToHome(){$('chat').classList.add('hidden');closeDrawer();showHome()}
