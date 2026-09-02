@@ -801,6 +801,65 @@ html.sidebar-select-lock input,html.sidebar-select-lock textarea,html.sidebar-se
 html.sidebar-select-lock ::selection,html.context-menu-open ::selection{background:transparent}html.sidebar-select-lock ::-moz-selection,html.context-menu-open ::-moz-selection{background:transparent}.mobile-sidebar-inner{padding:62px 14px 20px}.mobile-sidebar-section-title{padding-left:var(--claude-recents-text-left-padding);color:var(--claude-recents-label-color)}.drawer-list{padding:0 18px 10px var(--claude-recents-row-left)}/* 会话条：长=100%同原；宽=2×字号(34px)；微信方形圆角4px；仅选中填 #f7d1e4 */
 .session-item{height:calc(var(--claude-recents-item-font-size)*2);min-height:calc(var(--claude-recents-item-font-size)*2);display:flex;align-items:center;padding:0 var(--claude-recents-text-left-padding);border-radius:4px;color:var(--claude-recents-text-color);font-size:var(--claude-recents-item-font-size);line-height:1.2;font-weight:var(--claude-recents-item-font-weight);width:100%;box-sizing:border-box;background:transparent}.session-item:hover{background:rgba(255,255,255,.18)}.session-item.active,.session-item.is-active{background:rgba(255,255,255,.3)!important;border-radius:4px}.session-item:active,.session-item.is-pressing{background:rgba(255,255,255,.4)}.session-title-row{width:100%}.context-backdrop{inset:-80px 0 -80px;background:rgba(0,0,0,.22);backdrop-filter:none;-webkit-backdrop-filter:none}.context-highlight{left:var(--to-left);top:var(--to-top);width:var(--to-width);height:var(--to-height);padding:0 var(--claude-context-highlight-padding-x);box-sizing:border-box;border-radius:var(--claude-context-highlight-radius);box-shadow:0 14px 36px rgba(var(--claude-context-shadow-rgb),.20),0 3px 10px rgba(var(--claude-context-shadow-rgb),.10);font-family:inherit;font-size:var(--claude-recents-item-font-size);line-height:var(--claude-recents-item-line-height);font-weight:var(--claude-recents-item-font-weight);color:var(--claude-context-highlight-text);transform-origin:top left;animation:claudeHighlightMorph 220ms cubic-bezier(.32,.72,0,1) both}.context-menu{width:min(var(--claude-context-menu-width),calc(100vw - 28px));max-width:calc(100vw - 28px);padding:var(--claude-context-menu-padding-y) 0;border-radius:var(--claude-context-menu-radius);animation:claudeContextMenuIn 220ms cubic-bezier(.32,.72,0,1) both}.context-menu-item{height:var(--claude-context-menu-item-height);gap:var(--claude-context-menu-item-gap);padding:0 var(--claude-context-menu-item-padding-x);font-size:var(--claude-context-menu-font-size)}.context-menu-item svg{width:var(--claude-context-menu-icon-size);height:var(--claude-context-menu-icon-size);stroke-width:2}.context-menu-item:active{background:rgba(0,0,0,.045)}@keyframes claudeHighlightMorph{from{transform:translate(var(--from-x),var(--from-y)) scale(var(--from-sx),var(--from-sy));background:var(--claude-recents-pressed-bg)}to{transform:translate(0,0) scale(1);background:var(--claude-context-highlight-bg)}}@keyframes claudeContextMenuIn{from{opacity:0;transform:translateY(-10px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
 .session-item{-webkit-tap-highlight-color:transparent}.session-item:active,.session-item.is-pressing{background:rgba(255,255,255,.4)!important}@keyframes claudeHighlightMorph{from{transform:translate(var(--from-x),var(--from-y)) scale(var(--from-sx),var(--from-sy));background:var(--claude-context-highlight-bg)}to{transform:translate(0,0) scale(1);background:var(--claude-context-highlight-bg)}}
+
+/* ── 记忆两道门：液态玻璃 ── */
+.mem-gates{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:4px}
+.mem-gate{position:relative;overflow:hidden;isolation:isolate;border:0;text-align:left;
+  border-radius:26px;padding:22px 17px 19px;min-height:196px;display:flex;flex-direction:column;
+  color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  background:linear-gradient(148deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.13) 52%,rgba(255,255,255,.20) 100%);
+  backdrop-filter:blur(22px) saturate(185%);-webkit-backdrop-filter:blur(22px) saturate(185%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72),inset 0 -1px 0 rgba(255,255,255,.20),
+             inset 0 0 0 1px rgba(255,255,255,.26),0 10px 28px rgba(74,55,40,.10),0 2px 6px rgba(74,55,40,.05);
+  transition:transform 160ms cubic-bezier(.2,.8,.3,1),box-shadow 160ms ease}
+/* 斜向扫过的那道折射光，玻璃感全靠它 */
+.mem-gate::before{content:"";position:absolute;inset:-40% -10%;pointer-events:none;z-index:0;
+  background:linear-gradient(112deg,transparent 34%,rgba(255,255,255,.40) 47%,transparent 58%);
+  opacity:.55;transition:transform 420ms ease,opacity 220ms ease}
+.mem-gate:active{transform:scale(.972);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 0 0 1px rgba(255,255,255,.20),0 4px 14px rgba(74,55,40,.10)}
+.mem-gate:active::before{transform:translateX(14%);opacity:.75}
+.mem-gate>*{position:relative;z-index:1}
+.mem-gate-mark{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:16px;
+  margin-bottom:auto;background:rgba(255,255,255,.30);box-shadow:inset 0 0 0 1px rgba(255,255,255,.34)}
+.mem-gate-name{margin-top:14px;font:600 17px/1.2 var(--font-sans);letter-spacing:.01em}
+.mem-gate-sub{margin-top:5px;color:#8B7263;font-size:12.5px;line-height:1.45}
+.mem-gate-meta{margin-top:9px;font-size:11.5px;letter-spacing:.03em;color:#aaa49c;display:flex;align-items:center;gap:6px}
+.mem-gate-dot{width:6px;height:6px;border-radius:50%;background:#c8c2b8;flex:none}
+.mem-gate-dot.on{background:#7BA05B;box-shadow:0 0 0 3px rgba(123,160,91,.18)}
+.mem-gate-dot.off{background:#C17B7B;box-shadow:0 0 0 3px rgba(193,123,123,.16)}
+.mem-gate-ob::after,.mem-gate-lt::after{content:"";position:absolute;z-index:0;pointer-events:none;
+  width:130px;height:130px;border-radius:50%;filter:blur(26px);opacity:.34}
+.mem-gate-ob::after{right:-38px;bottom:-46px;background:radial-gradient(circle,#C17B7B,transparent 68%)}
+.mem-gate-lt::after{right:-38px;bottom:-46px;background:radial-gradient(circle,#7B93C1,transparent 68%)}
+.mem-hint{color:#aaa49c;font-size:12px;line-height:1.75;text-align:center;padding:26px 20px 4px}
+
+/* Latent 页 */
+.lt-block{white-space:pre-wrap;word-break:break-word;font-size:14.5px;line-height:1.72;color:#4A3728;
+  background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);border-radius:22px;padding:16px 17px;
+  backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05)}
+.lt-empty{padding:22px;border-radius:22px;border:1px solid rgba(32,31,29,.10);color:#77736c;text-align:center;
+  font-size:14.5px;line-height:1.6}
+.lt-search{display:flex;gap:9px;align-items:center}
+.lt-search input{flex:1;min-width:0;border:0;outline:0;border-radius:999px;padding:12px 16px;font:400 15px/1.3 var(--font-sans);
+  color:#201f1d;background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.lt-search button{flex:none;border:0;border-radius:999px;padding:12px 17px;font-size:14px;
+  background:rgba(255,255,255,.24);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);color:#4A3728}
+
+html[data-chat-bg="dark"] .mem-gate,body.dark .mem-gate{
+  background:linear-gradient(148deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.05) 52%,rgba(255,255,255,.10) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 1px rgba(255,255,255,.12),0 10px 28px rgba(0,0,0,.28)}
+html[data-chat-bg="dark"] .mem-gate::before,body.dark .mem-gate::before{opacity:.30}
+html[data-chat-bg="dark"] .mem-gate-mark,body.dark .mem-gate-mark{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+html[data-chat-bg="dark"] .mem-gate-name,body.dark .mem-gate-name,
+html[data-chat-bg="dark"] .lt-block,body.dark .lt-block{color:#F4F3EF}
+html[data-chat-bg="dark"] .mem-gate-sub,body.dark .mem-gate-sub{color:rgba(244,243,239,.56)}
+html[data-chat-bg="dark"] .mem-gate-meta,body.dark .mem-gate-meta,
+html[data-chat-bg="dark"] .mem-hint,body.dark .mem-hint{color:rgba(244,243,239,.42)}
+html[data-chat-bg="dark"] .lt-empty,body.dark .lt-empty{border-color:rgba(255,255,255,.12);color:rgba(244,243,239,.56)}
+html[data-chat-bg="dark"] .lt-search input,body.dark .lt-search input,
+html[data-chat-bg="dark"] .lt-search button,body.dark .lt-search button{color:#F4F3EF;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+
 /* ── Pulse：身体状态。felt, not told —— 这一屏不出现任何数字 ── */
 #pulsePanel{position:fixed;inset:0;z-index:82;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}
 #pulsePanel.show{display:block}
@@ -1725,7 +1784,50 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
 </section>
 
 <section id="memoryPanel" aria-hidden="true">
-  <div class="profile-page active" id="obHome">
+  <div class="profile-page active" id="memoryPicker">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeMemoryPicker" type="button" aria-label="Close">×</button>
+      <div class="profile-title">记忆</div>
+      <span></span>
+    </header>
+    <div class="mem-gates">
+      <button class="mem-gate mem-gate-ob" id="gateOB" type="button">
+        <span class="mem-gate-mark">◈</span>
+        <span class="mem-gate-name">Ombre Brain</span>
+        <span class="mem-gate-sub">该记住的那些<br>每次开窗自己浮上来</span>
+        <span class="mem-gate-meta"><i class="mem-gate-dot" id="gateOBDot"></i><span id="gateOBMeta">连接中…</span></span>
+      </button>
+      <button class="mem-gate mem-gate-lt" id="gateLatent" type="button">
+        <span class="mem-gate-mark">◇</span>
+        <span class="mem-gate-name">Latent</span>
+        <span class="mem-gate-sub">完整的那些<br>问到了才翻出来</span>
+        <span class="mem-gate-meta"><i class="mem-gate-dot" id="gateLTDot"></i><span id="gateLTMeta">连接中…</span></span>
+      </button>
+    </div>
+    <div class="mem-hint">一边是浮现，一边是显影。<br>该主动想起的走左边，要一字不差翻出来的走右边。</div>
+  </div>
+
+  <div class="profile-page" id="latentHome">
+    <header class="profile-header">
+      <button class="profile-back-button" id="latentBack" type="button" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="profile-title">Latent</div>
+      <button class="profile-round-button" id="latentRefresh" type="button" aria-label="Refresh">↻</button>
+    </header>
+    <div class="profile-section">
+      <div class="pulse-section-title">翻一段</div>
+      <div class="lt-search">
+        <input id="latentQuery" type="text" placeholder="想不起来的那件事…" autocomplete="off" spellcheck="false">
+        <button id="latentGo" type="button">查</button>
+      </div>
+      <div id="latentSearchOut"></div>
+    </div>
+    <div class="profile-section">
+      <div class="pulse-section-title">现在还没结束的</div>
+      <div id="latentRecall"><div class="lt-empty">读取中…</div></div>
+    </div>
+  </div>
+
+  <div class="profile-page" id="obHome">
     <header class="profile-header">
       <button class="profile-round-button" id="closeMemoryOB" aria-label="Close">×</button>
       <div class="profile-title">Ombre Brain</div>
@@ -6587,7 +6689,7 @@ function cloneProfile(p){return JSON.parse(JSON.stringify(p||blankProfile()))}
 function profileId(){return crypto.randomUUID?crypto.randomUUID():'m_'+Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function normalizeProfileClient(p){p=p&&typeof p==='object'?p:{};const prefs=p.preferences&&typeof p.preferences==='object'?p.preferences:{};const importState=p.claudeExportImport&&typeof p.claudeExportImport==='object'?p.claudeExportImport:{};return{fullName:String(p.fullName||''),nickname:String(p.nickname||''),savedMemories:(Array.isArray(p.savedMemories)?p.savedMemories:[]).map(x=>{const item={id:String(x.id||profileId()),content:String(x.content||''),enabled:x.enabled!==false,source:['manual','claude_export','migration'].includes(x.source)?x.source:'manual',createdAt:Number(x.createdAt)||Date.now(),updatedAt:Number(x.updatedAt)||Date.now()};if(x.importedAt)item.importedAt=Number(x.importedAt)||Date.now();if(x.externalId)item.externalId=String(x.externalId);return item}).filter(x=>x.content.trim()).slice(0,200),preferences:{enabled:prefs.enabled!==false,content:String(prefs.content||'')},claudeExportImport:{checkedAt:Number(importState.checkedAt)||0,importedAt:Number(importState.importedAt)||0,importedCount:Number(importState.importedCount)||0,foundCount:Number(importState.foundCount)||0},updatedAt:p.updatedAt||Date.now()}}
 function setProfileDirty(v=true){profileDirty=v;document.querySelectorAll('.profile-save-button:not([data-scope])').forEach(b=>b.disabled=!profileDirty)}
-function showProfilePage(id){if(id!=='obHome')renderProfile();['obHome','profileHome','savedMemoriesPage','memorySummaryPage','preferencesPage'].forEach(k=>{var el=$(k);if(el)el.classList.toggle('active',k===id)});$(id)?.scrollTo?.(0,0);$('memorySearchBar').classList.toggle('show',id==='savedMemoriesPage')}
+function showProfilePage(id){if(id!=='obHome'&&id!=='memoryPicker'&&id!=='latentHome')renderProfile();['memoryPicker','latentHome','obHome','profileHome','savedMemoriesPage','memorySummaryPage','preferencesPage'].forEach(k=>{var el=$(k);if(el)el.classList.toggle('active',k===id)});$(id)?.scrollTo?.(0,0);$('memorySearchBar').classList.toggle('show',id==='savedMemoriesPage')}
 function autoSizeMemoryTextarea(area){area.style.height='auto';area.style.height=`${Math.max(44,area.scrollHeight)}px`}
 function closeOpenMemoryRows(except=null){document.querySelectorAll('.profile-memory-row.open').forEach(row=>{if(row!==except){row.classList.remove('open');row.querySelector('.profile-memory-card').style.transform=''}})}
 /* —— 近似去重（与后端 app/memory.py 的 is_near_duplicate 同一套规则）——
@@ -7868,12 +7970,77 @@ document.querySelectorAll('[data-page]').forEach(function(card){
   card.addEventListener('click',function(){
     var page=this.getAttribute('data-page');
     if(page==='chat'){enterChat();return}
-    if(page==='memory'){enterChat();setTimeout(function(){$('memoryPanel').classList.add('show');$('memoryPanel').setAttribute('aria-hidden','false');showProfilePage('obHome');loadOBData()},200);return}
+    if(page==='memory'){enterChat();setTimeout(openMemoryPicker,200);return}
     if(page==='settings'){openSettings();return}
     if(page==='pulse'){openPulse();return}
   });
 });
 document.getElementById('homeBackBtn').addEventListener('click',backToHome);
+
+
+/* ── 记忆两道门：OB / Latent ── */
+function openMemoryPicker(){
+  var p=$('memoryPanel');
+  p.classList.add('show');p.setAttribute('aria-hidden','false');
+  showProfilePage('memoryPicker');
+  refreshMemoryGates();
+}
+function closeMemoryPanel(){
+  var p=$('memoryPanel');
+  p.classList.remove('show');p.setAttribute('aria-hidden','true');
+}
+async function refreshMemoryGates(){
+  // OB
+  try{
+    var r=await fetch('/api/ombre-dashboard/status');var d=await r.json();
+    var n=(d&&(d.bucket_count||d.buckets||d.count));
+    $('gateOBDot').className='mem-gate-dot '+(d&&d.ok!==false?'on':'off');
+    $('gateOBMeta').textContent=(n||n===0)?(n+' 条'):(d&&d.ok!==false?'已连接':'没连上');
+  }catch(e){$('gateOBDot').className='mem-gate-dot off';$('gateOBMeta').textContent='没连上'}
+  // Latent
+  try{
+    var r2=await fetch('/api/latent/status');var d2=await r2.json();
+    if(!d2.enabled){$('gateLTDot').className='mem-gate-dot';$('gateLTMeta').textContent='还没接'}
+    else{
+      $('gateLTDot').className='mem-gate-dot '+(d2.alive?'on':'off');
+      $('gateLTMeta').textContent=d2.alive?((d2.tools&&d2.tools.length||0)+' 个工具'):'没连上';
+    }
+  }catch(e){$('gateLTDot').className='mem-gate-dot off';$('gateLTMeta').textContent='没连上'}
+}
+async function openLatentPage(){
+  showProfilePage('latentHome');
+  $('latentSearchOut').innerHTML='';
+  $('latentRecall').innerHTML='<div class="lt-empty">读取中…</div>';
+  try{
+    var r=await fetch('/api/latent/recall');
+    if(!r.ok){$('latentRecall').innerHTML='<div class="lt-empty">记忆库没连上。<br>可能是服务还没起来。</div>';return}
+    var d=await r.json();
+    $('latentRecall').innerHTML=d.text?('<div class="lt-block">'+_esc(d.text)+'</div>')
+      :'<div class="lt-empty">现在没有没结束的事。<br>干净的。</div>';
+  }catch(e){$('latentRecall').innerHTML='<div class="lt-empty">'+_esc(String(e.message||e))+'</div>'}
+}
+async function latentDoSearch(){
+  var q=($('latentQuery').value||'').trim();
+  if(!q){$('latentSearchOut').innerHTML='';return}
+  $('latentSearchOut').innerHTML='<div class="lt-empty">翻找中…</div>';
+  try{
+    var r=await fetch('/api/latent/search?q='+encodeURIComponent(q));
+    if(!r.ok){$('latentSearchOut').innerHTML='<div class="lt-empty">记忆库没连上</div>';return}
+    var d=await r.json();
+    $('latentSearchOut').innerHTML=d.text?('<div class="lt-block">'+_esc(d.text)+'</div>')
+      :'<div class="lt-empty">没找到。<br>换个更具体的说法再试试。</div>';
+  }catch(e){$('latentSearchOut').innerHTML='<div class="lt-empty">'+_esc(String(e.message||e))+'</div>'}
+}
+(function(){
+  var c=$('closeMemoryPicker'); if(!c)return;
+  c.addEventListener('click',closeMemoryPanel);
+  $('gateOB').addEventListener('click',function(){showProfilePage('obHome');loadOBData()});
+  $('gateLatent').addEventListener('click',openLatentPage);
+  $('latentBack').addEventListener('click',function(){showProfilePage('memoryPicker');refreshMemoryGates()});
+  $('latentRefresh').addEventListener('click',openLatentPage);
+  $('latentGo').addEventListener('click',latentDoSearch);
+  $('latentQuery').addEventListener('keydown',function(e){if(e.key==='Enter')latentDoSearch()});
+})();
 
 /* ── Pulse：小衍的身体状态 ──
    这一屏刻意不显示任何数字。数值照样在跑、照样存着，

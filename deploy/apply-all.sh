@@ -41,6 +41,7 @@ fix-empty-turn.js|_stderrTail|空回合不再吞掉
 add-eventide.js|EVENTIDE_STATE_FILE|身体状态系统
 add-handoff.js|buildHandoff|无缝换窗接续
 fix-cache-order.js|CACHE_ORDER_FIXED|缓存前缀重排
+add-latent.js|LATENT_TOOL_PROMPT|Latent 全文记忆
 "
 
 say "1/3 逐个补丁检查"
