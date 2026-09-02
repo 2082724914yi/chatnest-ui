@@ -87,7 +87,42 @@ edit('状态栏数字算准',
       ...counted,
     });`);
 
-// 3) 动作路由整个换掉：走 MCP 的 trace / anchor / release
+// 3) 聊天里的工具卡片：名字写中文，一眼看出我刚才干了什么
+edit('工具卡片写中文名',
+  /          const t = traceStart\('tool', tc\.tool \+ ' · 记忆'\);/,
+  () => `          const t = traceStart('tool', OB_TOOL_LABEL[tc.tool] || (tc.tool + ' · 记忆'));`);
+
+edit('新增工具中文名表',
+  /function parseOBToolCalls\(text\) \{/,
+  () => `// 时间轴上显示的名字。以前一律叫 "xxx · 记忆"，写信和记计划也这么写，看不出区别。
+const OB_TOOL_LABEL = {
+  hold: '记下来 · 记忆桶',
+  plan: '记下来 · 计划',
+  letter_write: '写信 · 信件',
+  anchor: '钉成坐标 · Anchor',
+  grow: '整理记忆 · grow',
+  trace: '更新记忆 · trace',
+  release: '解除 Anchor',
+};
+
+function parseOBToolCalls(text) {`);
+
+// 4) 提示词补上 trace / grow：不然聊天里只会 hold，OB 别的功能都用不上
+edit('提示词补上 trace 和 grow',
+  /【anchor】把某条已经存在的记忆钉成坐标系（冷参考，不主动浮现）/,
+  () => `【grow】把一整段对话/一天的事整理成一条记忆 → 存进记忆桶
+  content        整理好的内容（必填，一次调用写完，别拆成很多条 hold）
+
+【trace】改一条已经存在的记忆（要先知道它的 bucket_id）
+  bucket_id      必填
+  resolved       1 = 这件事过去了，让它沉底；0 = 重新激活
+  pinned         1 = 钉成核心（重要度锁 10，不衰减）
+  importance     1-10 的整数；取消 pinned 时必须同时给
+  content        整条正文替换掉
+
+【anchor】把某条已经存在的记忆钉成坐标系（冷参考，不主动浮现）`);
+
+// 5) 动作路由整个换掉：走 MCP 的 trace / anchor / release
 s = s.replace('// Dashboard API: bucket actions (pin/unpin/archive via Dashboard REST)\n', '');
 const OLD_ACTION_START = s.indexOf("app.post('/api/ombre-dashboard/buckets/:id/action'");
 const OLD_ACTION_END = s.indexOf("\n});", s.indexOf("[OB Action]", OLD_ACTION_START));
