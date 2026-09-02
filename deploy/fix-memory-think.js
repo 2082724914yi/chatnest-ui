@@ -190,7 +190,7 @@ edit('流式解析 think 标签',
         if (inner && thinkTrace) {
           thinkTrace.content += inner;
           thinkingText += inner;
-          cotState.addThinking(inner);
+          if (typeof cotState !== 'undefined' && cotState) cotState.addThinking(inner);
           sse(res, 'trace', { action: 'delta', id: thinkTrace.id, text: inner });
         }
         thinkBuf = thinkBuf.slice(j + 8).replace(/^\\s*\\n/, '');
@@ -204,7 +204,7 @@ edit('流式解析 think 标签',
       if (out2 && thinkTrace) {
         thinkTrace.content += out2;
         thinkingText += out2;
-        cotState.addThinking(out2);
+        if (typeof cotState !== 'undefined' && cotState) cotState.addThinking(out2);
         sse(res, 'trace', { action: 'delta', id: thinkTrace.id, text: out2 });
       }
       thinkBuf = thinkBuf.slice(thinkBuf.length - keep2);
