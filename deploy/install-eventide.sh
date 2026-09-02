@@ -12,7 +12,9 @@ UPSTREAM_DIR="$PREFIX/upstream"
 PORT=${EVENTIDE_PORT:-3100}
 BRANCH=${BRANCH:-main}
 UPSTREAM_REPO=${UPSTREAM_REPO:-https://github.com/chuli1122/Eventide.git}
-RAW="https://raw.githubusercontent.com/2082724914yi/cc-/$BRANCH/eventide-svc"
+# cc- 是私有仓库，raw 匿名拉一律 404 —— 服务代码必须放在公开的 chatnest-ui 里，
+# 跟其它部署脚本同源。
+RAW="https://raw.githubusercontent.com/2082724914yi/chatnest-ui/$BRANCH/deploy/eventide"
 SERVICE=eventide-svc
 
 ok(){ printf '  \033[32m√\033[0m %s\n' "$*"; }
