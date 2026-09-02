@@ -1150,7 +1150,8 @@ html[data-chat-bg="light"] .profile-name-input,html[data-chat-bg="light"] .profi
 .ob-search-input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 16px/1 var(--font-sans);color:#201f1d}
 .ob-search-input::placeholder{color:rgba(32,31,29,.42)}
 .ob-search-clear{flex:none;width:22px;height:22px;border-radius:50%;background:rgba(32,31,29,.28);color:#fff;font-size:13px;line-height:22px;text-align:center;border:0;padding:0}
-.ob-filters{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding:0 2px}.ob-filters::-webkit-scrollbar{display:none}
+/* 以前是横向滚动，最后一两个筛选（已消化）直接被切在屏幕外看不见，改成换行 */
+.ob-filters{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px}
 .ob-filter-pill{flex:none;padding:7px 14px;border:0;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);color:#77736c;font:500 14px/1 var(--font-sans);white-space:nowrap;backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px)}
 .ob-filter-pill.active{background:#201f1d;color:#fff;box-shadow:none}
 .ob-cards{display:flex;flex-direction:column;gap:10px}
@@ -1189,8 +1190,30 @@ html[data-chat-bg="light"] .profile-name-input,html[data-chat-bg="light"] .profi
 .ob-nav-item small{font:400 11px/1 var(--font-sans);color:#a6a39a;opacity:.7}
 .ob-nav-item.active{background:#201f1d;color:#fff;box-shadow:none}
 .ob-nav-item.active small{color:rgba(255,255,255,.6)}
-.ob-domain-filters{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:0 2px}.ob-domain-filters::-webkit-scrollbar{display:none}
+.ob-domain-filters{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px;max-height:78px;overflow-y:auto}
 .ob-domain-filters .ob-filter-pill{font-size:12px;padding:5px 10px}
+/* 卡片右边那一排标签 */
+.ob-card-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;margin-left:auto;max-width:62%}
+.ob-card-tag{padding:2px 7px;border-radius:999px;background:rgba(193,123,123,.13);color:#a86f6f;font:400 11px/1.5 var(--font-sans);white-space:nowrap}
+html[data-chat-bg="dark"] .ob-card-tag{background:rgba(255,255,255,.10);color:rgba(244,243,239,.62)}
+/* 记忆页标题栏右边那两个圆按钮（工具台 / 刷新） */
+.ob-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;justify-self:end}
+.ob-header-actions .profile-round-button{width:40px;height:40px;font-size:19px}
+/* 工具台 */
+.ob-tool-list{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.ob-tool-row{display:flex;align-items:baseline;gap:8px;width:100%;padding:12px 14px;border:0;border-radius:16px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);color:#201f1d;font:500 15px/1.2 var(--font-sans);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ob-tool-row small{color:#a6a39a;font:400 12px/1.2 var(--font-sans)}
+html[data-chat-bg="dark"] .ob-tool-row{background:rgba(28,28,30,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);color:#F4F3EF}
+.ob-tool-out{margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(32,31,29,.05);color:#4a4842;font:400 13px/1.6 var(--font-mono,var(--font-sans));white-space:pre-wrap;word-break:break-word;max-height:46dvh;overflow:auto}
+html[data-chat-bg="dark"] .ob-tool-out{background:rgba(255,255,255,.06);color:#E7E5DF}
+.ob-tool-back{margin-bottom:10px;padding:6px 12px;border:0;border-radius:999px;background:rgba(32,31,29,.06);color:#77736c;font:500 13px/1 var(--font-sans);cursor:pointer}
+/* 标签总览（原来的"日志"那一栏） */
+.ob-tag-cloud{display:flex;flex-wrap:wrap;gap:8px;padding:4px 2px 12px}
+.ob-tag-chip{display:flex;align-items:center;gap:6px;padding:7px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);color:#201f1d;font:500 13px/1 var(--font-sans);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ob-tag-chip b{font-weight:400;color:#a6a39a;font-size:12px}
+.ob-tag-chip.active{background:#201f1d;color:#fff}
+.ob-tag-chip.active b{color:rgba(255,255,255,.6)}
+html[data-chat-bg="dark"] .ob-tag-chip{background:rgba(28,28,30,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);color:#F4F3EF}
 .ob-section-content{min-height:120px}
 .ob-fab{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 24px);right:20px;width:52px;height:52px;border-radius:50%;background:#201f1d;color:#fff;font-size:28px;line-height:52px;text-align:center;border:0;box-shadow:0 4px 16px rgba(0,0,0,.22);cursor:pointer;z-index:10;-webkit-tap-highlight-color:transparent}
 .ob-fab:active{transform:scale(.92)}
@@ -1555,7 +1578,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
     <header class="profile-header">
       <button class="profile-round-button" id="closeMemoryOB" aria-label="Close">×</button>
       <div class="profile-title">Ombre Brain</div>
-      <button class="profile-round-button ob-refresh-btn" id="obRefreshBtn" aria-label="Refresh">↻</button>
+      <div class="ob-header-actions"><button class="profile-round-button ob-refresh-btn" id="obToolsBtn" aria-label="Tools">🧰</button><button class="profile-round-button ob-refresh-btn" id="obRefreshBtn" aria-label="Refresh">↻</button></div>
     </header>
     <div class="ob-status" id="obStatus"><span class="ob-dot"></span><span class="ob-status-text">connecting…</span></div>
     <div class="ob-search-wrap"><div class="ob-search-bubble"><span class="ob-search-icon" id="obSearchIcon"></span><input class="ob-search-input" id="obSearchInput" type="text" placeholder="搜一段没说出口的话…" autocomplete="off" autocorrect="off" spellcheck="false"><button class="ob-search-clear hidden" id="obSearchClear" aria-label="Clear">×</button></div></div>
@@ -1565,7 +1588,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
       <button class="ob-nav-item" data-ob-nav="letters"><span>信</span><small>Letters</small></button>
       <button class="ob-nav-item" data-ob-nav="anchors"><span>锚点</span><small>Anchors</small></button>
       <button class="ob-nav-item" data-ob-nav="feel"><span>Feel</span><small>Pulse</small></button>
-      <button class="ob-nav-item" data-ob-nav="logs"><span>日志</span><small>Logs</small></button>
+      <button class="ob-nav-item" data-ob-nav="tags"><span>标签</span><small>Tags</small></button>
     </div>
     <div class="ob-filters" id="obFilters">
       <button class="ob-filter-pill active" data-ob-filter="all">全部</button>
@@ -1662,6 +1685,13 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
       <div class="ob-add-handle"></div>
       <div class="ob-add-head"><div class="ob-add-title" id="obAddTitle">新增</div><button class="ob-add-close" id="obAddClose" aria-label="Close">×</button></div>
       <div id="obAddBody"></div>
+    </div>
+  </div>
+  <div class="ob-add-overlay hidden" id="obToolOverlay">
+    <div class="ob-add-sheet">
+      <div class="ob-add-handle"></div>
+      <div class="ob-add-head"><div class="ob-add-title" id="obToolTitle">工具台</div><button class="ob-add-close" id="obToolClose" aria-label="Close">×</button></div>
+      <div id="obToolBody"></div>
     </div>
   </div>
   <div class="memory-search-bar" id="memorySearchBar"><div class="memory-search-bubble"><span class="memory-search-icon"></span><input class="memory-search-input" id="memorySearchInput" type="text" placeholder="Search" autocomplete="off" autocorrect="off" spellcheck="false"><button class="memory-search-clear hidden" id="memorySearchClear" aria-label="Clear">×</button></div></div>
@@ -6749,6 +6779,27 @@ $('deleteProfile').onclick=async()=>{const ok=await askDialog({title:'Clear prof
 
 /* ── OB Memory Browser ── */
 let obBuckets=[],obFilter='all',obSearchQuery='',obSearchTimeout=null,obActiveNav='buckets',obCurrentDetail=null,obDomainFilter='all';
+let obTagSource=[],obTagPicked='';
+
+// 标签总览里点了某个标签，就在下面列出带这个标签的记忆
+function renderTagPicked(){
+  const box=$('obTagList');if(!box)return;
+  box.innerHTML='';
+  if(!obTagPicked)return;
+  const hit=obTagSource.filter(i=>[...(i.domains||[]),...(i.tags||[])].includes(obTagPicked));
+  const h=document.createElement('div');h.className='ob-plan-summary';
+  h.textContent=`「${obTagPicked}」· ${hit.length} 条`;
+  box.append(h);
+  hit.sort((a,b)=>(b.weight??-1)-(a.weight??-1)||(b.importance||0)-(a.importance||0));
+  hit.forEach(item=>box.append(obBucketCard(item)));
+}
+document.addEventListener('click',e=>{
+  const chip=e.target.closest('.ob-tag-chip');if(!chip)return;
+  const t=chip.dataset.obTag;
+  obTagPicked=(obTagPicked===t?'':t);
+  document.querySelectorAll('.ob-tag-chip').forEach(c=>c.classList.toggle('active',c.dataset.obTag===obTagPicked));
+  renderTagPicked();
+});
 document.querySelector('#obSearchIcon').innerHTML=icon('search');
 
 function setOBStatus(status){
@@ -6837,9 +6888,12 @@ function obBucketCard(item){
   const pinIcon=item.pinned?'📌 ':(String(item.type).toLowerCase()==='letter'?'💌 ':'');
   const imp=item.importance||0;
   const impPct=Math.min(100,imp/10*100);
-  const domainTags=(item.domains||[]).map(d=>'<span class="ob-detail-tag" style="font-size:11px;padding:2px 7px">'+_esc(d)+'</span>').join('');
   const ts=obWhen(item);
-  card.innerHTML=`<div class="ob-card-head"><div class="ob-card-name">${pinIcon}${_esc(obCleanTitle(item.name))}</div><div class="ob-importance-bar"><div class="ob-importance-track"><div class="ob-importance-fill" style="width:${impPct}%"></div></div><span class="ob-importance-val">${imp.toFixed?imp.toFixed(0):imp}</span></div></div><div class="ob-card-preview">${_esc(item.contentPreview||'')}</div><div class="ob-card-meta">${ts?'<span>'+ts+'</span>':''}${domainTags}${item.activationCount?'<span>'+item.activationCount+' act.</span>':''}${item.weight!=null?'<span>权重 '+Number(item.weight).toFixed(1)+'</span>':''}</div>`;
+  // 左边时间日期，右边标签（主题域排前面，然后是标签，最多 6 个）
+  const chips=[...(item.domains||[]),...(item.tags||[])].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  const shown=chips.slice(0,6).map(t=>'<span class="ob-card-tag">'+_esc(t)+'</span>').join('');
+  const more=chips.length>6?'<span class="ob-card-tag">+'+(chips.length-6)+'</span>':'';
+  card.innerHTML=`<div class="ob-card-head"><div class="ob-card-name">${pinIcon}${_esc(obCleanTitle(item.name))}</div><div class="ob-importance-bar"><div class="ob-importance-track"><div class="ob-importance-fill" style="width:${impPct}%"></div></div><span class="ob-importance-val">${imp.toFixed?imp.toFixed(0):imp}</span></div></div><div class="ob-card-preview">${_esc(item.contentPreview||'')}</div><div class="ob-card-meta">${ts?'<span>'+ts+'</span>':''}${item.activationCount?'<span>'+item.activationCount+' act.</span>':''}${item.weight!=null?'<span>权重 '+Number(item.weight).toFixed(1)+'</span>':''}${chips.length?'<div class="ob-card-tags">'+shown+more+'</div>':''}</div>`;
   card.onclick=()=>openOBDetail(item.id);
   return card;
 }
@@ -6940,7 +6994,7 @@ $('obNavGrid').addEventListener('click',e=>{
   obActiveNav=item.dataset.obNav;
   $('obNavGrid').querySelectorAll('.ob-nav-item').forEach(n=>n.classList.toggle('active',n.dataset.obNav===obActiveNav));
   loadOBSection(obActiveNav);
-  $('obFabAdd').classList.toggle('hidden',obActiveNav==='logs');
+  $('obFabAdd').classList.toggle('hidden',obActiveNav==='tags');
 });
 
 async function loadOBSection(section){
@@ -6994,37 +7048,59 @@ async function loadOBSection(section){
       cards.append(header);
       letters.forEach(item=>cards.append(obBucketCard(item)));
     }else if(section==='anchors'){
+      // anchor 是"坐标系"：钉住的那条不主动浮现，只在需要时当冷参考。
+      // 跟 pinned（核心准则，天天浮现）是两回事，所以这里只列真的 anchor。
       const r=await api('/api/ombre-dashboard/buckets');
       const data=r.ok?await r.json():{items:[]};
-      const anchored=(data.items||[]).filter(i=>i.anchor||i.pinned);
-      if(!anchored.length){cards.innerHTML='<div class="ob-empty">暂无锚点</div>';return}
-      cards.innerHTML='';
-      anchored.forEach(item=>{
-        const card=document.createElement('div');card.className='ob-card';
-        card.innerHTML=`<div class="ob-card-head"><div class="ob-card-name">⚓ ${_esc(item.name)}</div></div><div class="ob-card-preview">${_esc(item.contentPreview||'')}</div><div class="ob-card-meta">${item.createdAt?'<span>'+new Date(item.createdAt).toLocaleDateString('zh-CN')+'</span>':''}</div>`;
-        card.onclick=()=>openOBDetail(item.id);
-        cards.append(card);
-      });
+      const anchored=(data.items||[]).filter(i=>i.anchor);
+      const note=document.createElement('div');note.className='ob-plan-summary';
+      note.textContent='锚点 = 冷参考坐标系：不主动浮现，只在需要时被翻出来。想让一条天天浮现请用「钉选」。';
+      cards.innerHTML='';cards.append(note);
+      if(!anchored.length){const e=document.createElement('div');e.className='ob-empty';e.textContent='还没有锚点。点开任意一条记忆，选「设为 Anchor」。';cards.append(e);return}
+      anchored.forEach(item=>cards.append(obBucketCard(item)));
     }else if(section==='feel'){
+      // OB 的 feel 区要挂在一条已有记忆上（source_bucket），日常记心情给不出来，
+      // 所以那个区目前是空的。这里列的是"情绪类"记忆：feel 区 + domain 是情绪/感情/心理的。
       const r=await api('/api/ombre-dashboard/buckets');
       const data=r.ok?await r.json():{items:[]};
-      const feelItems=(data.items||[]).filter(i=>(i.domains&&(i.domains.includes('情绪')||i.domains.includes('心理')))||i.type==='feel'||i.valence!=null);
-      if(!feelItems.length){cards.innerHTML='<div class="ob-empty">暂无心情记录</div>';return}
+      const all=data.items||[];
+      const feelArea=all.filter(i=>String(i.type).toLowerCase()==='feel'||(i.domains||[]).includes('feel'));
+      const moodish=all.filter(i=>!feelArea.includes(i)&&(i.domains||[]).some(d=>['情绪','感情','心理'].includes(d)));
       cards.innerHTML='';
-      feelItems.forEach(item=>{
-        const card=document.createElement('div');card.className='ob-card';
-        const vStr=item.valence!=null?'V:'+item.valence:'';
-        const aStr=item.arousal!=null?'A:'+item.arousal:'';
-        const emotion=[vStr,aStr].filter(Boolean).join(' ');
-        card.innerHTML=`<div class="ob-card-head"><div class="ob-card-name">${_esc(item.name)}</div>${emotion?'<span style="font-size:12px;color:#a6a39a">'+emotion+'</span>':''}</div><div class="ob-card-preview">${_esc(item.contentPreview||'')}</div><div class="ob-card-meta">${item.createdAt?'<span>'+new Date(item.createdAt).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>':''}</div>`;
-        card.onclick=()=>openOBDetail(item.id);
+      const note=document.createElement('div');note.className='ob-plan-summary';
+      note.textContent=`feel 区 ${feelArea.length} 条 · 情绪类记忆 ${moodish.length} 条`;
+      cards.append(note);
+      const list=[...feelArea,...moodish];
+      if(!list.length){const e=document.createElement('div');e.className='ob-empty';e.textContent='还没有情绪类记忆';cards.append(e);return}
+      list.forEach(item=>{
+        const card=obBucketCard(item);
+        if(item.valence!=null||item.arousal!=null){
+          const m=card.querySelector('.ob-card-meta');
+          const s=document.createElement('span');
+          s.textContent=[item.valence!=null?'V '+item.valence:'',item.arousal!=null?'A '+item.arousal:''].filter(Boolean).join(' · ');
+          m.insertBefore(s,m.querySelector('.ob-card-tags')||null);
+        }
         cards.append(card);
       });
-    }else if(section==='logs'){
-      const r=await api('/api/ombre/breath',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
-      const data=r.ok?await r.json():{};
-      const content=data.result;
-      cards.innerHTML=content?'<div class="ob-card"><div class="ob-card-preview" style="-webkit-line-clamp:unset;white-space:pre-wrap">'+_esc(typeof content==='string'?content:JSON.stringify(content,null,2))+'</div></div>':'<div class="ob-empty">暂无日志</div>';
+    }else if(section==='tags'){
+      // 原来这一栏是"日志"，只把 breath 的原文糊成一大块，没什么用。
+      // 换成标签总览：哪些标签有多少条，点一下就只看那个标签的记忆。
+      const r=await api('/api/ombre-dashboard/buckets');
+      const data=r.ok?await r.json():{items:[]};
+      obTagSource=data.items||[];
+      const counts=new Map();
+      obTagSource.forEach(i=>[...(i.domains||[]),...(i.tags||[])].forEach(t=>{if(t)counts.set(t,(counts.get(t)||0)+1)}));
+      cards.innerHTML='';
+      if(!counts.size){cards.innerHTML='<div class="ob-empty">还没有任何标签</div>';return}
+      const sorted=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'zh'));
+      const note=document.createElement('div');note.className='ob-plan-summary';
+      note.textContent=`${sorted.length} 个标签 · 点一下只看这个标签的记忆`;
+      cards.append(note);
+      const cloud=document.createElement('div');cloud.className='ob-tag-cloud';
+      cloud.innerHTML=sorted.map(([t,n])=>'<button class="ob-tag-chip'+(obTagPicked===t?' active':'')+'" data-ob-tag="'+_esc(t)+'">'+_esc(t)+'<b>'+n+'</b></button>').join('');
+      cards.append(cloud);
+      const listBox=document.createElement('div');listBox.id='obTagList';cards.append(listBox);
+      if(obTagPicked)renderTagPicked();
     }
   }catch(e){cards.innerHTML='<div class="ob-empty">加载失败</div>'}
 }
@@ -7037,6 +7113,80 @@ $('obCards').addEventListener('click',e=>{
   // 以前"放弃"打的是 release（那只是解除 anchor，计划纹丝不动），改成标记已消化
   if(act==='digest'&&!confirm('确定要放弃这个计划吗？\n（会标记为已消化，不再浮现，但不会删掉）'))return;
   obBucketAction(id,act);
+});
+
+/* ── 工具台：OB 的工具在前端全都能用，跑完把 OB 的原话显示出来 ── */
+const OB_TOOLS=[
+  {k:'breath',      n:'breath',       d:'现在浮现什么（按权重）', path:'/api/ombre/breath', f:[]},
+  {k:'breath_search',n:'breath_search',d:'按关键词/语义找回记忆', path:'/api/ombre/breath-search', f:[{k:'query',l:'在想的这件事',req:1}]},
+  {k:'pulse',       n:'pulse',        d:'记忆系统总览',        path:'/api/ombre/pulse', f:[{k:'include_archive',l:'连归档一起看',type:'check'}]},
+  {k:'hold',        n:'hold',         d:'记一条进记忆桶',      path:'/api/ombre/hold', f:[{k:'content',l:'内容',type:'area',req:1},{k:'title',l:'标题'},{k:'domain',l:'主题域'},{k:'tags',l:'标签（逗号分隔）'},{k:'importance',l:'重要度 1-10',type:'num'},{k:'pinned',l:'钉选',type:'check'}]},
+  {k:'grow',        n:'grow',         d:'把一整段整理成一条',   path:'/api/ombre/grow', f:[{k:'content',l:'整理好的内容',type:'area',req:1}]},
+  {k:'plan',        n:'plan',         d:'记一个承诺（不衰减）', path:'/api/ombre/plan', f:[{k:'content',l:'承诺内容',type:'area',req:1},{k:'weight',l:'分量 0-1',type:'num'}]},
+  {k:'letter_write',n:'letter_write', d:'写一封信',           path:'/api/ombre/letter-write', f:[{k:'author',l:'谁写的（ai / user）'},{k:'title',l:'标题'},{k:'content',l:'正文',type:'area',req:1}]},
+  {k:'letter_read', n:'letter_read',  d:'读信',              path:'/api/ombre/letter-read', f:[]},
+  {k:'anchor',      n:'anchor',       d:'把一条钉成坐标系',    path:'/api/ombre/anchor', f:[{k:'bucket_id',l:'记忆 ID（详情页底下能复制）',req:1}]},
+  {k:'release',     n:'release',      d:'解除坐标系',         path:'/api/ombre/release', f:[{k:'bucket_id',l:'记忆 ID',req:1}]},
+  {k:'trace',       n:'trace',        d:'改一条已有的记忆',    path:'/api/ombre/trace', f:[{k:'bucket_id',l:'记忆 ID',req:1},{k:'resolved',l:'标记已解决（1/0）',type:'num'},{k:'pinned',l:'钉选（1/0）',type:'num'},{k:'importance',l:'重要度 1-10',type:'num'},{k:'content',l:'替换正文',type:'area'}]},
+  {k:'feel',        n:'feel',         d:'查以前对某事的感受',   path:'/api/ombre/feel', f:[{k:'query',l:'在想的这件事',req:1}]},
+  {k:'dream',       n:'dream',        d:'让它自己做一次梦',    path:'/api/ombre/dream', f:[]},
+];
+function openObTools(){
+  const body=$('obToolBody');
+  $('obToolTitle').textContent='工具台';
+  body.innerHTML='<div class="ob-tool-list">'+OB_TOOLS.map(t=>
+    '<button class="ob-tool-row" data-ob-tool="'+t.k+'">'+_esc(t.n)+' <small>'+_esc(t.d)+'</small></button>').join('')+'</div>';
+  $('obToolOverlay').classList.remove('hidden');
+}
+function openObToolForm(key){
+  const t=OB_TOOLS.find(x=>x.k===key);if(!t)return;
+  const body=$('obToolBody');
+  $('obToolTitle').textContent=t.n;
+  body.innerHTML='<button class="ob-tool-back" id="obToolBack">‹ 全部工具</button>'+
+    t.f.map(f=>{
+      const id='obTF_'+f.k;
+      if(f.type==='check')return '<label class="ob-add-check"><input type="checkbox" id="'+id+'"><span>'+_esc(f.l)+'</span></label>';
+      if(f.type==='area')return '<div class="ob-add-field"><div class="ob-add-label">'+_esc(f.l)+'</div><textarea class="ob-add-input" id="'+id+'" rows="4"></textarea></div>';
+      return '<div class="ob-add-field"><div class="ob-add-label">'+_esc(f.l)+'</div><input class="ob-add-input" id="'+id+'"'+(f.type==='num'?' type="number"':'')+'></div>';
+    }).join('')+
+    '<button class="ob-add-submit" id="obToolRun">运行 '+_esc(t.n)+'</button><div class="ob-tool-out hidden" id="obToolOut"></div>';
+  $('obToolBack').onclick=openObTools;
+  $('obToolRun').onclick=()=>runObTool(t);
+}
+async function runObTool(t){
+  const btn=$('obToolRun'),out=$('obToolOut');
+  const payload={};
+  for(const f of t.f){
+    const el=$('obTF_'+f.k);if(!el)continue;
+    if(f.type==='check'){if(el.checked)payload[f.k]=true;continue}
+    const v=(el.value||'').trim();
+    if(!v){if(f.req){toast('「'+f.l+'」要填');return}continue}
+    payload[f.k]=f.type==='num'?Number(v):v;
+  }
+  btn.disabled=true;const t0=Date.now();
+  out.classList.remove('hidden');out.textContent='跑着呢…';
+  try{
+    const r=await api(t.path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    let d=null;try{d=await r.json()}catch(e){}
+    const ms=((Date.now()-t0)/1000).toFixed(1);
+    const okFlag=r.ok&&!(d&&d.ok===false);
+    const text=(d&&(d.result||d.message))||JSON.stringify(d||{},null,2);
+    // 前端调工具也要看得见跑了什么、OB 回了什么
+    out.textContent=(okFlag?'✓ ':'✗ ')+t.n+'  '+ms+'s\n'+
+      '入参 '+JSON.stringify(payload,null,0)+'\n\n'+
+      (typeof text==='string'?text:JSON.stringify(text,null,2));
+    if(okFlag&&/^(hold|grow|plan|letter_write|anchor|release|trace)$/.test(t.k)){
+      if(obActiveNav==='buckets')loadOBData();else loadOBSection(obActiveNav);
+    }
+  }catch(e){out.textContent='✗ '+t.n+'\n'+(e&&e.message||'失败')}
+  finally{btn.disabled=false}
+}
+$('obToolsBtn').onclick=openObTools;
+$('obToolClose').onclick=()=>$('obToolOverlay').classList.add('hidden');
+$('obToolOverlay').onclick=e=>{if(e.target===$('obToolOverlay'))$('obToolOverlay').classList.add('hidden')};
+$('obToolBody').addEventListener('click',e=>{
+  const row=e.target.closest('[data-ob-tool]');if(!row)return;
+  openObToolForm(row.dataset.obTool);
 });
 
 /* FAB: dynamic per-tab add form */
