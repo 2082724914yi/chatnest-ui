@@ -38,6 +38,7 @@ fix-breath-window.js|BREATH_TIMEOUT_MS|新窗浮现记忆别被掐掉
 fix-ob-toolbench.js|TRACE_PASSTHROUGH|trace 透传 + 搜标签
 fix-ob-prompt2.js|查过去的事不要调工具|工具一一对应 + 不复述
 fix-empty-turn.js|_stderrTail|空回合不再吞掉
+add-eventide.js|EVENTIDE_STATE_FILE|身体状态系统
 "
 
 say "1/3 逐个补丁检查"
