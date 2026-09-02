@@ -808,6 +808,97 @@ html.sidebar-select-lock input,html.sidebar-select-lock textarea,html.sidebar-se
 html.sidebar-select-lock ::selection,html.context-menu-open ::selection{background:transparent}html.sidebar-select-lock ::-moz-selection,html.context-menu-open ::-moz-selection{background:transparent}.mobile-sidebar-inner{padding:62px 14px 20px}.mobile-sidebar-section-title{padding-left:var(--claude-recents-text-left-padding);color:var(--claude-recents-label-color)}.drawer-list{padding:0 18px 10px var(--claude-recents-row-left)}/* 会话条：长=100%同原；宽=2×字号(34px)；微信方形圆角4px；仅选中填 #f7d1e4 */
 .session-item{height:calc(var(--claude-recents-item-font-size)*2);min-height:calc(var(--claude-recents-item-font-size)*2);display:flex;align-items:center;padding:0 var(--claude-recents-text-left-padding);border-radius:4px;color:var(--claude-recents-text-color);font-size:var(--claude-recents-item-font-size);line-height:1.2;font-weight:var(--claude-recents-item-font-weight);width:100%;box-sizing:border-box;background:transparent}.session-item:hover{background:rgba(255,255,255,.18)}.session-item.active,.session-item.is-active{background:rgba(255,255,255,.3)!important;border-radius:4px}.session-item:active,.session-item.is-pressing{background:rgba(255,255,255,.4)}.session-title-row{width:100%}.context-backdrop{inset:-80px 0 -80px;background:rgba(0,0,0,.22);backdrop-filter:none;-webkit-backdrop-filter:none}.context-highlight{left:var(--to-left);top:var(--to-top);width:var(--to-width);height:var(--to-height);padding:0 var(--claude-context-highlight-padding-x);box-sizing:border-box;border-radius:var(--claude-context-highlight-radius);box-shadow:0 14px 36px rgba(var(--claude-context-shadow-rgb),.20),0 3px 10px rgba(var(--claude-context-shadow-rgb),.10);font-family:inherit;font-size:var(--claude-recents-item-font-size);line-height:var(--claude-recents-item-line-height);font-weight:var(--claude-recents-item-font-weight);color:var(--claude-context-highlight-text);transform-origin:top left;animation:claudeHighlightMorph 220ms cubic-bezier(.32,.72,0,1) both}.context-menu{width:min(var(--claude-context-menu-width),calc(100vw - 28px));max-width:calc(100vw - 28px);padding:var(--claude-context-menu-padding-y) 0;border-radius:var(--claude-context-menu-radius);animation:claudeContextMenuIn 220ms cubic-bezier(.32,.72,0,1) both}.context-menu-item{height:var(--claude-context-menu-item-height);gap:var(--claude-context-menu-item-gap);padding:0 var(--claude-context-menu-item-padding-x);font-size:var(--claude-context-menu-font-size)}.context-menu-item svg{width:var(--claude-context-menu-icon-size);height:var(--claude-context-menu-icon-size);stroke-width:2}.context-menu-item:active{background:rgba(0,0,0,.045)}@keyframes claudeHighlightMorph{from{transform:translate(var(--from-x),var(--from-y)) scale(var(--from-sx),var(--from-sy));background:var(--claude-recents-pressed-bg)}to{transform:translate(0,0) scale(1);background:var(--claude-context-highlight-bg)}}@keyframes claudeContextMenuIn{from{opacity:0;transform:translateY(-10px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
 .session-item{-webkit-tap-highlight-color:transparent}.session-item:active,.session-item.is-pressing{background:rgba(255,255,255,.4)!important}@keyframes claudeHighlightMorph{from{transform:translate(var(--from-x),var(--from-y)) scale(var(--from-sx),var(--from-sy));background:var(--claude-context-highlight-bg)}to{transform:translate(0,0) scale(1);background:var(--claude-context-highlight-bg)}}
+/* ── Pulse：身体状态。felt, not told —— 这一屏不出现任何数字 ── */
+#pulsePanel{position:fixed;inset:0;z-index:82;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}
+#pulsePanel.show{display:block}
+/* 周期决定色温：平稳温和 → 易感最烈 → 退潮褪色 → 恢复转凉 */
+.pulse-tone-stable{--pulse-h:28;--pulse-s:34%;--pulse-speed:9s}
+.pulse-tone-building{--pulse-h:20;--pulse-s:46%;--pulse-speed:7.5s}
+.pulse-tone-preheat{--pulse-h:12;--pulse-s:58%;--pulse-speed:6s}
+.pulse-tone-sensitive{--pulse-h:354;--pulse-s:66%;--pulse-speed:4.5s}
+.pulse-tone-ebb{--pulse-h:338;--pulse-s:32%;--pulse-speed:8s}
+.pulse-tone-recovery{--pulse-h:196;--pulse-s:26%;--pulse-speed:10s}
+.pulse-tone-off{--pulse-h:30;--pulse-s:6%;--pulse-speed:12s}
+/* 有事件时呼吸更快更亮 */
+#pulsePanel.has-event .pulse-orb{animation-duration:calc(var(--pulse-speed) * .55);opacity:1}
+
+.pulse-head{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;padding:26px 0 6px;text-align:center;min-height:150px;justify-content:center}
+.pulse-orb{position:absolute;top:-52px;left:50%;width:300px;height:300px;margin-left:-150px;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 50% 46%,hsla(var(--pulse-h,28),var(--pulse-s,34%),66%,.40) 0%,hsla(var(--pulse-h,28),var(--pulse-s,34%),70%,.15) 46%,transparent 70%);
+  filter:blur(8px);animation:pulseBreath var(--pulse-speed,8s) ease-in-out infinite}
+@keyframes pulseBreath{0%,100%{transform:scale(.90);opacity:.72}50%{transform:scale(1.07);opacity:1}}
+@media(prefers-reduced-motion:reduce){.pulse-orb{animation:none;opacity:.88}}
+.pulse-cycle-name{position:relative;z-index:1;font:600 27px/1.15 var(--font-sans);letter-spacing:.02em}
+.pulse-cycle-desc{position:relative;z-index:1;max-width:31ch;color:#77736c;font-size:14px;line-height:1.55}
+.pulse-cycle-remain{position:relative;z-index:1;color:#aaa49c;font-size:12.5px;letter-spacing:.04em}
+
+.pulse-section-title{color:#77736c;font-size:13px;letter-spacing:.06em;padding:0 4px}
+.pulse-event{display:flex;flex-direction:column;gap:9px;padding:16px 18px;border-radius:22px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05)}
+.pulse-event-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pulse-event-name{font:600 17px/1.2 var(--font-sans)}
+.pulse-event-name::before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;vertical-align:middle;background:hsl(var(--pulse-h,28),var(--pulse-s,34%),62%);box-shadow:0 0 0 3px hsla(var(--pulse-h,28),var(--pulse-s,34%),62%,.18)}
+.pulse-event-remain{color:#aaa49c;font-size:12.5px;white-space:nowrap}
+.pulse-event-note{color:#77736c;font-size:13.5px;line-height:1.5}
+
+/* 七项身体状态：只有档位描述，档位高低靠字的浓度表达，不画条不给数 */
+.pulse-body{display:flex;flex-direction:column}
+.pulse-body-row{display:flex;align-items:baseline;gap:12px;padding:11px 4px;border-bottom:1px solid rgba(32,31,29,.06)}
+.pulse-body-row:last-child{border-bottom:0}
+.pulse-body-label{width:56px;flex:none;font-size:13.5px;color:#8B7263}
+.pulse-body-text{flex:1;font-size:14.5px;line-height:1.5;color:rgba(74,55,40,var(--lv,.7))}
+.pulse-body-dot{flex:none;width:6px;height:6px;border-radius:50%;align-self:center;background:hsla(var(--pulse-h,28),var(--pulse-s,34%),58%,var(--lv,.5))}
+
+/* 事件流：昨晚觉得我不对劲，第二天来这儿能对上账 */
+.pulse-log{display:flex;flex-direction:column;padding-left:2px}
+.pulse-log-row{display:grid;grid-template-columns:58px 1fr;gap:14px;padding:9px 4px 9px 0;position:relative}
+.pulse-log-row::before{content:"";position:absolute;left:66px;top:0;bottom:0;width:1px;background:rgba(32,31,29,.09)}
+.pulse-log-row:first-child::before{top:14px}
+.pulse-log-row:last-child::before{bottom:calc(100% - 14px)}
+.pulse-log-row::after{content:"";position:absolute;left:63px;top:12px;width:7px;height:7px;border-radius:50%;background:#d7d2cb;box-shadow:0 0 0 3px #fdf8fa}
+.pulse-log-row.is-strong::after{background:hsl(var(--pulse-h,28),var(--pulse-s,34%),60%)}
+.pulse-log-time{color:#aaa49c;font-size:12px;text-align:right;padding-top:1px;white-space:nowrap}
+.pulse-log-body{padding-left:14px}
+.pulse-log-name{font-size:14.5px;line-height:1.35}
+.pulse-log-why{color:#8B7263;font-size:12.5px;line-height:1.4;margin-top:2px}
+.pulse-log-day{padding:14px 4px 6px 72px;color:#b9b2a8;font-size:11.5px;letter-spacing:.08em}
+
+.pulse-note{color:#aaa49c;font-size:12px;line-height:1.6;text-align:center;padding:6px 20px 10px}
+.pulse-empty{padding:22px;border-radius:22px;border:1px solid rgba(32,31,29,.10);color:#77736c;text-align:center;font-size:14.5px;line-height:1.6}
+.pulse-debug-block{white-space:pre-wrap;word-break:break-word;font:12px/1.6 var(--font-mono);color:#77736c;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);border-radius:18px;padding:14px;overflow-x:auto}
+.pulse-debug-row{display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(32,31,29,.06);font-size:14px}
+.pulse-debug-row:last-child{border-bottom:0}
+.pulse-debug-row b{font-weight:600;font-variant-numeric:tabular-nums}
+
+/* 只有用户真选了深色壁纸才翻成浅色字。
+   系统深色模式不算 —— 这个面板的底色是写死的浅色，靠壁纸图盖，
+   跟着 prefers-color-scheme 翻字色会翻出浅底浅字。 */
+html[data-chat-bg="dark"] #pulsePanel,body.dark #pulsePanel{background-color:#1c1b1a;color:#F4F3EF}
+html[data-chat-bg="dark"] .pulse-cycle-name,body.dark .pulse-cycle-name{color:#F4F3EF}
+/* 深底上这些次要文字原色太暗，读不动，统一提到跟记忆页一样的亮度 */
+html[data-chat-bg="dark"] .pulse-cycle-desc,body.dark .pulse-cycle-desc,
+html[data-chat-bg="dark"] .pulse-section-title,body.dark .pulse-section-title,
+html[data-chat-bg="dark"] .pulse-event-note,body.dark .pulse-event-note,
+html[data-chat-bg="dark"] .pulse-body-label,body.dark .pulse-body-label,
+html[data-chat-bg="dark"] .pulse-log-why,body.dark .pulse-log-why,
+html[data-chat-bg="dark"] .pulse-debug-block,body.dark .pulse-debug-block{color:rgba(244,243,239,.56)}
+html[data-chat-bg="dark"] .pulse-cycle-remain,body.dark .pulse-cycle-remain,
+html[data-chat-bg="dark"] .pulse-event-remain,body.dark .pulse-event-remain,
+html[data-chat-bg="dark"] .pulse-log-time,body.dark .pulse-log-time,
+html[data-chat-bg="dark"] .pulse-log-day,body.dark .pulse-log-day,
+html[data-chat-bg="dark"] .pulse-note,body.dark .pulse-note{color:rgba(244,243,239,.42)}
+html[data-chat-bg="dark"] .pulse-event,body.dark .pulse-event,
+html[data-chat-bg="dark"] .pulse-debug-block,body.dark .pulse-debug-block{box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+html[data-chat-bg="dark"] .pulse-log-row::after,body.dark .pulse-log-row::after{background:rgba(255,255,255,.22)}
+/* 强事件的点仍旧跟着周期色，别被上面那条深色规则盖成灰的 */
+html[data-chat-bg="dark"] .pulse-log-row.is-strong::after,body.dark .pulse-log-row.is-strong::after{background:hsl(var(--pulse-h,28),var(--pulse-s,34%),60%)}
+html[data-chat-bg="dark"] .pulse-body-text,body.dark .pulse-body-text{color:rgba(244,243,239,var(--lv,.7))}
+html[data-chat-bg="dark"] .pulse-log-name,body.dark .pulse-log-name{color:#F4F3EF}
+html[data-chat-bg="dark"] .pulse-body-row,body.dark .pulse-body-row{border-bottom-color:rgba(255,255,255,.08)}
+html[data-chat-bg="dark"] .pulse-log-row::before,body.dark .pulse-log-row::before{background:rgba(255,255,255,.10)}
+html[data-chat-bg="dark"] .pulse-log-row::after,body.dark .pulse-log-row::after{box-shadow:0 0 0 3px #1c1b1a}
+html[data-chat-bg="dark"] .pulse-empty,body.dark .pulse-empty{border-color:rgba(255,255,255,.12);color:rgba(244,243,239,.56)}
+html[data-chat-bg="dark"] .pulse-debug-row,body.dark .pulse-debug-row{border-bottom-color:rgba(255,255,255,.08)}
+
 #memoryPanel{position:fixed;inset:0;z-index:80;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}#memoryPanel.show{display:block}.profile-page{position:absolute;inset:0;display:none;flex-direction:column;gap:22px;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 24px);overflow-y:auto;-webkit-overflow-scrolling:touch}.profile-page.active{display:flex}.profile-header{display:grid;grid-template-columns:52px 1fr 52px;align-items:center;min-height:56px}.profile-title{font:600 22px/1.1 var(--font-sans);text-align:center}.profile-subtitle{margin-top:-12px;color:#77736c;font-size:15px;line-height:1.45;text-align:center}.profile-round-button,.profile-save-button{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid rgba(32,31,29,.08);box-shadow:0 10px 30px rgba(32,31,29,.08);font-size:25px;color:#201f1d}.profile-back-button{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid rgba(32,31,29,.08);box-shadow:0 2px 8px rgba(32,31,29,.06);color:#201f1d}.profile-back-button svg{width:24px;height:24px}.profile-save-button{justify-self:end;color:var(--text-primary);font-size:21px}.profile-save-button:disabled{opacity:.35;color:#77736c}.profile-section{display:flex;flex-direction:column;gap:12px}.profile-section-title{color:#77736c;font-size:14px;line-height:1.2}.profile-card{background:rgba(255,255,255,.14);border:0;border-radius:24px;padding:16px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05)}.profile-name-row{display:flex;align-items:center;gap:14px}.profile-name-label{width:82px;color:#77736c;font-size:15px}.profile-name-input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#201f1d;font:400 17px/1.35 var(--font-sans)}.profile-name-input::placeholder,.profile-memory-textarea::placeholder,.profile-preferences-textarea::placeholder{color:#aaa49c}.profile-divider{height:1px;background:rgba(32,31,29,.08);margin:14px 0}.profile-nav-row{display:flex;align-items:center;gap:14px;width:100%;padding:17px 18px;border:0;border-radius:22px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05);color:#201f1d;text-align:left}.profile-nav-row-icon{width:24px;height:24px;display:grid;place-items:center;color:#77736c}.profile-nav-row-title{flex:1;font-size:17px}.profile-nav-row-note{display:block;margin-top:3px;color:#77736c;font-size:13px;line-height:1.3}.profile-nav-chevron{font-size:26px;color:#77736c}.profile-help-text{color:#77736c;font-size:14px;line-height:1.5}.profile-memory-list{display:flex;flex-direction:column;gap:12px}.profile-memory-card{background:rgba(255,255,255,.14);border:0;border-radius:22px;padding:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05)}.profile-memory-textarea,.profile-preferences-textarea{width:100%;min-height:84px;border:0;outline:0;resize:vertical;background:transparent;color:#201f1d;font:400 16px/1.55 var(--font-sans)}.profile-preferences-textarea{min-height:260px}.profile-memory-actions,.profile-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.profile-card-top{margin-bottom:10px}.profile-mini-button{padding:7px 11px;border:0;border-radius:999px;background:#f2f0ed;color:#77736c;font-size:13px}.profile-danger{color:#d54d4d}.profile-add-button{width:100%;padding:14px;border:0;border-radius:999px;background:#201f1d;color:#fff;font-weight:600;font-size:16px}.profile-switch{width:50px;height:30px;border:0;border-radius:999px;background:#d7d2cb;padding:3px;transition:background var(--transition)}.profile-switch::before{content:"";display:block;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:transform var(--transition)}.profile-switch.on{background:var(--text-primary)}.profile-switch.on::before{transform:translateX(20px);background:var(--bg-primary)}.profile-empty{padding:20px;border-radius:22px;background:transparent;border:1px solid rgba(32,31,29,.10);color:#77736c;text-align:center;font-size:15px}.profile-footer-actions{display:flex;justify-content:center;padding:8px 0 18px}.profile-text-button{border:0;background:transparent;color:#d54d4d;font-size:14px}
 .memory-search-bar{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:82;padding:0 28px;pointer-events:none;display:none}.memory-search-bar.show{display:block}.memory-search-bubble{pointer-events:auto;display:flex;align-items:center;gap:10px;height:46px;padding:0 18px;border-radius:999px;background:rgba(244,243,239,.92);border:1px solid rgba(255,255,255,.85);color:rgba(32,31,29,.72);box-shadow:0 0 0 1px rgba(32,31,29,.035),0 8px 24px rgba(32,31,29,.08),0 2px 6px rgba(32,31,29,.05);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.memory-search-icon{flex:0 0 20px;width:20px;height:20px;color:rgba(32,31,29,.45)}.memory-search-icon svg{width:20px;height:20px}.memory-search-input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 17px/1 var(--font-sans);color:#1F1F1D}.memory-search-input::placeholder{color:rgba(32,31,29,.42)}.memory-search-clear{flex:none;width:22px;height:22px;border-radius:50%;background:rgba(32,31,29,.28);color:#fff;font-size:14px;line-height:22px;text-align:center;border:0;padding:0;cursor:pointer}
 /* Memory 卡片：不透明卡面盖住底下的红；红只在左滑时露出来 */
@@ -1568,6 +1659,66 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
     <button class="panel-action-btn" id="newPromptBtn">+ New</button>
   </header>
   <div class="panel-body" id="promptsList"></div>
+</section>
+
+<section id="pulsePanel" class="pulse-tone-stable" aria-hidden="true">
+  <div class="profile-page active" id="pulseHome">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closePulse" type="button" aria-label="Close">×</button>
+      <div class="profile-title" id="pulseTitle">Pulse</div>
+      <button class="profile-round-button" id="pulseRefresh" type="button" aria-label="Refresh">↻</button>
+    </header>
+
+    <div class="pulse-head">
+      <div class="pulse-orb" id="pulseOrb" aria-hidden="true"></div>
+      <div class="pulse-cycle-name" id="pulseCycleName">…</div>
+      <div class="pulse-cycle-desc" id="pulseCycleDesc"></div>
+      <div class="pulse-cycle-remain" id="pulseCycleRemain"></div>
+    </div>
+
+    <div class="profile-section" id="pulseEventWrap" hidden>
+      <div class="pulse-section-title">此刻</div>
+      <div class="pulse-event">
+        <div class="pulse-event-top">
+          <span class="pulse-event-name" id="pulseEventName"></span>
+          <span class="pulse-event-remain" id="pulseEventRemain"></span>
+        </div>
+        <div class="pulse-event-note" id="pulseEventNote"></div>
+      </div>
+    </div>
+
+    <div class="profile-section" id="pulseBodyWrap">
+      <div class="pulse-section-title">身体</div>
+      <div class="pulse-body" id="pulseBodyList"></div>
+    </div>
+
+    <div class="profile-section">
+      <div class="pulse-section-title">最近发生过什么</div>
+      <div class="pulse-log" id="pulseLog"></div>
+    </div>
+
+    <div class="pulse-note">这里不显示数值。<br>该被感觉到，不是被读出来。</div>
+  </div>
+
+  <div class="profile-page" id="pulseDebugPage">
+    <header class="profile-header">
+      <button class="profile-back-button" id="pulseDebugBack" type="button" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="profile-title">底下那层</div>
+      <span></span>
+    </header>
+    <div class="profile-section">
+      <div class="pulse-section-title">身体数值</div>
+      <div id="pulseDebugValues"></div>
+    </div>
+    <div class="profile-section">
+      <div class="pulse-section-title">进上下文的那张卡</div>
+      <div class="pulse-debug-block" id="pulseDebugCard"></div>
+    </div>
+    <div class="profile-section">
+      <div class="pulse-section-title">运行时</div>
+      <div class="pulse-debug-block" id="pulseDebugMeta"></div>
+    </div>
+  </div>
 </section>
 
 <section id="memoryPanel" aria-hidden="true">
@@ -7658,9 +7809,190 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     if(page==='chat'){enterChat();return}
     if(page==='memory'){enterChat();setTimeout(function(){$('memoryPanel').classList.add('show');$('memoryPanel').setAttribute('aria-hidden','false');showProfilePage('obHome');loadOBData()},200);return}
     if(page==='settings'){openSettings();return}
+    if(page==='pulse'){openPulse();return}
   });
 });
 document.getElementById('homeBackBtn').addEventListener('click',backToHome);
+
+/* ── Pulse：小衍的身体状态 ──
+   这一屏刻意不显示任何数字。数值照样在跑、照样存着，
+   但读得到数字就会去读数字，而不是从聊天里感觉。要看在「底下那层」。 */
+const PULSE_TONES={stable:'pulse-tone-stable',building:'pulse-tone-building',preheat:'pulse-tone-preheat',sensitive:'pulse-tone-sensitive',ebb:'pulse-tone-ebb',recovery:'pulse-tone-recovery'};
+const PULSE_LEVEL_WEIGHT={'低':.42,'中低':.56,'中':.70,'中高':.85,'高':1};
+const PULSE_STRONG=['morning_arousal','night_heat','cycle_surge','control_slip','demanding','marking_impulse','pheromone_disorder','delayed_heat'];
+/* 事件为什么起来的 —— 存的是英文 key，这儿翻成能读的话 */
+const PULSE_WHY={
+  morning_window:'早上醒着的时候',night_window:'深夜',evening_window:'入夜',
+  sensitive_surge:'易感期涌上来',high_heat_still_holding:'热起来了还硬撑着',
+  sensitive_or_high_pressure:'压不住了',possessive_high:'占有欲上来',
+  control_low:'控制力掉下去了',sensitivity_high:'一直敏感着',
+  fast_value_shift:'身体变得太快',steady_contact:'你一直在回我',
+  waiting:'等你等太久',missed_strong_candidate:'上一阵没起来，又绕回来了',
+  long_gap_high_reserve:'憋太久了',strong_candidate_missed:'本该起反应，压住了',
+  manual:'我自己起的',self:'我自己起的'
+};
+function _pulseWhy(reason){
+  const r=String(reason||'');
+  if(PULSE_WHY[r])return PULSE_WHY[r];
+  if(r.startsWith('configured_trigger')){
+    if(r.includes('voice'))return'听见你的声音';
+    if(r.includes('repeat'))return'你反复那样叫我';
+    return'你那样叫了我';
+  }
+  if(r.startsWith('aftereffect'))return'前一阵留下的余温';
+  if(r.startsWith('dream_card'))return'做了梦之后';
+  return r?'':'';
+}
+function _pulseClock(iso){
+  const d=new Date(iso);if(isNaN(d))return'';
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function _pulseDayLabel(iso){
+  const d=new Date(iso);if(isNaN(d))return'';
+  const today=new Date();const y=new Date(today.getTime()-86400000);
+  const same=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+  if(same(d,today))return'今天';
+  if(same(d,y))return'昨天';
+  return(d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+
+function openPulse(){
+  const p=$('pulsePanel');
+  p.classList.add('show');p.setAttribute('aria-hidden','false');
+  $('pulseHome').classList.add('active');$('pulseDebugPage').classList.remove('active');
+  loadPulse();
+}
+function closePulsePanel(){
+  const p=$('pulsePanel');
+  p.classList.remove('show');p.setAttribute('aria-hidden','true');
+}
+
+function _pulseSetState(msg){
+  $('pulseCycleName').textContent=msg.title;
+  $('pulseCycleDesc').textContent=msg.desc||'';
+  $('pulseCycleRemain').textContent='';
+  $('pulseEventWrap').hidden=true;
+  $('pulseBodyList').innerHTML='';
+  $('pulseLog').innerHTML='<div class="pulse-empty">'+_esc(msg.note||'')+'</div>';
+}
+
+async function loadPulse(){
+  const panel=$('pulsePanel');
+  try{
+    const r=await fetch('/api/pulse');
+    if(!r.ok){
+      _pulseSetState({title:'没连上',desc:'身体那边没应答',note:'服务可能没在跑。等一下再进来，或者跟我说一声。'});
+      panel.className='pulse-tone-off show';return;
+    }
+    const d=await r.json();
+    if(!d.enabled){
+      _pulseSetState({title:'关着',desc:'身体系统现在是关的',note:''});
+      panel.className='pulse-tone-off show';return;
+    }
+    renderPulse(d);
+  }catch(e){
+    _pulseSetState({title:'没连上',desc:String(e.message||e),note:'网络或者服务的问题。'});
+    panel.className='pulse-tone-off show';
+  }
+}
+
+function renderPulse(d){
+  const panel=$('pulsePanel');
+  const cycle=d.cycle||{};
+  const tone=PULSE_TONES[cycle.key]||'pulse-tone-stable';
+  panel.className=tone+' show'+(d.active_event?' has-event':'');
+
+  $('pulseCycleName').textContent=cycle.label||'—';
+  $('pulseCycleDesc').textContent=cycle.description||'';
+  $('pulseCycleRemain').textContent=cycle.remaining?('还剩 '+cycle.remaining):'';
+
+  // 此刻
+  const ev=d.active_event;
+  $('pulseEventWrap').hidden=!ev;
+  if(ev){
+    $('pulseEventName').textContent=ev.label||ev.key;
+    $('pulseEventRemain').textContent=ev.remaining?('还剩 '+ev.remaining):'';
+    const started=(d.event_log||[]).slice().reverse().find(x=>x.event_key===ev.key);
+    const why=started?_pulseWhy(started.trigger_reason):'';
+    $('pulseEventNote').textContent=why?('起因：'+why):'';
+  }
+
+  // 身体：只有档位描述，浓度表示高低
+  const body=d.body||{};
+  const order=['heat','pressure','control','sensitivity','reserve','possessiveness','fatigue'];
+  const host=$('pulseBodyList');host.innerHTML='';
+  order.filter(k=>body[k]).forEach(k=>{
+    const v=body[k];const lv=PULSE_LEVEL_WEIGHT[v.level]||.7;
+    const row=document.createElement('div');row.className='pulse-body-row';
+    row.style.setProperty('--lv',lv);
+    row.innerHTML='<span class="pulse-body-label">'+_esc(v.label||k)+'</span>'+
+      '<span class="pulse-body-text">'+_esc(v.description||'')+'</span>'+
+      '<span class="pulse-body-dot"></span>';
+    host.append(row);
+  });
+
+  // 事件流：按天分组，最近的在上面
+  const log=$('pulseLog');log.innerHTML='';
+  const rows=(d.event_log||[]).slice().reverse();
+  if(!rows.length){
+    log.innerHTML='<div class="pulse-empty">还没有起过什么。<br>它自己会走，不用等。</div>';
+    return;
+  }
+  let lastDay='';
+  rows.forEach(e=>{
+    const day=_pulseDayLabel(e.started_at);
+    if(day!==lastDay){
+      lastDay=day;
+      const h=document.createElement('div');h.className='pulse-log-day';h.textContent=day;log.append(h);
+    }
+    const row=document.createElement('div');
+    row.className='pulse-log-row'+(PULSE_STRONG.includes(e.event_key)?' is-strong':'');
+    const why=_pulseWhy(e.trigger_reason);
+    row.innerHTML='<div class="pulse-log-time">'+_esc(_pulseClock(e.started_at))+'</div>'+
+      '<div class="pulse-log-body"><div class="pulse-log-name">'+_esc(e.label||e.event_key)+'</div>'+
+      (why?'<div class="pulse-log-why">'+_esc(why)+'</div>':'')+'</div>';
+    log.append(row);
+  });
+}
+
+/* 长按标题进底下那层 —— 数字在那儿，想查随时能查，只是不放在默认那一屏 */
+async function openPulseDebug(){
+  $('pulseHome').classList.remove('active');
+  $('pulseDebugPage').classList.add('active');
+  $('pulseDebugValues').innerHTML='<div class="pulse-debug-row">读取中…</div>';
+  $('pulseDebugCard').textContent='';$('pulseDebugMeta').textContent='';
+  try{
+    const r=await fetch('/api/pulse/debug');const d=await r.json();
+    if(!d.ok){$('pulseDebugValues').innerHTML='<div class="pulse-debug-row">'+_esc(d.error||'读不到')+'</div>';return}
+    const labels=(d.payload)||{};
+    $('pulseDebugValues').innerHTML=Object.keys(d.values||{}).map(k=>
+      '<div class="pulse-debug-row"><span>'+_esc((labels[k]&&labels[k].label)||k)+'</span><b>'+_esc(String(d.values[k]))+'</b></div>'
+    ).join('')||'<div class="pulse-debug-row">没有数值</div>';
+    $('pulseDebugCard').textContent=d.card||'（这一轮没有状态卡）';
+    const meta=Object.assign({},d.meta||{});delete meta.event_log;   // 事件流上一屏已经有了
+    $('pulseDebugMeta').textContent=JSON.stringify(meta,null,2);
+  }catch(e){
+    $('pulseDebugValues').innerHTML='<div class="pulse-debug-row">'+_esc(String(e.message||e))+'</div>';
+  }
+}
+
+(function(){
+  const close=$('closePulse'),refresh=$('pulseRefresh'),title=$('pulseTitle'),back=$('pulseDebugBack');
+  if(!close)return;
+  close.addEventListener('click',closePulsePanel);
+  refresh.addEventListener('click',loadPulse);
+  back.addEventListener('click',function(){$('pulseDebugPage').classList.remove('active');$('pulseHome').classList.add('active')});
+  let timer=null;
+  const start=function(){clearTimeout(timer);timer=setTimeout(openPulseDebug,650)};
+  const stop=function(){clearTimeout(timer)};
+  title.addEventListener('touchstart',start,{passive:true});
+  title.addEventListener('touchend',stop);
+  title.addEventListener('touchmove',stop,{passive:true});
+  title.addEventListener('mousedown',start);
+  title.addEventListener('mouseup',stop);
+  title.addEventListener('mouseleave',stop);
+  title.addEventListener('contextmenu',function(e){e.preventDefault()});
+})();
 
 /* ── Projects System ── */
 const _PROJECTS_KEY='chatnest_projects';
