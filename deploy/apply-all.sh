@@ -30,6 +30,8 @@ fix-dup-text.js|sawStreamText|去掉重复回复
 fix-ob-tools.js|bucket_id      必填|OB 工具各归其位
 fix-guard-hold.js|worthRemembering|拦住空洞内容
 fix-feel-domain.js|feel 缺 source_bucket|感受记忆不再被拒收
+fix-ob-dashboard.js|loadEnvFile|记忆页读得到 OB
+fix-ob-write-result.js|obWriteResult|存没存进去说实话
 "
 
 say "1/3 逐个补丁检查"
@@ -124,6 +126,15 @@ print('1' if h and len(h)>6 and body.count(h)>1 else '0')
 " 2>/dev/null)
 [ "${DUP:-0}" = 0 ] && ok "正文没有重复" || no "正文还在说两遍"
 
+# 记忆页（Ombre）要能读到东西，得先有 OB Dashboard 的密码
+DASH=$(curl -fsS -m 20 "http://127.0.0.1:$PORT/api/ombre-dashboard/status" 2>/dev/null || curl -s -m 20 "http://127.0.0.1:$PORT/api/ombre-dashboard/status" 2>/dev/null)
+if printf '%s' "$DASH" | grep -q '"available":true'; then
+  ok "记忆页能读到 OB"
+else
+  no "记忆页还读不到 OB：$DASH"
+  NEED_PW=1
+fi
+
 cat <<'EOF'
 
   弄完了。手机上下拉刷新一下再聊。
@@ -131,3 +142,14 @@ cat <<'EOF'
   刚那条"在吗"是脚本发的测试消息，看着碍眼就删掉。
 
 EOF
+
+if [ "${NEED_PW:-0}" = 1 ]; then
+cat <<'EOF'
+  还差一步：记忆页要用 OB Dashboard 的密码才读得到记忆。
+  跑这两条（要分两步，密码得你手输，管道进来就没法输了）：
+
+    curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deploy/set-ob-password.sh -o /tmp/set-ob.sh
+    sudo bash /tmp/set-ob.sh
+
+EOF
+fi
