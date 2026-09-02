@@ -470,7 +470,7 @@ html[data-chat-bg="light"] #send{background:var(--accent)}
 }
 #modelSheet .sheet-handle,#thoughtSheet .sheet-handle{background:rgba(32,31,29,.18)}
 #modelSheet .sheet-head,#thoughtSheet .sheet-head{border-bottom:none;padding-bottom:0}
-#modelSheet .sheet-title,#thoughtSheet .sheet-title{font-weight:500;font-family:var(--font-sans);font-size:17px;color:#201f1d}
+#modelSheet .sheet-title,#thoughtSheet .sheet-title{font-weight:500;font-family:var(--font-sans);font-size:17px;color:var(--text-primary)}
 #closeModel,#closeThought{
   width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
   background:rgba(255,255,255,.55);border:1px solid rgba(32,31,29,.10);
@@ -480,7 +480,7 @@ html[data-chat-bg="light"] #send{background:var(--accent)}
 #closeModel:active,#closeThought:active{opacity:.5}
 #closeModel:focus,#closeThought:focus{outline:none}
 #closeModel svg{width:20px;height:20px}
-#thoughtContent{padding:20px var(--page-pad) var(--space-6);font:17px/1.55 var(--font-serif);color:#201f1d;white-space:pre-wrap;max-width:100%;box-sizing:border-box;overflow-x:hidden;overflow-wrap:anywhere;word-break:break-word}#thoughtContent *{max-width:100%;box-sizing:border-box}#thoughtContent pre,#thoughtContent code,#thoughtContent a{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}#thoughtContent p+p{margin-top:var(--space-4)}
+#thoughtContent{padding:20px var(--page-pad) var(--space-6);font:17px/1.55 var(--font-serif);color:var(--text-primary);white-space:pre-wrap;max-width:100%;box-sizing:border-box;overflow-x:hidden;overflow-wrap:anywhere;word-break:break-word}#thoughtContent *{max-width:100%;box-sizing:border-box}#thoughtContent pre,#thoughtContent code,#thoughtContent a{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}#thoughtContent p+p{margin-top:var(--space-4)}
 .model-group{
   background:rgba(255,255,255,.48);
   border-radius:22px;overflow:hidden;margin:0 2px;
@@ -898,7 +898,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
     <button class="topbar-hamburger" id="topbarHamburger" type="button" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
     <div class="topbar-center">
       <span class="topbar-name">小衍</span>
-      <span class="topbar-status" id="topbarStatus">thinking quietly</span>
+      <span class="topbar-status" id="topbarStatus">思考中</span>
     </div>
     <button class="topbar-new-chat" id="topbarNewChat" type="button" data-icon="plusLine" aria-label="New chat" title="New chat"></button>
     <button class="topbar-model hidden" id="topbarModelButton" aria-label="选择模型">
@@ -1098,7 +1098,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
 </section>
 
 <div class="overlay" id="thoughtOverlay" aria-hidden="true" inert></div>
-<section class="sheet" id="thoughtSheet" aria-hidden="true" inert><div class="sheet-handle"></div><header class="sheet-head"><button class="icon-button" id="closeThought">×</button><h2 class="sheet-title">Thought process</h2><span></span></header><div class="sheet-content" id="thoughtContent"></div></section>
+<section class="sheet" id="thoughtSheet" aria-hidden="true" inert><div class="sheet-handle"></div><header class="sheet-head"><button class="icon-button" id="closeThought">×</button><h2 class="sheet-title">思考过程</h2><span></span></header><div class="sheet-content" id="thoughtContent"></div></section>
 
 <div class="overlay" id="modelOverlay" aria-hidden="true" inert></div>
 <section class="sheet" id="modelSheet" aria-hidden="true" inert><div class="sheet-handle"></div><header class="sheet-head"><button class="icon-button" id="closeModel">×</button><h2 class="sheet-title">Select model</h2><span></span></header><div class="sheet-content" id="modelContent"></div></section>
@@ -1176,7 +1176,7 @@ function toast(message,ms=1600){const el=$('toast');el.textContent=message;el.cl
 function hasComposerContent(){return !!input.value.trim()||state.pendingFiles.length>0}
 let _sendBtnMode=''; // hidden | send | stop — 避免每字重写 DOM 导致输入框闪
 function updateSendButton(){
-  const ts=$('topbarStatus');if(ts)ts.textContent=state.busy?'thinking quietly...':'online';
+  const ts=$('topbarStatus');if(ts)ts.textContent=state.busy?'思考中…':'在线';
   const mode=state.busy?'stop':(!hasComposerContent()?'idle':'send');
   if(mode===_sendBtnMode)return;
   _sendBtnMode=mode;
@@ -1887,7 +1887,7 @@ function fetchThinkingSummary(thinking){
   _sumInflight.set(key,p);
   return p;
 }
-async function refineThoughtSummary(summary,thinking){if(!thinking)return;if(!Object.prototype.hasOwnProperty.call(_sumCache,_sumHash((thinking||'').slice(0,8000))))setThoughtSummary(summary,thinking,'Thinking summary...');const s=await fetchThinkingSummary(thinking);setThoughtSummary(summary,thinking,s||'')}
+async function refineThoughtSummary(summary,thinking){if(!thinking)return;if(!Object.prototype.hasOwnProperty.call(_sumCache,_sumHash((thinking||'').slice(0,8000))))setThoughtSummary(summary,thinking,'思考中…');const s=await fetchThinkingSummary(thinking);setThoughtSummary(summary,thinking,s||'')}
 function thoughtSummary(thinking){const summary=document.createElement('button');summary.className='thinking-summary show';summary.type='button';setThoughtSummary(summary,thinking);refineThoughtSummary(summary,thinking);summary.onclick=()=>{$('thoughtContent').textContent=thinking;sheet('thought',true)};return summary}
 /* 同步助手气泡可见性：有思考摘要或正文时才显示透明微信泡 */
 function syncAiBubble(bubble){
@@ -2010,7 +2010,7 @@ function foldThinkingIntoBubble(msgRow,thinkingRaw=''){
   // 气泡外散落的 thinking-summary → 移入气泡
   col.querySelectorAll(':scope > .thinking-summary').forEach(btn=>{
     const t=(btn.querySelector('.thinking-summary-text')?.textContent||'').trim();
-    if(t&&t!=='Thinking summary...')labelText=labelText||t;
+    if(t&&t!=='思考中…')labelText=labelText||t;
     bubble.prepend(btn);
   });
 
@@ -2025,7 +2025,7 @@ function foldThinkingIntoBubble(msgRow,thinkingRaw=''){
       const pt=String(p.processText||'').trim();
       if(pt&&pt.length>=processText.length)processText=pt;
       const lab=dedupeSummaryText(p.summary||p.title||'');
-      if(lab&&lab!=='Thinking'&&lab!=='Thinking summary...')labelText=labelText||lab;
+      if(lab&&lab!=='思考中'&&lab!=='思考中…')labelText=labelText||lab;
     });
     if(!hasTool){
       // 纯思考条：永远不在泡外显示
@@ -2042,7 +2042,7 @@ function foldThinkingIntoBubble(msgRow,thinkingRaw=''){
   const existing=bubble.querySelector(':scope > .thinking-summary');
   if(existing){
     const t=(existing.querySelector('.thinking-summary-text')?.textContent||'').trim();
-    if(t&&t!=='Thinking summary...')labelText=labelText||t;
+    if(t&&t!=='思考中…')labelText=labelText||t;
   }
 
   if(!processText&&!labelText){
@@ -2054,7 +2054,7 @@ function foldThinkingIntoBubble(msgRow,thinkingRaw=''){
 
   let sum=bubble.querySelector(':scope > .thinking-summary');
   const thinkForClick=processText||labelText;
-  const label=labelText||thoughtPreview(processText)||'Thinking summary...';
+  const label=labelText||thoughtPreview(processText)||'思考中…';
   if(!sum){
     sum=document.createElement('button');
     sum.type='button';
@@ -2067,7 +2067,7 @@ function foldThinkingIntoBubble(msgRow,thinkingRaw=''){
     if(bubble.firstElementChild!==sum)bubble.prepend(sum);
     // 仅在文案仍是占位或为空时写入，避免覆盖已 refine 的摘要
     const cur=(sum.querySelector('.thinking-summary-text')?.textContent||'').trim();
-    if(!cur||cur==='Thinking summary...'||cur==='Thinking'){
+    if(!cur||cur==='思考中…'||cur==='Thinking'){
       setThoughtSummary(sum,thinkForClick,label);
       if(processText)refineThoughtSummary(sum,processText);
     }
@@ -2642,11 +2642,11 @@ function _renderTraceRowActive(row){
   // 运行中：展示 tool 进度或临时 thinking
   _setDataIfChanged(row,'type',active.type);
   _setDataIfChanged(row,'status',active.status||'');
-  if(active.type==='thinking'){_setIfChanged(icon,_CLOCK_SVG);_setTextIfChanged(text,dedupeSummaryText(active.title||active.summary)||'Thinking')}
+  if(active.type==='thinking'){_setIfChanged(icon,_CLOCK_SVG);_setTextIfChanged(text,dedupeSummaryText(active.title||active.summary)||'思考中')}
   else{_setIfChanged(icon,_toolIconSvg(active.toolName,active.toolInput));_setTextIfChanged(text,_toolActionDescription(active.toolName,active.toolInput))}
 }
 function openTraceSheet(row){const phases=_getPhases(row);if(!phases.length)return;if(phases.length===1&&phases[0].type==='thinking'){_showThoughtProcess(phases[0]);return}if(phases.length===1&&phases[0].type==='tool'){_showToolDetail(phases[0]);return}_showSummary(phases)}
-function _showThoughtProcess(phase){const s=$('thoughtSheet');const t=s.querySelector('.sheet-title');if(t)t.textContent='Thought process';const c=$('thoughtContent');c.style.whiteSpace='';c.textContent=phase.processText||phase.summary||'';if(phase.status==='running')s.dataset.live='1';else delete s.dataset.live;sheet('thought',true)}
+function _showThoughtProcess(phase){const s=$('thoughtSheet');const t=s.querySelector('.sheet-title');if(t)t.textContent='思考过程';const c=$('thoughtContent');c.style.whiteSpace='';c.textContent=phase.processText||phase.summary||'';if(phase.status==='running')s.dataset.live='1';else delete s.dataset.live;sheet('thought',true)}
 function _showToolDetail(phase){const t=$('thoughtSheet').querySelector('.sheet-title');if(t)t.textContent=phase.toolName||'Tool';const c=$('thoughtContent');c.innerHTML='';const lab='font-weight:600;font-size:13px;opacity:.6;margin:0 0 6px';const pre='font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;background:var(--bg-sunken);padding:8px 10px;border-radius:8px;color:var(--text-primary);margin:0';const inT=document.createElement('div');inT.style.cssText=lab;inT.textContent='Input';const inB=document.createElement('pre');inB.style.cssText=pre+';margin-bottom:14px;max-height:280px;overflow-y:auto;overflow-x:hidden';try{inB.textContent=typeof phase.toolInput==='string'?phase.toolInput:JSON.stringify(phase.toolInput,null,2)}catch(e){inB.textContent=String(phase.toolInput||'')}const outT=document.createElement('div');outT.style.cssText=lab;outT.textContent='Output';const outB=document.createElement('pre');outB.style.cssText=pre+';max-height:400px;overflow-y:auto;overflow-x:hidden';outB.textContent=phase.toolOutput||'(\u65e0\u8f93\u51fa)';c.append(inT,inB,outT,outB);sheet('thought',true)}
 function _showSummary(phases){
  const t=$('thoughtSheet').querySelector('.sheet-title');
@@ -2937,7 +2937,7 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
       // 流式思考：直接写进气泡顶部一行（与最终样式一致），不再依赖泡外 trace 展示
       if(!summary.isConnected)bubble.prepend(summary);
       summary.classList.add('show');
-      setThoughtSummary(summary,thought,thoughtPreview(thought)||'Thinking summary...');
+      setThoughtSummary(summary,thought,thoughtPreview(thought)||'思考中…');
       const liveSnap=()=>thought;
       summary.onclick=()=>{const c=$('thoughtContent');c.style.whiteSpace='';c.textContent=liveSnap();$('thoughtSheet').dataset.live='1';sheet('thought',true)};
       syncAiBubble(bubble);
