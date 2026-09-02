@@ -145,7 +145,7 @@ echo "  服务      : http://127.0.0.1:$PORT （只监听本地）"
 echo "  内核      : $UPSTREAM_DIR"
 echo "  日志      : $PREFIX/eventide.log"
 echo "  重启      : systemctl restart $SERVICE"
-echo "  状态存在  : /root/chatnest-api/data/eventide-state.json （由 chatnest-api 管）"
+echo "  状态存在  : /root/chatnest-api/eventide-state.json （由 chatnest-api 管）"
 echo
 echo "  下一步：打后端补丁把它接进聊天"
 echo "  curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/$BRANCH/deploy/apply-all.sh | sudo bash"
