@@ -34,6 +34,7 @@ fix-ob-dashboard.js|loadEnvFile|记忆页读得到 OB
 fix-ob-write-result.js|obWriteResult|存没存进去说实话
 fix-ob-parse.js|parseObArgs|一个引号不再毁掉整条记忆
 fix-ob-actions.js|OB_ACTIONS|详情页那排按钮真的生效
+fix-breath-window.js|BREATH_TIMEOUT_MS|新窗浮现记忆别被掐掉
 "
 
 say "1/3 逐个补丁检查"
