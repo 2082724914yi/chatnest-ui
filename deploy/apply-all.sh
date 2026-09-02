@@ -29,6 +29,7 @@ hotfix-cotstate.js|_cotSafe|崩溃修复
 fix-dup-text.js|sawStreamText|去掉重复回复
 fix-ob-tools.js|bucket_id      必填|OB 工具各归其位
 fix-guard-hold.js|worthRemembering|拦住空洞内容
+fix-feel-domain.js|feel 缺 source_bucket|感受记忆不再被拒收
 "
 
 say "1/3 逐个补丁检查"
