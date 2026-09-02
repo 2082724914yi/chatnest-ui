@@ -408,6 +408,31 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 .img-lightbox.open{display:flex}
 .img-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;box-shadow:0 12px 48px rgba(0,0,0,.5)}
 .img-lightbox-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:18px;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:22px;line-height:1;cursor:pointer}
+/* ===== 思考过程与工具调用时间轴 ===== */
+.timeline{display:flex;flex-direction:column;margin:0 0 8px;position:relative}
+.timeline:empty{display:none}
+.timeline-step{position:relative;padding-left:19px}
+/* 左侧竖线：把连续节点串成时间轴 */
+.timeline-step::before{content:'';position:absolute;left:6px;top:19px;bottom:0;width:1px;background:var(--border)}
+.timeline-step:last-child::before{display:none}
+.timeline-head{display:flex;align-items:center;gap:6px;width:100%;padding:3px 0;background:none;border:0;cursor:pointer;font-family:var(--font-sans);font-size:12px;line-height:1.4;color:var(--text-secondary);text-align:left;-webkit-tap-highlight-color:transparent}
+.timeline-head:active{opacity:.6}
+.timeline-icon{position:absolute;left:0;top:4px;width:13px;height:13px;flex:none;color:var(--text-faint)}
+.timeline-step[data-status="completed"] .timeline-icon{color:var(--text-secondary)}
+.timeline-step[data-status="error"] .timeline-icon{color:var(--accent)}
+.timeline-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.timeline-dur{color:var(--text-faint);font-size:11px;flex:none;font-variant-numeric:tabular-nums}
+.timeline-chevron{width:11px;height:11px;flex:none;margin-left:auto;color:var(--text-faint);transition:transform 150ms ease}
+.timeline-step.open .timeline-chevron{transform:rotate(90deg)}
+.timeline-body{display:none;margin:2px 0 7px}
+.timeline-step.open .timeline-body{display:block}
+.timeline-text{font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;color:var(--text-secondary);background:var(--bg-surface);border-radius:10px;padding:9px 11px;max-height:340px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.timeline-label{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-faint);margin:7px 0 3px}
+.timeline-label:first-child{margin-top:0}
+.timeline-code{font-family:var(--font-mono);font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--text-primary);background:var(--bg-sunken);border-radius:10px;padding:9px 11px;max-height:280px;overflow:auto;-webkit-overflow-scrolling:touch;margin:0}
+@keyframes tl-spin{to{transform:rotate(360deg)}}
+.timeline-icon.spin{animation:tl-spin 1s linear infinite;transform-origin:50% 50%}
+@media (prefers-reduced-motion:reduce){.timeline-icon.spin{animation:none}}
 .thinking-row{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;color:var(--text-secondary);font-size:var(--text-sm)}.thinking-row.hidden{display:none}.thinking-status-line{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.thinking-clock-icon{width:14px;height:14px;flex:none}.thinking-status-line>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 /* === Trail logo:跟随 row 末尾,永远在最后内容下方一行 === */
 .claude-trail-logo{width:26px;height:26px;margin:13px 0 0;color:#D97757;display:block;position:relative;overflow:hidden}.claude-trail-logo.cat{width:30px;height:30px;overflow:visible}.cat-roll{width:100%;height:100%;display:block;animation:cat-roll 1.15s linear infinite;transform-origin:50% 50%}@keyframes cat-roll{to{transform:rotate(360deg)}}.claude-logo-inner{width:100%;height:100%;display:block;will-change:transform}.claude-logo-track{width:100%;will-change:transform}.claude-logo-track svg{display:block;width:100%;height:auto;fill:currentColor}.claude-trail-logo[data-mode="tool"] .claude-logo-inner{animation:claudeToolPulse 1800ms cubic-bezier(.2,.8,.2,1) infinite;transform-origin:center}@keyframes claudeToolPulse{0%{transform:scale(1) rotate(0deg);opacity:1}38%{transform:scale(.16) rotate(80deg);opacity:.85}52%{transform:scale(.16) rotate(180deg);opacity:.85}100%{transform:scale(1) rotate(360deg);opacity:1}}
@@ -2745,14 +2770,18 @@ function _buildClaudeRow(text,userText='',thinking='',timestamp='',userAttachmen
   const row=document.createElement('div');row.className='msg-claude';row.dataset.raw=bodyText;row.dataset.timestamp=timestamp||'';if(messageId)row.dataset.msgId=messageId;
   row.append(makeMsgAvatar('ai'));
   const col=document.createElement('div');col.className='msg-body';
-  const sumEntry=(traces||[]).find(t=>t.type==='summary'),toolTraces=(traces||[]).filter(t=>t.type!=='summary');
+  // 新格式 traces（带 status）走时间轴；此时旧的 trace-row 逻辑整套让位，避免两套并存
+  const _tlTraces=(traces||[]).filter(t=>t&&(t.type==='thinking'||t.type==='tool')&&'status'in t);
+  const _legacy=_tlTraces.length?[]:(traces||[]);
+  const sumEntry=_legacy.find(t=>t.type==='summary'),toolTraces=_legacy.filter(t=>t.type!=='summary');
   const positioned=toolTraces.some(t=>Number.isFinite(Number(t.text_offset)));
   const grouped=toolTraces.length&&positioned?_groupToolTracesByTextOffset(toolTraces,bodyText):[];
   const firstToolOffset=grouped.length?grouped[0][0]:0;
   /* 主气泡：思考链一律在泡内顶部一行；工具 trace 可挂泡外但完成后会 fold 隐藏 */
   const bubble=makeAiBubble();
-  // 永远把思考放进气泡（不再 merge 进泡外 trace-row）
-  if(thinking)bubble.append(thoughtSummary(thinking));
+  // 思考已在时间轴里呈现时，不再另挂泡内摘要，避免同一段思考出现两次
+  const _tlHasThinking=_tlTraces.some(t=>t.type==='thinking'&&t.content);
+  if(thinking&&!_tlHasThinking)bubble.append(thoughtSummary(thinking));
   if(toolTraces.length&&positioned){
     let cursor=0,usedSummary=false;
     const segState={bubbleHasMd:false};
@@ -2781,6 +2810,9 @@ function _buildClaudeRow(text,userText='',thinking='',timestamp='',userAttachmen
     _appendWechatSlice(col,bubble,bodyText,{bubbleHasMd:false});
   }
   if(bubble.childNodes.length)col.prepend(bubble);
+  // 历史消息的时间轴：新格式 traces（带 status 字段）走时间轴，挂在正文之上
+  const histTl=buildTimelineFromHistory((traces||[]).filter(t=>t&&(t.type==='thinking'||t.type==='tool')&&'status'in t));
+  if(histTl)col.prepend(histTl);
   // 仅展示占位文案时（整条只剩 [file:]/[选项:]）可隐藏空气泡感
   const onlyMeta=/^(\[file:[^\]]*\]\s*)*(\[选项:[^\]]*\]\s*)*$/.test((bodyText||'').trim());
   if(onlyMeta&&(fileList.length||choiceList.length)){
@@ -2788,12 +2820,104 @@ function _buildClaudeRow(text,userText='',thinking='',timestamp='',userAttachmen
   }
   const tsStr=timestamp||new Date().toISOString();const tEl=document.createElement('div');tEl.className='msg-time';try{const d=new Date(tsStr);tEl.textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}catch{tEl.textContent=''}col.append(tEl);
   row.append(col);
-  foldThinkingIntoBubble(row,thinking||'');
+  if(!_tlTraces.length)foldThinkingIntoBubble(row,thinking||'');
   actions(row,bodyText,userText,userAttachments);
   _attachRichExtras(row,fileList,choiceList,{messageId});
   return row
 }
 function addClaude(text,userText='',thinking='',timestamp='',userAttachments=[],messageId=''){const row=_buildClaudeRow(text,userText,thinking,timestamp,userAttachments,[],messageId);streamInner.append(row);appendDisclaimer();return row}
+/* ===== 思考过程与工具调用时间轴 =====
+   数据源：后端 SSE 的 trace 事件（start/delta/input/result/end），
+   历史消息则来自 /api/sessions/:id/messages 的 traces 字段。
+   每个 content block（thinking / tool_use）= 一个可折叠步骤节点。 */
+const _TL_ICON={
+  running:'<svg class="timeline-icon spin" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6" stroke-opacity=".25"/><path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  completed:'<svg class="timeline-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.6l3.1 3.1 6.5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  error:'<svg class="timeline-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.6 4.6l6.8 6.8M11.4 4.6l-6.8 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+};
+const _TL_CHEVRON='<svg class="timeline-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.4L10.6 8 6 12.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function _tlDur(ms){if(!ms||ms<0)return'';if(ms<1000)return ms+'ms';const s=ms/1000;return(s<10?s.toFixed(1):Math.round(s))+'s'}
+function _tlJson(v){if(v==null)return'';if(typeof v==='string')return v;try{return JSON.stringify(v,null,2)}catch{return String(v)}}
+function _tlRender(step,tr){
+  const st=tr.status||'running';
+  step.dataset.status=st;
+  const head=step.querySelector('.timeline-head'),body=step.querySelector('.timeline-body');
+  const wantIcon=_TL_ICON[st]||_TL_ICON.running;
+  if(step.__icon!==wantIcon){head.querySelector('.timeline-icon')?.remove();head.insertAdjacentHTML('afterbegin',wantIcon);step.__icon=wantIcon}
+  const nameEl=head.querySelector('.timeline-name'),name=tr.name||(tr.type==='thinking'?'思考过程':'工具调用');
+  if(nameEl.textContent!==name)nameEl.textContent=name;
+  const durEl=head.querySelector('.timeline-dur'),dur=st==='running'?'':_tlDur(tr.duration_ms);
+  if(durEl.textContent!==dur)durEl.textContent=dur;
+  // 折叠时不重绘详情，省掉长思考流式期间的无谓 DOM 开销
+  if(!step.classList.contains('open')){step.__bodyDirty=true;return}
+  _tlPaintBody(body,tr);step.__bodyDirty=false;
+}
+function _tlPaintBody(body,tr){
+  body.textContent='';
+  const add=(label,text,mono)=>{
+    if(!text)return;
+    if(label){const l=document.createElement('div');l.className='timeline-label';l.textContent=label;body.append(l)}
+    const el=document.createElement(mono?'pre':'div');
+    el.className=mono?'timeline-code':'timeline-text';
+    el.textContent=String(text).slice(0,20000);
+    body.append(el);
+  };
+  if(tr.type==='thinking')add('',tr.content||'（这一步没有留下思考内容）',false);
+  else{
+    add('输入参数',_tlJson(tr.input),true);
+    if(tr.result)add(tr.is_error||tr.status==='error'?'错误':'返回结果',_tlJson(tr.result),true);
+    else if(tr.status==='running')add('',' 执行中…',false);
+  }
+}
+function _tlStep(tr){
+  const step=document.createElement('div');
+  step.className='timeline-step';step.dataset.traceId=tr.id||'';step.dataset.type=tr.type||'';
+  const head=document.createElement('button');head.type='button';head.className='timeline-head';
+  head.setAttribute('aria-expanded','false');
+  const name=document.createElement('span');name.className='timeline-name';
+  const dur=document.createElement('span');dur.className='timeline-dur';
+  head.append(name,dur);head.insertAdjacentHTML('beforeend',_TL_CHEVRON);
+  const body=document.createElement('div');body.className='timeline-body';
+  step.append(head,body);
+  head.onclick=()=>{
+    const open=step.classList.toggle('open');
+    head.setAttribute('aria-expanded',String(open));
+    if(open&&step.__bodyDirty!==false){_tlPaintBody(body,step.__tr||tr);step.__bodyDirty=false}
+  };
+  step.__tr=tr;_tlRender(step,tr);
+  return step;
+}
+/* 时间轴控制器：mount 决定 DOM 插到哪，事件流驱动增量更新 */
+function createTimeline(mount){
+  const map=new Map(),steps=new Map();let root=null;
+  const ensure=()=>{if(!root||!root.isConnected){root=document.createElement('div');root.className='timeline';mount(root)}return root};
+  function upsert(tr){
+    map.set(tr.id,tr);
+    const r=ensure();
+    let step=steps.get(tr.id);
+    if(!step){step=_tlStep(tr);steps.set(tr.id,step);r.append(step)}
+    else{step.__tr=tr;_tlRender(step,tr)}
+  }
+  return{
+    start(d){if(!d||!d.id||map.has(d.id))return;upsert({id:d.id,type:d.type||'tool',name:d.name||'',content:'',input:null,result:'',status:'running',duration_ms:0})},
+    delta(d){const t=map.get(d?.id);if(!t)return;t.content=(t.content||'')+(d.text||'');upsert(t)},
+    input(d){const t=map.get(d?.id);if(!t)return;t.input=d.input;upsert(t)},
+    result(d){const t=map.get(d?.id);if(!t)return;t.result=d.result||'';t.is_error=!!d.is_error;upsert(t)},
+    end(d){const t=map.get(d?.id);if(!t)return;t.status=d.status||'completed';t.duration_ms=d.duration_ms||0;upsert(t)},
+    /* done 事件带回权威 traces：以服务端为准补齐/校准 */
+    sync(list){if(!Array.isArray(list))return;for(const tr of list){if(!tr||!tr.id)continue;upsert({...(map.get(tr.id)||{}),...tr})}},
+    size(){return map.size}
+  };
+}
+/* 从历史 traces 直接建出静态时间轴 */
+function buildTimelineFromHistory(list){
+  if(!Array.isArray(list)||!list.length)return null;
+  const valid=list.filter(t=>t&&t.type&&(t.content||t.input!=null||t.result||t.name));
+  if(!valid.length)return null;
+  const root=document.createElement('div');root.className='timeline';
+  for(const tr of valid)root.append(_tlStep({status:'completed',...tr}));
+  return root;
+}
 function beginClaude(userText,userAttachments=[]){document.querySelector('.stream-disclaimer')?.remove();
   // === DOM: avatar | msg-body( ai-bubble(summary, md), trailLogo ) ===
   const row=document.createElement('div');row.className='msg-claude streaming';row.dataset.phase='submitted';
@@ -2811,6 +2935,8 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
   const trailLogo=document.createElement('div');trailLogo.className='claude-trail-logo cat';window.__lastTrailLogo=trailLogo;
   trailLogo.innerHTML=_CAT_ROLL_SVG;
   col.append(bubble,trailLogo);
+  // 时间轴永远挂在正文气泡之上
+  const timeline=createTimeline(el=>bubble.before(el));
   row.append(col);
   streamInner.append(row);
   const _turnAnchor=row.previousElementSibling&&row.previousElementSibling.classList.contains('msg-user')?row.previousElementSibling:row;
@@ -2931,6 +3057,13 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
   }
   summary.onclick=()=>{const c=$('thoughtContent');c.style.whiteSpace='';c.textContent=thought;$('thoughtSheet').dataset.live='1';sheet('thought',true)};
   return{row,
+    trace(d){
+      if(!d||!d.action)return;
+      if(row.dataset.phase==='submitted')setPhase('thinking');
+      const fn=timeline[d.action];
+      if(typeof fn==='function')fn(d);
+    },
+    syncTraces(list){timeline.sync(list)},
     thinking(t){
       gotThought=true;thought+=t;
       setPhase('thinking');
@@ -3071,6 +3204,9 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
       _renderSources(row,_sources);
       actions(row,raw,userText,userAttachments);
       _attachRichExtras(row,files,choices,{messageId:row.dataset.msgId||''});
+      // 定稿时 DOM 重排过，把时间轴钉回第一个气泡之上
+      const tlEl=col.querySelector(':scope > .timeline'),firstBubble=col.querySelector(':scope > .ai-bubble');
+      if(tlEl&&firstBubble&&tlEl.nextElementSibling!==firstBubble)firstBubble.before(tlEl);
       if(!col.querySelector('.msg-time')){const tEl=document.createElement('div');tEl.className='msg-time';tEl.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});col.append(tEl)}
       appendDisclaimer();
       _maybeCompletionEgg();
@@ -3251,7 +3387,7 @@ async function sendMessage(text,showUser=true,files=[],existingAttachments=[],op
     if(runId!==_chatRunId)return;
     if(r.status===401){showGate();throw Error('登录已失效')}if(!r.ok||!r.body){const detail=await r.json().catch(()=>({}));throw Error(detail.detail||'请求失败')}
     const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='',finished=false;
-    const frame=f=>{if(runId!==_chatRunId)return;let event='',data='';f.split('\n').forEach(line=>{if(line.startsWith('event:'))event=line.slice(6).trim();if(line.startsWith('data:'))data+=line.slice(5).trim()});if(!event||!data)return;const d=JSON.parse(data);if(event==='conversation'){state.convId=d.conversation_id;state.legacySessionId=null;localStorage.setItem('chat_conversation',state.convId);localStorage.removeItem('chat_session');if(d.user_message_id){turnUserMsgId=d.user_message_id;if(userRow)userRow.dataset.msgId=d.user_message_id}}if(event==='thinking')msg.thinking(d.text||'');if(event==='delta')msg.text(d.text||'');if(event==='tool_use')msg.toolUse(d);if(event==='tool_result')msg.toolResult(d);if(event==='trace_summary')msg.traceSummary(d.text||'');if(event==='done'){state.convId=d.conversation_id||state.convId;localStorage.setItem('chat_conversation',state.convId);if(d.assistant_message_id&&msg?.row)msg.row.dataset.msgId=d.assistant_message_id;msg.finish({text:d.text,files:d.files,choices:d.choices});try{window.__callhomeOnChatDone?.(d)}catch(_){}finished=true}if(event==='error'){msg.fail(d.message);finished=true}};
+    const frame=f=>{if(runId!==_chatRunId)return;let event='',data='';f.split('\n').forEach(line=>{if(line.startsWith('event:'))event=line.slice(6).trim();if(line.startsWith('data:'))data+=line.slice(5).trim()});if(!event||!data)return;const d=JSON.parse(data);if(event==='conversation'){state.convId=d.conversation_id;state.legacySessionId=null;localStorage.setItem('chat_conversation',state.convId);localStorage.removeItem('chat_session');if(d.user_message_id){turnUserMsgId=d.user_message_id;if(userRow)userRow.dataset.msgId=d.user_message_id}}if(event==='trace')msg.trace(d);if(event==='thinking')msg.thinking(d.text||'');if(event==='delta')msg.text(d.text||'');if(event==='tool_use')msg.toolUse(d);if(event==='tool_result')msg.toolResult(d);if(event==='trace_summary')msg.traceSummary(d.text||'');if(event==='done'){state.convId=d.conversation_id||state.convId;localStorage.setItem('chat_conversation',state.convId);if(d.assistant_message_id&&msg?.row)msg.row.dataset.msgId=d.assistant_message_id;if(d.traces)msg.syncTraces(d.traces);msg.finish({text:d.text,files:d.files,choices:d.choices});try{window.__callhomeOnChatDone?.(d)}catch(_){}finished=true}if(event==='error'){msg.fail(d.message);finished=true}};
     while(true){if(runId!==_chatRunId)return;const{value,done}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done});const parts=buffer.split(/\r?\n\r?\n/);buffer=parts.pop()||'';parts.forEach(frame);if(done)break}
     if(runId!==_chatRunId)return;
     if(buffer.trim())frame(buffer);if(!finished)await recoverAfterBreak(msg,state.convId,'连接意外结束，请重试。',()=>runId===_chatRunId,turnUserMsgId)
@@ -3261,6 +3397,8 @@ async function sendMessage(text,showUser=true,files=[],existingAttachments=[],op
       _chatAbort=null;_activeMsg=null;state.busy=false;updateSendButton();
       // 发完一轮后静默刷新该会话全量缓存
       if(state.convId)_refreshConvCache(state.convId);
+      // 流式期间攒下的恢复事件，这时候补一次对账（切后台/断网回来都靠它兜底）
+      if(_reconcileQueued)reconcileNow('after-stream');
     }
   }
 }
@@ -4338,6 +4476,55 @@ function scheduleWarmup(convId){
   // 串行：换会话时旧预热可被新 token 忽略结果即可
   _warmupInflight=run().finally(()=>{if(token===_warmupToken)_warmupInflight=null});
 }
+
+/* ===== 对账层 =====
+   后端历史才是真源，DOM 和缓存都不是。任何内存状态都不能阻止重新向服务端核对。
+   完整历史负责校准，SSE 负责实时，前后台恢复负责自愈。 */
+let _reconcileRunning=false,_reconcileQueued=false;
+function _nearBottom(px=140){
+  const el=document.scrollingElement||document.documentElement;
+  return (el.scrollHeight-el.scrollTop-el.clientHeight)<px;
+}
+async function reconcileNow(reason='manual'){
+  const convId=state.convId;
+  if(!convId||!state.token)return;
+  // 单飞：上一轮没回来，下一轮只排队，绝不叠加请求（防乱序覆盖）
+  if(_reconcileRunning){_reconcileQueued=true;return}
+  // 流式进行中交给 SSE，不动 DOM；这次请求排到流式结束后补
+  if(state.busy){_reconcileQueued=true;return}
+  _reconcileRunning=true;
+  try{
+    do{
+      _reconcileQueued=false;
+      let page;
+      try{
+        page=await fetchMessagePage(convId,{limit:HISTORY_PAGE});
+      }catch(e){
+        // 只有鉴权失效才真正停下（api() 已跳登录）；断网/502/超时只算这一轮失败，
+        // 不清空已有消息，也不改连接状态，等下一次恢复事件重试
+        if(String(e&&e.message||'').includes('unauthorized'))return;
+        break;
+      }
+      if(convId!==state.convId)break;      // 期间切了会话
+      if(state._historyHasNewer)break;     // 停在历史中间（搜索跳转），不强拉回最新
+      if(state.busy){_reconcileQueued=true;break}
+      const sig=_messagesSig(page.messages),cur=_messagesSig(state._loadedMessages||[]);
+      if(sig!==cur){
+        const stick=_nearBottom();
+        _paintHistory(page.messages,{hasMore:page.has_more,scroll:stick});
+        // 渲染成功之后才落缓存 / 推进状态，绝不先推游标再渲染
+        await cachePutConv(convId,page.messages,{has_more:page.has_more,next_before_id:page.next_before_id});
+        console.log('[reconcile]',reason,'->',page.messages.length,'msgs');
+      }
+    }while(_reconcileQueued&&!state.busy);
+  }finally{_reconcileRunning=false}
+}
+/* 四种恢复事件：重新可见、窗口重新聚焦、PWA 恢复、网络重新上线。
+   任何一种发生都立刻对账，退出再进不是唯一的恢复办法。 */
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')reconcileNow('visible')});
+window.addEventListener('focus',()=>reconcileNow('focus'));
+window.addEventListener('online',()=>reconcileNow('online'));
+window.addEventListener('pageshow',()=>reconcileNow('pageshow'));
 
 async function openSession(s,{focusMessageId=null}={}){
   if(state.busy)stopActiveResponseNow();
