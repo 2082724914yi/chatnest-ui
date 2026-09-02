@@ -32,6 +32,8 @@ fix-guard-hold.js|worthRemembering|拦住空洞内容
 fix-feel-domain.js|feel 缺 source_bucket|感受记忆不再被拒收
 fix-ob-dashboard.js|loadEnvFile|记忆页读得到 OB
 fix-ob-write-result.js|obWriteResult|存没存进去说实话
+fix-ob-parse.js|parseObArgs|一个引号不再毁掉整条记忆
+fix-ob-actions.js|OB_ACTIONS|详情页那排按钮真的生效
 "
 
 say "1/3 逐个补丁检查"

@@ -1228,6 +1228,9 @@ html[data-chat-bg="light"] .profile-name-input,html[data-chat-bg="light"] .profi
 .ob-add-title{font:600 17px/1.2 var(--font-sans);color:#201f1d}
 .ob-add-close{width:36px;height:36px;border:0;border-radius:50%;background:rgba(32,31,29,.06);color:#201f1d;font-size:18px;display:grid;place-items:center}
 .ob-add-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.ob-add-check{display:flex;align-items:center;gap:9px;margin:2px 0 14px;color:#77736c;font:400 14px/1.35 var(--font-sans)}
+.ob-add-check input{width:18px;height:18px;flex:none;accent-color:#c17b7b}
+html[data-chat-bg="dark"] .ob-add-check{color:rgba(244,243,239,.6)}
 .ob-add-label{font:600 12px/1 var(--font-sans);color:#a6a39a;text-transform:uppercase;letter-spacing:.5px}
 .ob-add-input{border:0;border-radius:14px;background:rgba(32,31,29,.04);padding:10px 14px;font:400 15px/1.4 var(--font-sans);color:#201f1d;outline:0;resize:none}
 .ob-add-input:focus{box-shadow:inset 0 0 0 1.5px rgba(32,31,29,.18)}
@@ -3382,10 +3385,13 @@ function _groupToolTracesByTextOffset(toolTraces,text){
 }
 function _buildClaudeRow(text,userText='',thinking='',timestamp='',userAttachments=[],traces=[],messageId='',files=[],choices=[]){
   // 历史消息若还带原始标签（旧缓存），客户端再剥一次
-  let bodyText=text,fileList=files||[],choiceList=choices||[];
-  if((!fileList.length||!choiceList.length)&&/\[(file\s+name\s*=|choices\])/i.test(String(text||''))){
-    const parsed=parseAssistantTags(text);
-    bodyText=parsed.text||text;
+  // <ob …>…</ob> 是存记忆用的，不该给她看。以前后端解析失败时会把整段留在历史里，
+  // 浏览器又把不认识的标签吃掉，只剩中间那坨 JSON 露在气泡里 —— 这里兜底再剥一次。
+  let bodyText=String(text||'').replace(/\s*<ob\b[^>]*>[\s\S]*?<\/ob>\s*/gi,'\n\n').replace(/\n{3,}/g,'\n\n').trim();
+  let fileList=files||[],choiceList=choices||[];
+  if((!fileList.length||!choiceList.length)&&/\[(file\s+name\s*=|choices\])/i.test(bodyText)){
+    const parsed=parseAssistantTags(bodyText);
+    bodyText=parsed.text||bodyText;
     if(!fileList.length)fileList=parsed.files;
     if(!choiceList.length)choiceList=parsed.choices;
   }
@@ -6762,8 +6768,10 @@ async function loadOBData(){
     try{const j=await statusRes.json();status=statusRes.ok?j:{available:false,...j}}catch(e){}
     const bucketsData=bucketsRes.ok?await bucketsRes.json():{items:[]};
     setOBStatus(status);
-    obBuckets=bucketsData.items||[];
-    obBuckets.sort((a,b)=>(b.importance||0)-(a.importance||0));
+    // 计划和信各有各的分区，记忆桶这一栏别把它们也列进来
+    obBuckets=(bucketsData.items||[]).filter(i=>!['plan','letter'].includes(String(i.type).toLowerCase()));
+    // 跟网页一个排法：先按权重，网页没给权重的再退回重要度
+    obBuckets.sort((a,b)=>(b.weight??-1)-(a.weight??-1)||(b.importance||0)-(a.importance||0));
     obFilter='all';obDomainFilter='all';
     $('obFilters').querySelectorAll('.ob-filter-pill').forEach(p=>p.classList.toggle('active',p.dataset.obFilter==='all'));
     $('obFilters').classList.remove('hidden');
@@ -6808,28 +6816,49 @@ function renderOBCards(){
   if(obDomainFilter!=='all')items=items.filter(i=>i.domains&&i.domains.includes(obDomainFilter));
   if(!items.length){host.innerHTML='<div class="ob-empty">'+(obSearchQuery?'没有搜索结果':'暂无记忆')+'</div>';return}
   host.innerHTML='';
-  items.forEach(item=>{
-    const card=document.createElement('div');card.className='ob-card';
-    const pinIcon=item.pinned?'📌 ':'';
-    const imp=item.importance||0;
-    const impPct=Math.min(100,imp/10*100);
-    const domainTags=(item.domains||[]).map(d=>'<span class="ob-detail-tag" style="font-size:11px;padding:2px 7px">'+_esc(d)+'</span>').join('');
-    // 每条都带上完整的日期时间（含年份），不然去年今年分不出来
-    const ts=item.createdAt?new Date(item.createdAt).toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
-    card.innerHTML=`<div class="ob-card-head"><div class="ob-card-name">${pinIcon}${_esc(item.name)}</div><div class="ob-importance-bar"><div class="ob-importance-track"><div class="ob-importance-fill" style="width:${impPct}%"></div></div><span class="ob-importance-val">${imp.toFixed?imp.toFixed(0):imp}</span></div></div><div class="ob-card-preview">${_esc(item.contentPreview||'')}</div><div class="ob-card-meta">${ts?'<span>'+ts+'</span>':''}${domainTags}${item.activationCount?'<span>'+item.activationCount+' act.</span>':''}</div>`;
-    card.onclick=()=>openOBDetail(item.id);
-    host.append(card);
-  });
+  items.forEach(item=>host.append(obBucketCard(item)));
+}
+
+// OB 给的 name 前面粘着一串创建时间（"2026-08-11 18-10-39 小懿说…"），
+// 时间我们已经单独显示了，标题里再重复一遍会把真正的标题挤没。
+function obCleanTitle(name){
+  const t=String(name||'').replace(/^\d{4}-\d{2}-\d{2}[ T]\d{2}[-:]\d{2}[-:]\d{2}\s*/,'').trim();
+  return t||'（无标题）';
+}
+function obWhen(item){
+  const v=item.createdAt||item.lastActiveAt;
+  if(!v)return'';
+  const d=new Date(v);
+  return isNaN(d)?'':d.toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+// 记忆桶、信、搜索结果都用这一张卡：一条一条，有标题显示标题，后面跟日期时间
+function obBucketCard(item){
+  const card=document.createElement('div');card.className='ob-card';
+  const pinIcon=item.pinned?'📌 ':(String(item.type).toLowerCase()==='letter'?'💌 ':'');
+  const imp=item.importance||0;
+  const impPct=Math.min(100,imp/10*100);
+  const domainTags=(item.domains||[]).map(d=>'<span class="ob-detail-tag" style="font-size:11px;padding:2px 7px">'+_esc(d)+'</span>').join('');
+  const ts=obWhen(item);
+  card.innerHTML=`<div class="ob-card-head"><div class="ob-card-name">${pinIcon}${_esc(obCleanTitle(item.name))}</div><div class="ob-importance-bar"><div class="ob-importance-track"><div class="ob-importance-fill" style="width:${impPct}%"></div></div><span class="ob-importance-val">${imp.toFixed?imp.toFixed(0):imp}</span></div></div><div class="ob-card-preview">${_esc(item.contentPreview||'')}</div><div class="ob-card-meta">${ts?'<span>'+ts+'</span>':''}${domainTags}${item.activationCount?'<span>'+item.activationCount+' act.</span>':''}${item.weight!=null?'<span>权重 '+Number(item.weight).toFixed(1)+'</span>':''}</div>`;
+  card.onclick=()=>openOBDetail(item.id);
+  return card;
 }
 
 async function searchOB(query){
   if(!query.trim()){obSearchQuery='';loadOBData();return}
   obSearchQuery=query.trim();
+  // 搜索是全库搜，别让上一次留下的筛选把结果又滤掉；不在记忆桶那栏也切回来
+  obFilter='all';obDomainFilter='all';
+  if(obActiveNav!=='buckets'){obActiveNav='buckets';$('obNavGrid')?.querySelectorAll('[data-ob-nav]').forEach(n=>n.classList.toggle('active',n.dataset.obNav==='buckets'))}
+  $('obFilters').classList.remove('hidden');
+  $('obFilters').querySelectorAll('.ob-filter-pill').forEach(p=>p.classList.toggle('active',p.dataset.obFilter==='all'));
+  $('obDomainFilters').classList.add('hidden');
   $('obCards').innerHTML='<div class="ob-loading">搜索中…</div>';
   try{
     const r=await api('/api/ombre-dashboard/search?q='+encodeURIComponent(query.trim()));
     const data=r.ok?await r.json():{items:[]};
     obBuckets=data.items||[];
+    if(!obBuckets.length){$('obCards').innerHTML='<div class="ob-empty">没搜到「'+_esc(query.trim())+'」</div>';return}
     renderOBCards();
   }catch(e){$('obCards').innerHTML='<div class="ob-empty">搜索失败</div>'}
 }
@@ -6844,7 +6873,7 @@ async function openOBDetail(id){
     if(!r.ok)throw Error();
     const item=await r.json();
     obCurrentDetail=item;
-    $('obDetailTitle').textContent=item.name;
+    $('obDetailTitle').textContent=obCleanTitle(item.name);
     const body=$('obDetailBody');body.innerHTML='';
     if(item.content){const s=document.createElement('div');s.className='ob-detail-section';s.innerHTML='<div class="ob-detail-label">Content</div><div class="ob-detail-content">'+_esc(item.content)+'</div>';body.append(s)}
     const metaRows=[
@@ -6861,32 +6890,40 @@ async function openOBDetail(id){
     if(item.domains&&item.domains.length){const s=document.createElement('div');s.className='ob-detail-section';s.innerHTML='<div class="ob-detail-label">Domains</div><div class="ob-detail-domains">'+item.domains.map(d=>'<span class="ob-detail-domain">'+_esc(d)+'</span>').join('')+'</div>';body.append(s)}
     if(item.id){const s=document.createElement('div');s.className='ob-detail-section';s.innerHTML='<div class="ob-detail-label">ID</div><div style="font:400 11px/1.4 var(--font-mono);color:#a6a39a;word-break:break-all">'+_esc(item.id)+'</div>';body.append(s)}
     const actions=document.createElement('div');actions.className='ob-detail-section';
+    const archived=['archive','archived'].includes(String(item.type).toLowerCase());
     actions.innerHTML='<div class="ob-detail-label">Actions</div><div class="ob-detail-actions">'+
       '<button class="ob-detail-action-btn" data-action="'+(item.pinned?'unpin':'pin')+'"><span class="ob-detail-action-icon">'+(item.pinned?'📌':'📍')+'</span>'+(item.pinned?'取消钉选':'钉选')+'</button>'+
-      '<button class="ob-detail-action-btn" data-action="anchor"><span class="ob-detail-action-icon">⚓</span>设为 Anchor</button>'+
-      (item.resolved?'':'<button class="ob-detail-action-btn" data-action="resolve"><span class="ob-detail-action-icon">✓</span>标记已解决</button>')+
-      '<button class="ob-detail-action-btn" data-action="archive"><span class="ob-detail-action-icon">📦</span>归档</button>'+
-      '<button class="ob-detail-action-btn danger" data-action="forget"><span class="ob-detail-action-icon">🗑</span>主动遗忘</button>'+
+      '<button class="ob-detail-action-btn" data-action="'+(item.anchor?'release':'anchor')+'"><span class="ob-detail-action-icon">⚓</span>'+(item.anchor?'解除 Anchor':'设为 Anchor')+'</button>'+
+      '<button class="ob-detail-action-btn" data-action="'+(item.resolved?'unresolve':'resolve')+'"><span class="ob-detail-action-icon">'+(item.resolved?'↺':'✓')+'</span>'+(item.resolved?'重新激活':'标记已解决')+'</button>'+
+      (archived
+        ?'<button class="ob-detail-action-btn" data-action="restore"><span class="ob-detail-action-icon">📤</span>从档案恢复</button>'
+        :'<button class="ob-detail-action-btn" data-action="archive"><span class="ob-detail-action-icon">📦</span>归档</button>'+
+         '<button class="ob-detail-action-btn danger" data-action="forget"><span class="ob-detail-action-icon">🗑</span>主动遗忘</button>')+
     '</div>';
     body.append(actions);
   }catch(e){$('obDetailBody').innerHTML='<div class="ob-empty">加载失败</div>'}
 }
 
-async function obBucketAction(id,action){
+const OB_ACTION_LABEL={pin:'已钉选',unpin:'已取消钉选',anchor:'已设为 Anchor',release:'已解除 Anchor',
+  resolve:'已标记解决',unresolve:'已重新激活',digest:'已放下',archive:'已归档',forget:'已移进档案',restore:'已恢复'};
+async function obBucketAction(id,action,extra){
   try{
-    const r=await api('/api/ombre-dashboard/buckets/'+encodeURIComponent(id)+'/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})});
-    if(!r.ok)throw Error();
-    toast(action==='forget'||action==='release'?'已遗忘':action==='resolve'?'已标记解决':action==='pin'?'已钉选':action==='unpin'?'已取消钉选':action==='anchor'?'已设为Anchor':'操作完成');
+    const r=await api('/api/ombre-dashboard/buckets/'+encodeURIComponent(id)+'/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...(extra||{})})});
+    let data=null;try{data=await r.json()}catch(e){}
+    // 后端现在会如实说成没成 —— 以前不管 OB 收没收都回 ok，所以点了像没反应
+    if(!r.ok||(data&&data.ok===false))throw Error((data&&data.message)||'OB 没有接受这个操作');
+    toast(OB_ACTION_LABEL[action]||'操作完成');
     closeOBDetail();
     if(obActiveNav==='buckets')loadOBData();else loadOBSection(obActiveNav);
-  }catch(e){toast('操作失败')}
+  }catch(e){toast(e&&e.message?String(e.message).slice(0,60):'操作失败')}
 }
 
 $('obDetailBody').addEventListener('click',e=>{
   const btn=e.target.closest('.ob-detail-action-btn');if(!btn||!obCurrentDetail)return;
   const action=btn.dataset.action;
-  if(action==='forget'){if(!confirm('确定要遗忘这条记忆吗？'))return}
-  obBucketAction(obCurrentDetail.id,action==='forget'?'release':action);
+  if(action==='forget'){if(!confirm('确定要遗忘这条记忆吗？\n（OB 只会把它移进档案，不会真的抹掉，以后还能恢复）'))return}
+  // 以前 forget 被映射成 release，而 release 只是解除 anchor，等于什么都没做
+  obBucketAction(obCurrentDetail.id,action);
 });
 
 function closeOBDetail(){$('obDetailOverlay').classList.add('hidden');$('obDetailOverlay').setAttribute('aria-hidden','true');obCurrentDetail=null}
@@ -6917,7 +6954,8 @@ async function loadOBSection(section){
     if(section==='plans'){
       const r=await api('/api/ombre-dashboard/buckets');
       const data=r.ok?await r.json():{items:[]};
-      const plans=(data.items||[]).filter(i=>i.domains&&i.domains.includes('plan'));
+      // OB 给的是 type:'plan'，不是 domains 里带 'plan' —— 以前按 domains 找，所以永远是空的
+      const plans=(data.items||[]).filter(i=>String(i.type).toLowerCase()==='plan'||(i.domains||[]).includes('plan'));
       const active=plans.filter(i=>!i.resolved&&!i.digested);
       const done=plans.filter(i=>i.resolved);
       const dropped=plans.filter(i=>i.digested&&!i.resolved);
@@ -6931,8 +6969,9 @@ async function loadOBSection(section){
         const h=document.createElement('div');h.style.cssText='font:600 14px/1.4 var(--font-sans);color:#c17b7b;margin:8px 0 4px';h.textContent=label;cards.append(h);
         list.forEach(item=>{
           const card=document.createElement('div');card.className='ob-plan-card';
-          const ts=item.createdAt?new Date(item.createdAt).toLocaleString('zh-CN'):'';
-          card.innerHTML=`<div class="ob-plan-time">${ts}</div><div class="ob-plan-content">${_esc(item.contentPreview||item.name)}</div><div class="ob-plan-actions"><button class="ob-plan-btn done" data-id="${_esc(item.id)}" data-act="resolve">✓ 完成</button><button class="ob-plan-btn drop" data-id="${_esc(item.id)}" data-act="release">✕ 放弃</button></div>`;
+          const ts=obWhen(item);   // 跟记忆桶用同一种日期格式
+          const planTitle=obCleanTitle(item.name);
+          card.innerHTML=`<div class="ob-plan-time">${_esc(ts)}</div>${planTitle&&planTitle!=='（无标题）'?'<div class="ob-letter-title">'+_esc(planTitle)+'</div>':''}<div class="ob-plan-content">${_esc(item.contentPreview||'')}</div><div class="ob-plan-actions">${item.resolved?'<button class="ob-plan-btn" data-id="'+_esc(item.id)+'" data-act="unresolve">↺ 重新开始</button>':'<button class="ob-plan-btn done" data-id="'+_esc(item.id)+'" data-act="resolve">✓ 完成</button>'}<button class="ob-plan-btn drop" data-id="${_esc(item.id)}" data-act="digest">✕ 放弃</button></div>`;
           card.querySelector('.ob-plan-content').onclick=()=>openOBDetail(item.id);
           cards.append(card);
         });
@@ -6941,34 +6980,19 @@ async function loadOBSection(section){
       renderPlanList(done,'已完成 / Done ('+done.length+')');
       renderPlanList(dropped,'已放弃 / Dropped ('+dropped.length+')');
     }else if(section==='letters'){
-      const r=await api('/api/ombre/letter-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
-      const data=r.ok?await r.json():{};
-      const raw=data.result;
+      // 以前走 letter-read（MCP 回来的是一整坨文字，拆不出一封一封），
+      // 改成跟记忆桶同一份数据：type==='letter'，这样每封信都有 id、标题、时间，
+      // 排版也跟记忆桶一致，点开还能看完整正文和那排动作。
+      const r=await api('/api/ombre-dashboard/buckets');
+      const data=r.ok?await r.json():{items:[]};
+      const letters=(data.items||[]).filter(i=>String(i.type).toLowerCase()==='letter')
+        .sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
       cards.innerHTML='';
-      if(!raw){cards.innerHTML='<div class="ob-empty">暂无信件</div>';return}
-      const letters=Array.isArray(raw)?raw:typeof raw==='object'&&raw.letters?raw.letters:[raw];
-      if(!letters.length||!letters[0]){cards.innerHTML='<div class="ob-empty">暂无信件</div>';return}
+      if(!letters.length){cards.innerHTML='<div class="ob-empty">暂无信件</div>';return}
       const header=document.createElement('div');header.className='ob-plan-summary';
-      header.innerHTML=`信件时间线 · ${letters.length} 封`;
+      header.textContent=`信件时间线 · ${letters.length} 封`;
       cards.append(header);
-      letters.forEach(letter=>{
-        const lObj=typeof letter==='string'?{content:letter}:letter;
-        const card=document.createElement('div');card.className='ob-letter-card';
-        const from=lObj.from||lObj.sender||'AI';
-        const fromClass=from.toLowerCase()==='user'?'user':'ai';
-        const date=lObj.date||lObj.created_at||lObj.created||'';
-        const title=lObj.title||lObj.subject||'';
-        const content=lObj.content||lObj.body||lObj.text||(typeof letter==='string'?letter:'');
-        const lock=lObj.lock||lObj.visibility||'立即可读';
-        card.innerHTML=`<div class="ob-letter-head"><span class="ob-letter-from ${fromClass}">${_esc(from)}</span><span class="ob-letter-date">${_esc(date)}</span></div>${lock?'<div class="ob-letter-lock">'+_esc(lock)+'</div>':''}${title?'<div class="ob-letter-title">'+_esc(title)+'</div>':''}${content?'<div class="ob-letter-preview">'+_esc(content)+'</div>':''}`;
-        card.onclick=()=>{
-          $('obDetailOverlay').classList.remove('hidden');$('obDetailOverlay').setAttribute('aria-hidden','false');
-          $('obDetailTitle').textContent=title||'信';
-          const body=$('obDetailBody');body.innerHTML='';
-          const s=document.createElement('div');s.className='ob-detail-section';s.innerHTML='<div class="ob-detail-label">'+_esc(from)+' · '+_esc(date)+'</div><div class="ob-detail-content">'+_esc(content)+'</div>';body.append(s);
-        };
-        cards.append(card);
-      });
+      letters.forEach(item=>cards.append(obBucketCard(item)));
     }else if(section==='anchors'){
       const r=await api('/api/ombre-dashboard/buckets');
       const data=r.ok?await r.json():{items:[]};
@@ -7010,7 +7034,8 @@ $('obCards').addEventListener('click',e=>{
   const btn=e.target.closest('.ob-plan-btn');if(!btn)return;
   e.stopPropagation();
   const id=btn.dataset.id,act=btn.dataset.act;
-  if(act==='release'&&!confirm('确定要放弃这个计划吗？'))return;
+  // 以前"放弃"打的是 release（那只是解除 anchor，计划纹丝不动），改成标记已消化
+  if(act==='digest'&&!confirm('确定要放弃这个计划吗？\n（会标记为已消化，不再浮现，但不会删掉）'))return;
   obBucketAction(id,act);
 });
 
@@ -7021,7 +7046,7 @@ function openObAddForm(){
   body.innerHTML='';
   if(obActiveNav==='buckets'){
     title.textContent='新增记忆';
-    body.innerHTML='<div class="ob-add-field"><div class="ob-add-label">标题</div><input class="ob-add-input" id="obAddName" placeholder="这条记忆的标题"></div><div class="ob-add-field"><div class="ob-add-label">内容</div><textarea class="ob-add-input" id="obAddContent" rows="4" placeholder="写下值得记住的事…"></textarea></div><div class="ob-add-field"><div class="ob-add-label">重要度 1-10</div><input class="ob-add-input" id="obAddImportance" type="number" min="1" max="10" placeholder="7"></div><div class="ob-add-field"><div class="ob-add-label">主题域</div><input class="ob-add-input" id="obAddDomain" placeholder="感情 / 家庭 / 学习 / 日常"></div><div class="ob-add-field"><div class="ob-add-label">标签 (逗号分隔)</div><input class="ob-add-input" id="obAddTags" placeholder="小懿, 情绪, 约定…"></div><button class="ob-add-submit" id="obAddSubmit">保存记忆</button>';
+    body.innerHTML='<div class="ob-add-field"><div class="ob-add-label">标题</div><input class="ob-add-input" id="obAddName" placeholder="这条记忆的标题"></div><div class="ob-add-field"><div class="ob-add-label">内容</div><textarea class="ob-add-input" id="obAddContent" rows="4" placeholder="写下值得记住的事…"></textarea></div><div class="ob-add-field"><div class="ob-add-label">重要度 1-10</div><input class="ob-add-input" id="obAddImportance" type="number" min="1" max="10" placeholder="7"></div><div class="ob-add-field"><div class="ob-add-label">主题域</div><input class="ob-add-input" id="obAddDomain" placeholder="感情 / 家庭 / 学习 / 日常"></div><div class="ob-add-field"><div class="ob-add-label">标签 (逗号分隔)</div><input class="ob-add-input" id="obAddTags" placeholder="小懿, 情绪, 约定…"></div><label class="ob-add-check"><input type="checkbox" id="obAddPinned"><span>钉选（重要度锁 10，永远浮现，不衰减）</span></label><button class="ob-add-submit" id="obAddSubmit">保存记忆</button>';
   }else if(obActiveNav==='plans'){
     title.textContent='新增计划';
     body.innerHTML='<div class="ob-add-field"><div class="ob-add-label">计划内容</div><textarea class="ob-add-input" id="obAddContent" rows="5" placeholder="答应了的事、还没做完的事…"></textarea></div><div class="ob-add-field"><div class="ob-add-label">分量 0-1（这个承诺有多重）</div><input class="ob-add-input" id="obAddWeight" type="number" min="0" max="1" step="0.1" placeholder="0.5"></div><button class="ob-add-submit" id="obAddSubmit">保存计划</button>';
@@ -7067,8 +7092,9 @@ $('obAddBody').addEventListener('click',async e=>{
       if(domain)payload.domain=domain;
       if(tags)payload.tags=tags;
       if(imp)payload.importance=parseInt(imp,10);
+      if(($('obAddPinned')||{}).checked)payload.pinned=true;
       await obPost('/api/ombre/hold',payload);
-      toast('记忆已保存');
+      toast(payload.pinned?'记忆已保存并钉选':'记忆已保存');
     }else if(obActiveNav==='plans'){
       const payload={content};
       const w=parseFloat(($('obAddWeight')||{}).value);
