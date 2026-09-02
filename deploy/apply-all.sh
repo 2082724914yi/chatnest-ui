@@ -35,7 +35,9 @@ fix-ob-write-result.js|obWriteResult|存没存进去说实话
 fix-ob-parse.js|parseObArgs|一个引号不再毁掉整条记忆
 fix-ob-actions.js|OB_ACTIONS|详情页那排按钮真的生效
 fix-breath-window.js|BREATH_TIMEOUT_MS|新窗浮现记忆别被掐掉
-fix-ob-toolbench.js|TRACE_PASSTHROUGH|工具台 + 搜标签
+fix-ob-toolbench.js|TRACE_PASSTHROUGH|trace 透传 + 搜标签
+fix-ob-prompt2.js|查过去的事不要调工具|工具一一对应 + 不复述
+fix-empty-turn.js|_stderrTail|空回合不再吞掉
 "
 
 say "1/3 逐个补丁检查"
