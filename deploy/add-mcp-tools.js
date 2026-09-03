@@ -48,6 +48,23 @@ const CLI_DENY_TOOLS = [
   'ReportFindings', 'TaskStop', 'TaskOutput', 'ShowOnboardingRolePicker',
 ].join(' ');
 
+// 预授权名单。这个跟 --disallowedTools 是两件事，缺一不可：
+//   dontAsk 只是「不弹提示」，不等于「批准」—— 写类工具照样被拒（实测 latent_append 挂在这儿）。
+//   allowedTools 才是放行；disallowedTools 才是拦截。
+// （root 下用不了 bypassPermissions：CLI 会直接拒绝启动，代码里那条老注释在这一点上是对的。）
+const CLI_ALLOW_TOOLS = [
+  'mcp__latent__latent_search', 'mcp__latent__latent_session_start',
+  'mcp__latent__latent_append', 'mcp__latent__latent_unresolved',
+  'mcp__latent__latent_correct', 'mcp__latent__latent_thread_close',
+  'mcp__latent__latent_cleanup',
+  'mcp__ombre__breath', 'mcp__ombre__breath_search', 'mcp__ombre__breath_advanced',
+  'mcp__ombre__hold', 'mcp__ombre__grow', 'mcp__ombre__plan', 'mcp__ombre__trace',
+  'mcp__ombre__anchor', 'mcp__ombre__release', 'mcp__ombre__feel', 'mcp__ombre__pulse',
+  'mcp__ombre__letter_read', 'mcp__ombre__letter_write', 'mcp__ombre__letter_lock_update',
+  'mcp__ombre__dream', 'mcp__ombre__I',
+  'WebSearch', 'ToolSearch',
+].join(' ');
+
 // 时间轴上显示的名字。原名是 mcp__latent__latent_search 这种，直接摆出来没法看。
 const MCP_TOOL_LABEL = {
   'mcp__ombre__breath': '浮现记忆 · OB',
@@ -88,7 +105,7 @@ function mcpArgs() {
   const f = writeMcpRuntimeConfig();
   if (!f) return '';   // 配置写不出来就退回没有工具的老路，不让这一轮挂掉
   console.log('[mcp] 这轮带上了记忆工具');
-  return \` --mcp-config \${f} --strict-mcp-config --permission-mode dontAsk --disallowedTools \${CLI_DENY_TOOLS}\`;
+  return \` --mcp-config \${f} --strict-mcp-config --permission-mode dontAsk --allowedTools \${CLI_ALLOW_TOOLS} --disallowedTools \${CLI_DENY_TOOLS}\`;
 }
 
 // 每次起 CLI 之前刷一遍配置：token 可能换过，别用旧的
@@ -203,6 +220,7 @@ const checks = [
   ['危险工具进了黑名单', /'Bash', 'Edit', 'Write'/.test(out)],
   ['配置文件 600 权限', /mode: 0o600/.test(out) && /chmodSync\(MCP_RUNTIME_FILE, 0o600\)/.test(out)],
   ['spawn 真的带上了 MCP 参数', /claude -p[^`]*\$\{mcpArgs\(\)\}[^`]*--output-format stream-json/.test(out)],
+  ['预授权名单带上了写类工具', /CLI_ALLOW_TOOLS/.test(out) && /latent_append/.test(out) && /--allowedTools/.test(out)],
   ['工具名做了美化', /prettyToolName\(/.test(out)],
   ['WebSearch 放行了', !/'WebSearch'/.test(out.split('CLI_DENY_TOOLS')[1].split(']')[0])],
   ['MCP 说明在静态区', /let prompt = PERSONA[^;]*MCP_TOOL_PROMPT/.test(out)],

@@ -23,7 +23,7 @@ const ctx = {
 };
 ctx.global = ctx;
 vm.createContext(ctx);
-vm.runInContext(block + '\nthis._api={writeMcpRuntimeConfig,CLI_DENY_TOOLS,prettyToolName};', ctx);
+vm.runInContext(block + '\nthis._api={writeMcpRuntimeConfig,CLI_DENY_TOOLS,CLI_ALLOW_TOOLS,prettyToolName};', ctx);
 const api = ctx._api;
 
 const fails = [];
@@ -42,22 +42,31 @@ check('工具名美化了', api.prettyToolName('mcp__latent__latent_search') ===
 check('没登记的也不露原名', !api.prettyToolName('mcp__foo__bar_baz').includes('__'), api.prettyToolName('mcp__foo__bar_baz'));
 
 // 用补丁生成的这套参数真跑 CLI
-const cmd = `echo "请用 Bash 执行 whoami。没有 Bash 工具就只回复「没有这个工具」。" | ` +
-  `timeout 180 claude -p --mcp-config ${cfgPath} --strict-mcp-config ` +
-  `--permission-mode dontAsk --disallowedTools ${api.CLI_DENY_TOOLS} ` +
+const cmd = `echo "两件事：一，调用 latent_append 存一句，text 写「e2e 写入验证」，current_state 写「测试」，unresolvedOps 传 [{\\"action\\":\\"none\\"}]。二，用 Bash 跑 whoami。做不了的说明原因。" | ` +
+  `timeout 240 claude -p --mcp-config ${cfgPath} --strict-mcp-config ` +
+  `--permission-mode dontAsk --allowedTools ${api.CLI_ALLOW_TOOLS} --disallowedTools ${api.CLI_DENY_TOOLS} ` +
   `--output-format stream-json --verbose`;
 let out = '';
 try { out = execSync(cmd, { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024, cwd: tmp }); }
 catch (e) { out = String(e.stdout || '') + String(e.stderr || ''); }
 
-let init = null, calls = [], result = '';
+let init = null, calls = [], result = '', denied = [], wroteOk = false;
 for (const line of out.split('\n')) {
   const s = line.trim();
   if (!s.startsWith('{')) continue;
   let o; try { o = JSON.parse(s); } catch { continue; }
   if (o.type === 'system' && o.subtype === 'init') init = o;
   const msg = o.message || {};
-  for (const blk of (msg.content || [])) if (blk && blk.type === 'tool_use') calls.push(blk.name);
+  for (const blk of (msg.content || [])) {
+    if (!blk || typeof blk !== 'object') continue;
+    if (blk.type === 'tool_use') calls.push(blk.name);
+    if (blk.type === 'tool_result') {
+      const v = blk.content;
+      const txt = typeof v === 'string' ? v : JSON.stringify(v);
+      if (blk.is_error) denied.push(String(txt).slice(0, 80));
+      if (/recordId=|正文已写进/.test(String(txt))) wroteOk = true;
+    }
+  }
   if (o.type === 'result') result = String(o.result || '');
 }
 
@@ -71,8 +80,11 @@ if (init) {
   check('记忆工具可用', mcp.length >= 20, `${mcp.length} 个`);
   check('危险工具被挡掉', risky.length === 0, JSON.stringify(risky));
 }
+check('写类工具真的写进去了', wroteOk, JSON.stringify(denied));
+check('没有工具被拒', denied.length === 0, JSON.stringify(denied));
 check('它没能真的跑 Bash', !calls.includes('Bash'), JSON.stringify(calls));
-check('它自己说没有这个工具', /没有这个工具/.test(result), result.slice(0, 120));
+// 「Bash 有没有被调用」上一条已经验过了，这里只看它没把命令结果吐出来
+check('回复里没有命令执行结果', !/\broot\b|uid=\d+/.test(result), result.slice(0, 120));
 
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log();
