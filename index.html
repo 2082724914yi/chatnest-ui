@@ -965,6 +965,8 @@ html[data-chat-bg="dark"] .wm-box{background:rgba(255,255,255,.06)}
 .wm-u{font-size:12px;color:var(--text-secondary);margin-left:3px}
 .wm-t{font-size:11px;color:var(--text-faint);margin-top:5px}
 .wm-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.wm-refresh{margin-left:auto;flex:none;width:28px;height:28px;border:0;border-radius:50%;background:rgba(74,55,40,.07);color:var(--text-secondary);font-size:15px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html[data-chat-bg="dark"] .wm-refresh{background:rgba(255,255,255,.09)}
 .wm-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);flex:none}
 .wm-dot.on{background:#7FA88C;box-shadow:0 0 0 3px rgba(127,168,140,.18)}
 .wm-dot.old{background:#C9A227}
@@ -2057,7 +2059,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
       <div class="pulse-view" id="ptabMine" hidden>
         <div class="pulse-card">
           <div class="pulse-card-head"><span class="pulse-card-title">身体</span><span class="pulse-card-en">from your wrist</span></div>
-          <div class="wm-head"><i class="wm-dot" id="watchDot"></i><span class="wm-when" id="watchWhen">读取中…</span></div>
+          <div class="wm-head"><i class="wm-dot" id="watchDot"></i><span class="wm-when" id="watchWhen">读取中…</span><button class="wm-refresh" id="watchRefresh" type="button" aria-label="刷新">↻</button></div>
           <div class="wm-grid" id="watchMetrics"></div>
         </div>
         <div class="pulse-card">
@@ -2503,7 +2505,7 @@ function showHome(){
   $('homeQuote').textContent='"'+quotes[Math.floor(Math.random()*quotes.length)]+'"';
   var pd=$('homePeriod');pd.style.display='flex';$('homePeriodText').textContent='cycle day 2 · menstrual · next Sep 3';
 }
-function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden')}
+function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden');requestAnimationFrame(scrollBottom);setTimeout(scrollBottom,120);setTimeout(scrollBottom,400)}
 function backToHome(){$('chat').classList.add('hidden');closeDrawer();showHome()}
 async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){state.token=null;localStorage.removeItem('chat_token');showGate();throw Error('unauthorized')}return res}
 function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringify(state.settings))}
@@ -4782,8 +4784,11 @@ function _saveTokenStats(){try{localStorage.setItem('chatnest_token_stats',JSON.
 function _trackTokens(usage){
   if(!usage)return;
   const inp=usage.prompt_tokens||0;const out=usage.completion_tokens||0;
+  const cr=usage.cache_read||0;const cc=usage.cache_creation||0;
   _tokenStats.totalInput+=inp;
   _tokenStats.totalOutput+=out;
+  _tokenStats.totalCacheRead=(_tokenStats.totalCacheRead||0)+cr;
+  _tokenStats.totalCacheCreation=(_tokenStats.totalCacheCreation||0)+cc;
   _tokenStats.totalMessages++;
   const today=new Date().toISOString().slice(0,10);
   _tokenStats.dailyMessages[today]=(_tokenStats.dailyMessages[today]||0)+1;
@@ -4791,6 +4796,7 @@ function _trackTokens(usage){
   if(!_tokenStats.dailyTokens[today])_tokenStats.dailyTokens[today]={input:0,output:0};
   _tokenStats.dailyTokens[today].input+=inp;
   _tokenStats.dailyTokens[today].output+=out;
+  _tokenStats.dailyTokens[today].cacheRead=(_tokenStats.dailyTokens[today].cacheRead||0)+cr;
   _saveTokenStats();
 }
 
@@ -4883,7 +4889,7 @@ function _renderSettingsRoot(){
   <div class="settings-section">
     <div class="settings-section-title">关于</div>
     <div class="settings-card">
-      <button class="settings-row" data-stg="stats"><div class="settings-row-icon indigo">📊</div><div class="settings-row-body"><div class="settings-row-title">统计</div><div class="settings-row-desc">用量、Token、聊天热力图</div></div><div class="settings-row-chevron">›</div></button>
+      <button class="settings-row" data-stg="stats"><div class="settings-row-icon indigo">📊</div><div class="settings-row-body"><div class="settings-row-title">统计</div><div class="settings-row-desc">用量、Token、缓存命中</div></div><div class="settings-row-chevron">›</div></button>
       <button class="settings-row" data-stg="logs"><div class="settings-row-icon gray">📋</div><div class="settings-row-body"><div class="settings-row-title">日志</div><div class="settings-row-desc">上下文 / 请求 / 应用</div></div><div class="settings-row-chevron">›</div></button>
     </div>
   </div>
@@ -5450,31 +5456,37 @@ function _renderStats(root){
   const totalIn=_tokenStats.totalInput||0;
   const totalOut=_tokenStats.totalOutput||0;
   const totalTokens=totalIn+totalOut;
+  const cacheRead=_tokenStats.totalCacheRead||0;
+  const cacheCreation=_tokenStats.totalCacheCreation||0;
+  // 命中率 = 缓存读 /（缓存读 + 新读 + 写缓存）= 输入里有多少是从缓存来的
+  const inTotal=cacheRead+cacheCreation+totalIn;
+  const hitPct=inTotal?Math.round(cacheRead/inTotal*100):0;
   const daily=_tokenStats.dailyMessages||{};
   const activeDays=Object.keys(daily).length;
-  const daysActive=Math.floor((new Date()-new Date(2026,6,1))/(864e5))+1;
-  // 连续天数
-  let streak=0;const today=new Date();
-  for(let i=0;i<365;i++){const d=new Date(today);d.setDate(d.getDate()-i);const k=d.toISOString().slice(0,10);if(daily[k])streak++;else break}
+  const fmt=n=>n>=1000?(n/1000).toFixed(1)+'K':String(n);
   root.innerHTML=_settingsHeader('统计',true)+`
   <div class="settings-section"><div class="settings-section-title">Token 用量</div><div class="settings-stat-grid">
-    <div class="settings-stat-card"><div class="settings-stat-label">输入 Token</div><div class="settings-stat-value">${totalIn>1000?(totalIn/1000).toFixed(1)+'K':totalIn}</div><div class="settings-stat-sub">Prompt tokens</div></div>
-    <div class="settings-stat-card"><div class="settings-stat-label">输出 Token</div><div class="settings-stat-value">${totalOut>1000?(totalOut/1000).toFixed(1)+'K':totalOut}</div><div class="settings-stat-sub">Completion tokens</div></div>
+    <div class="settings-stat-card"><div class="settings-stat-label">输入 Token</div><div class="settings-stat-value">${fmt(totalIn)}</div><div class="settings-stat-sub">未命中缓存的新输入</div></div>
+    <div class="settings-stat-card"><div class="settings-stat-label">输出 Token</div><div class="settings-stat-value">${fmt(totalOut)}</div><div class="settings-stat-sub">回复生成</div></div>
+  </div></div>
+  <div class="settings-section"><div class="settings-section-title">缓存命中</div><div class="settings-stat-grid">
+    <div class="settings-stat-card"><div class="settings-stat-label">命中总量</div><div class="settings-stat-value">${fmt(cacheRead)}</div><div class="settings-stat-sub">从缓存读的 Token</div></div>
+    <div class="settings-stat-card"><div class="settings-stat-label">命中率</div><div class="settings-stat-value">${hitPct}%</div>
+      <div style="height:6px;border-radius:3px;background:rgba(0,0,0,.08);margin:6px 0 4px;overflow:hidden">
+        <div style="height:100%;width:${hitPct}%;border-radius:3px;background:#7FA88C;transition:width .3s"></div>
+      </div>
+      <div class="settings-stat-sub">输入里从缓存来的占比</div></div>
   </div></div>
   <div class="settings-section"><div class="settings-section-title">消息统计</div><div class="settings-stat-grid">
     <div class="settings-stat-card"><div class="settings-stat-label">总消息数</div><div class="settings-stat-value">${totalMsgs}</div><div class="settings-stat-sub">所有对话累计</div></div>
-    <div class="settings-stat-card"><div class="settings-stat-label">活跃天数</div><div class="settings-stat-value">${activeDays}</div><div class="settings-stat-sub">自 2026.7.1 起</div></div>
+    <div class="settings-stat-card"><div class="settings-stat-label">活跃天数</div><div class="settings-stat-value">${activeDays}</div><div class="settings-stat-sub">有聊天的天数</div></div>
   </div></div>
-  <div class="settings-section"><div class="settings-section-title">聊天热力图</div><div class="settings-stat-card">
-    <div class="settings-heatmap" id="stgHeatmap"></div>
-  </div></div>
-  <div class="settings-section"><div class="settings-section-title">每日 Token 用量</div><div class="settings-stat-card" style="padding:12px 16px">
-    <div id="stgDailyTokens"></div>
+  <div class="settings-section"><div class="settings-section-title">最近 7 天</div><div class="settings-stat-card" style="padding:12px 16px">
+    <div id="stgDaily"></div>
   </div></div>
   <div class="settings-section"><div class="settings-section-title">概览</div><div class="settings-card">
     <div class="settings-overview-row"><div class="settings-overview-icon">💬</div><div class="settings-overview-label">日均消息</div><div class="settings-overview-value">${activeDays?Math.round(totalMsgs/activeDays):0}</div></div>
-    <div class="settings-overview-row"><div class="settings-overview-icon">🔥</div><div class="settings-overview-label">当前连续聊天</div><div class="settings-overview-value">${streak} 天</div></div>
-    <div class="settings-overview-row"><div class="settings-overview-icon">📊</div><div class="settings-overview-label">总 Token 消耗</div><div class="settings-overview-value">${totalTokens>1000?(totalTokens/1000).toFixed(1)+'K':totalTokens}</div></div>
+    <div class="settings-overview-row"><div class="settings-overview-icon">📊</div><div class="settings-overview-label">总 Token 消耗</div><div class="settings-overview-value">${fmt(totalTokens)}</div></div>
     <div class="settings-overview-row"><div class="settings-overview-icon">📱</div><div class="settings-overview-label">当前模型</div><div class="settings-overview-value">${currentModel()?.label||'Sonnet 5'}</div></div>
   </div></div>
   <div class="settings-section"><div class="settings-section-title">CC 订阅额度</div>
@@ -5483,9 +5495,29 @@ function _renderStats(root){
     </div>
   </div>`;
   root.querySelector('#stgBack').onclick=()=>_renderSettingsRoot();
-  _renderHeatmap(root.querySelector('#stgHeatmap'));
-  _renderDailyTokens(root.querySelector('#stgDailyTokens'));
+  _renderDaily(root.querySelector('#stgDaily'));
   _fetchCcUsage(root.querySelector('#stgCcUsage'));
+}
+// 每天一行：消息数 / 输入·输出 token / 命中缓存
+function _renderDaily(container){
+  if(!container)return;
+  const dm=_tokenStats.dailyMessages||{};
+  const dt=_tokenStats.dailyTokens||{};
+  const days=Array.from(new Set(Object.keys(dm).concat(Object.keys(dt)))).sort().reverse().slice(0,7);
+  if(!days.length){container.innerHTML='<div style="text-align:center;color:#77736c;font-size:13px;padding:8px 0">暂无数据</div>';return}
+  const fmt=n=>n>=1000?(n/1000).toFixed(1)+'K':String(n||0);
+  let html='<div style="display:flex;font-size:11px;color:#aaa49c;padding:0 0 6px"><div style="width:44px;flex:none">日期</div><div style="width:38px;flex:none;text-align:right">消息</div><div style="flex:1;text-align:right">输入/输出</div><div style="width:52px;flex:none;text-align:right">命中</div></div>';
+  days.forEach(k=>{
+    const msgs=dm[k]||0;const t=dt[k]||{};const inp=t.input||0,out=t.output||0,cr=t.cacheRead||0;
+    const label=k.slice(5);
+    html+=`<div style="display:flex;align-items:center;font-size:12.5px;color:var(--text-primary);padding:7px 0;border-top:1px solid rgba(120,120,128,.10)">
+      <div style="width:44px;flex:none;color:#77736c">${label}</div>
+      <div style="width:38px;flex:none;text-align:right">${msgs}</div>
+      <div style="flex:1;text-align:right;color:#77736c">${fmt(inp)}/${fmt(out)}</div>
+      <div style="width:52px;flex:none;text-align:right;color:#7FA88C">${fmt(cr)}</div>
+    </div>`;
+  });
+  container.innerHTML=html;
 }
 function _renderDailyTokens(container){
   if(!container)return;
@@ -6117,6 +6149,13 @@ $('chatSearchClear').onclick=()=>{
   renderSearchResults(null);
   try{$('chatSearchInput').focus()}catch(_){}
 };
+function _fmtSearchDate(iso){
+  const t=Date.parse(iso||'');if(!isFinite(t))return '';
+  const d=new Date(t),now=new Date();
+  const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  if(d.toDateString()===now.toDateString())return '今天 '+hm;
+  return (d.getMonth()+1)+'月'+d.getDate()+'日 '+hm;
+}
 async function runChatSearch(q){
   const token=++_chatSearch.token;
   $('chatSearchHint').textContent='找找看…';
@@ -6125,7 +6164,16 @@ async function runChatSearch(q){
     if(!r.ok)throw Error('search failed');
     const data=await r.json();
     if(token!==_chatSearch.token)return;
-    renderSearchResults(data.results||[],q);
+    const _mapped=(data.results||[]).map(function(r){return {
+      conv_id:r.conv_id||r.conversation_id,
+      conv_title:r.conv_title||r.title||'对话',
+      message_id:r.message_id,
+      role:r.role,
+      snippet:r.snippet,
+      time_text:r.time_text||_fmtSearchDate(r.time),
+      starred:r.starred,
+    }});
+    renderSearchResults(_mapped,q);
   }catch(e){
     if(token!==_chatSearch.token)return;
     renderSearchResults([],q,{error:true});
@@ -8339,7 +8387,7 @@ document.querySelectorAll('[data-page]').forEach(function(card){
   card.addEventListener('click',function(){
     var page=this.getAttribute('data-page');
     if(page==='chat'){enterChat();return}
-    if(page==='memory'){enterChat();setTimeout(openMemoryPicker,200);return}
+    if(page==='memory'){openMemoryPicker();return}
     if(page==='settings'){openSettings();return}
     if(page==='pulse'){openPulse();return}
   });
@@ -8603,6 +8651,18 @@ function watchValueText(k,m){
   return {v:m.value+'<span class="wm-u">'+_esc(m.unit||'')+'</span>'};
 }
 
+let _watchRefreshing=false;
+function watchRefresh(){
+  let name=localStorage.getItem('watch_shortcut_name')||'';
+  if(!name){name=(prompt('你那个上传健康的捷径叫什么名字？（填一次就记住）')||'').trim();if(!name)return;localStorage.setItem('watch_shortcut_name',name)}
+  _watchRefreshing=true;
+  const w=$('watchWhen');if(w)w.textContent='让手机跑一下捷径…';
+  // 打开 Shortcuts 跑捷径；跑完 iOS 会切回来，靠 visibilitychange 重读
+  try{location.href='shortcuts://run-shortcut?name='+encodeURIComponent(name)}catch(e){_watchRefreshing=false}
+}
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden&&_watchRefreshing){_watchRefreshing=false;setTimeout(loadWatch,1500)}
+});
 async function loadWatch(){
   const host=$('watchMetrics'),dot=$('watchDot'),when=$('watchWhen');
   if(!host)return;
@@ -8643,7 +8703,7 @@ function pulseSwitchTab(name){
   const sc=document.querySelector('#pulseHome .pulse-scroll'); if(sc)sc.scrollTop=0;
   if(name==='log')loadPulseJournal();
   if(name==='dream')loadPulseDreams();
-  if(name==='mine')loadWatch();
+  if(name==='mine'){loadWatch();const _rb=$('watchRefresh');if(_rb&&!_rb._bound){_rb._bound=1;_rb.addEventListener('click',watchRefresh)}}
 }
 
 /* 每小时往哪走：(目标 - 现在) * 系数，跟引擎里的公式同一条 */
