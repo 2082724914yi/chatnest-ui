@@ -8,7 +8,10 @@ set -uo pipefail
 API_DIR=${API_DIR:-/root/chatnest-api}
 SRV="$API_DIR/server.js"
 PORT=${PORT:-3000}
-RAW=https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deploy
+# 默认拉 main。补丁还在分支上没合过去的时候，用 BRANCH=分支名 覆盖：
+#   curl -fsSL .../分支名/deploy/apply-all.sh | sudo BRANCH=分支名 bash
+BRANCH=${BRANCH:-main}
+RAW=https://raw.githubusercontent.com/2082724914yi/chatnest-ui/$BRANCH/deploy
 
 ok(){ printf '  \033[32m√\033[0m %s\n' "$*"; }
 no(){ printf '  \033[31m×\033[0m %s\n' "$*"; }
