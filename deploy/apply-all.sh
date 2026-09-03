@@ -50,6 +50,8 @@ fix-keepalive.js|_stopKeepAlive|保活提前 + 只在空闲时发
 add-mcp-tools.js|MCP_PATCH_VERSION = 2|记忆工具直连（我能自己调）
 add-clock.js|CLOCK_PATCH_VERSION = 1|让我知道现在几点
 add-latent-view.js|LATENT_VIEW_VERSION = 1|Latent 页显示正文而不是提示词
+add-pulse-console.js|PULSE_CONSOLE_VERSION = 1|Pulse 日志 / 开关 / 校准
+add-pulse-dreams.js|PULSE_DREAM_VERSION = 1|梦（梦种 + 织梦 + 余波结算）
 "
 
 say "1/3 逐个补丁检查"

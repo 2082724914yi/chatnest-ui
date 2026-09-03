@@ -52,6 +52,8 @@ from eventide import (
     start_event,
 )
 
+from eventide.engine import APPROACH_FACTORS
+
 import scheduler
 from scheduler import LOCAL_TZ
 
@@ -98,8 +100,18 @@ def _settings(body: Dict[str, Any]) -> EngineSettings:
 
 
 def _rng(body: Dict[str, Any]) -> random.Random:
-    seed = body.get("seed")
-    return random.Random(seed) if seed is not None else random.Random()
+    """固定随机种子用 rng_seed。
+
+    以前读的是 body["seed"]，跟 /dream/maybe 的梦种撞了名 ——
+    那个 seed 是一整个字典，random.Random() 直接抛 TypeError，
+    整条 dream/maybe 因此一直返回 500。这里只认能当种子的标量。
+    """
+    seed = body.get("rng_seed")
+    if seed is None:
+        seed = body.get("seed")
+    if not isinstance(seed, (int, float, str, bytes, bytearray)):
+        return random.Random()
+    return random.Random(seed)
 
 
 # --------------------------------------------------------------------------
@@ -339,11 +351,22 @@ def route_dream_maybe(body: Dict[str, Any]) -> Dict[str, Any]:
         k: v for k, v in (body.get("dream_settings") or {}).items()
         if k in DreamSettings.__dataclass_fields__
     })
+    last_at = _optional_dt(body, "last_counterpart_message_at")
+
+    # force：她自己按了「织一个梦」。时间窗、静默、概率都跳过——
+    # 那些门槛是给自动触发用的，不该拦住她主动要的东西。
+    if body.get("force"):
+        prompt = render_dream_trigger(
+            seed, state, min_chars=int(seed.min_chars or dream_settings.dream_card_min_chars),
+            config=CONFIG, body_enabled=settings.body_cycle_enabled,
+        )
+        return _respond_state(state, now, {"trigger": None, "forced": True, "prompt": prompt}, settings=settings)
+
     trigger = maybe_create_dream_trigger(
         seed,
         state,
         now,
-        last_counterpart_message_at=_optional_dt(body, "last_counterpart_message_at"),
+        last_counterpart_message_at=last_at,
         engine_settings=settings,
         dream_settings=dream_settings,
         config=CONFIG,
@@ -352,7 +375,49 @@ def route_dream_maybe(body: Dict[str, Any]) -> Dict[str, Any]:
     prompt = None
     if trigger is not None:
         prompt = render_dream_trigger(seed, state, config=CONFIG)
-    return _respond_state(state, now, {"trigger": _jsonable(trigger), "prompt": prompt}, settings=settings)
+    return _respond_state(
+        state, now,
+        {
+            "trigger": _jsonable(trigger),
+            "prompt": prompt,
+            # 没触发时说清是卡在哪一关，不然前端只能说"没做梦"
+            "blocked": None if trigger is not None else _dream_block_reason(
+                seed, state, now, last_at, settings, dream_settings
+            ),
+        },
+        settings=settings,
+    )
+
+
+def _dream_block_reason(seed, state, now, last_at, settings, dream_settings) -> Optional[str]:
+    """按 maybe_create_dream_trigger 的顺序复查一遍，报出第一个不满足的条件。"""
+    from eventide.dreams import _in_time_window, _with_tz, dream_probability
+
+    if not dream_settings.dream_enabled:
+        return "梦境关着"
+    if not seed.enabled:
+        return "这个梦种没启用"
+    if seed.expires_at and _with_tz(seed.expires_at, now) <= now:
+        return "这个梦种过期了"
+    if seed.intensity == "explicit" and not settings.adult_private_mode_enabled:
+        return "强度是 explicit，但私密模式没开"
+    if not _in_time_window(now, dream_settings.dream_window_start, dream_settings.dream_window_end):
+        return f"不在做梦的时间段（{dream_settings.dream_window_start}–{dream_settings.dream_window_end}）"
+    if not last_at:
+        return "不知道她上次说话是什么时候"
+    silence = (now - _with_tz(last_at, now)).total_seconds() / 60.0
+    if silence < dream_settings.dream_silence_min_minutes:
+        need = int(dream_settings.dream_silence_min_minutes - silence)
+        return f"她刚说过话，还要再安静 {need} 分钟"
+    if state and state.last_dream_card_created_at:
+        last_dream = _with_tz(state.last_dream_card_created_at, now)
+        hours = (now - last_dream).total_seconds() / 3600.0
+        if hours < dream_settings.cooldown_hours:
+            return f"上一个梦才过去 {hours:.1f} 小时，冷却要 {dream_settings.cooldown_hours} 小时"
+    p = dream_probability(
+        state, seed, engine_settings=settings, dream_settings=dream_settings, config=CONFIG
+    )
+    return f"条件都够了，这次概率 {p:.0%} 没掷中"
 
 
 def route_dream_tags(body: Dict[str, Any]) -> Dict[str, Any]:
@@ -380,9 +445,13 @@ def route_definitions(body: Dict[str, Any]) -> Dict[str, Any]:
                 "duration_hours": list(c.duration_hours),
                 "reserve_growth": c.reserve_growth,
                 "next_key": c.next_key,
+                # 每项往哪个值收敛。Pulse 页要靠它算"现在每小时在往哪走"
+                "targets": dict(c.targets),
             }
             for c in CONFIG.cycles.values()
         ],
+        # 收敛速度：每小时变化 = (target - current) * factor
+        "approach_factors": dict(APPROACH_FACTORS),
         "events": [
             {
                 "key": e.key,
@@ -392,6 +461,8 @@ def route_definitions(body: Dict[str, Any]) -> Dict[str, Any]:
                 "priority": scheduler.EVENT_PRIORITY.get(e.key, 99),
                 "cooldown_hours": scheduler.EVENT_COOLDOWN_HOURS.get(e.key, 4.0),
                 "strong": e.key in scheduler.STRONG_EVENTS,
+                # 事件期间额外叠加的每小时速率
+                "tick_deltas": dict(e.tick_deltas or {}),
             }
             for e in sorted(CONFIG.events.values(), key=lambda x: scheduler.EVENT_PRIORITY.get(x.key, 99))
         ],
