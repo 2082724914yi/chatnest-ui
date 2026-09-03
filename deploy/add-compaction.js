@@ -175,10 +175,14 @@ const edits = [
     replace: (m, g1) => ROUTES + g1,
   },
   {
-    // 信放在历史前面。它一旦写好就不变，是这段 prompt 里最稳的一块
-    name: '注入（CC 订阅路径）',
-    find: /(\n  if \(_handoff\) prompt \+= _handoff;)/,
-    replace: (m, g1) => '\n  prompt += renderCompaction(conv);' + g1,
+    // 信放在历史前面。它一旦写好就不变，是这段 prompt 里最稳的一块。
+    // 顺手在这儿排上这一轮的压缩 —— 上一版给它单独挑了个锚点，
+    // 绑死了「ctxCount 那行紧跟着 recentMsgs 那行」，线上这两行中间隔着别的补丁，
+    // 于是整个补丁被判没命中。挂在这个已经证明能命中的锚点上，少一个会漂的地方。
+    name: '注入 + 排上这一轮的压缩（CC 订阅路径）',
+    find: /(\n( *)if \(_handoff\) prompt \+= _handoff;)/,
+    replace: (m, g1, ind) => '\n' + ind + 'prompt += renderCompaction(conv);' + g1 +
+      '\n' + ind + 'maybeCompact(conv, convId, req.body.contextCount || 20);',
   },
   {
     name: '注入（中转站路径）',
@@ -186,10 +190,10 @@ const edits = [
     replace: (m, g1) => g1.replace('PULSE_TOOL_PROMPT', "PULSE_TOOL_PROMPT + renderCompaction(conv)"),
   },
   {
-    // 回复已经发完了再去写信，不占她的时间
-    name: '这一轮结束后看看要不要压',
-    find: /(\n  const ctxCount = req\.body\.contextCount \|\| 20;\n  const recentMsgs = conv\.history\.slice\(-ctxCount\);)/,
-    replace: (m, g1) => g1 + '\n  maybeCompact(conv, convId, ctxCount);',
+    // 中转站那条路在前面就 return 了，走不到上面那行，得单独排一次
+    name: '排上这一轮的压缩（中转站路径）',
+    find: /(\n( *))(if \(_bodyCard\) msgs\.push\()/,
+    replace: (m, g1, ind, tail) => '\n' + ind + 'maybeCompact(conv, convId, req.body.contextCount || 20);' + g1 + tail,
   },
   {
     // 前端那条水位线要知道压到哪儿了，才画得出"这里收过一次"
@@ -230,7 +234,8 @@ const checks = [
   ['信里要求逐字引原话', /一个字都不要改写/.test(out)],
   ['她能读到那封信', /'\/api\/conversations\/:id\/compaction'/.test(out)],
   ['done 事件带上了压缩进度', /compaction: \(function\(\)\{ const c = compactionOf\(conv\)/.test(out)],
-  ['只插了一次', (out.match(/maybeCompact\(conv, convId, ctxCount\);/g) || []).length === 1],
+  ['两条路径都排上了压缩', (out.match(/maybeCompact\(conv, convId, req\.body\.contextCount \|\| 20\);/g) || []).length === 2],
+  ['注入只插了一次', (out.match(/^ *prompt \+= renderCompaction\(conv\);$/gm) || []).length === 1],
 ];
 const bad = checks.filter(c => !c[1]).map(c => c[0]);
 if (bad.length) { console.error('  × 自检没过：' + bad.join('、') + '，放弃写入'); process.exit(1); }
