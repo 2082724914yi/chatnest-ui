@@ -23,7 +23,7 @@ const ctx = {
 };
 ctx.global = ctx;
 vm.createContext(ctx);
-vm.runInContext(block + '\nthis._api={writeMcpRuntimeConfig,CLI_DENY_TOOLS};', ctx);
+vm.runInContext(block + '\nthis._api={writeMcpRuntimeConfig,CLI_DENY_TOOLS,prettyToolName};', ctx);
 const api = ctx._api;
 
 const fails = [];
@@ -36,6 +36,10 @@ check('权限是 600（里面有 token）', mode === '600', mode);
 const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
 check('两个记忆服务都在', !!(cfg.mcpServers.latent && cfg.mcpServers.ombre), Object.keys(cfg.mcpServers).join(','));
 check('禁用名单挡了 Bash/Edit/Write', ['Bash', 'Edit', 'Write'].every(t => api.CLI_DENY_TOOLS.includes(t)));
+check('WebSearch 没被挡', !api.CLI_DENY_TOOLS.split(' ').includes('WebSearch'), api.CLI_DENY_TOOLS.slice(0,60));
+check('WebFetch 仍然挡着', api.CLI_DENY_TOOLS.split(' ').includes('WebFetch'));
+check('工具名美化了', api.prettyToolName('mcp__latent__latent_search') === '翻全文 · Latent', api.prettyToolName('mcp__latent__latent_search'));
+check('没登记的也不露原名', !api.prettyToolName('mcp__foo__bar_baz').includes('__'), api.prettyToolName('mcp__foo__bar_baz'));
 
 // 用补丁生成的这套参数真跑 CLI
 const cmd = `echo "请用 Bash 执行 whoami。没有 Bash 工具就只回复「没有这个工具」。" | ` +

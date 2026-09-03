@@ -40,11 +40,56 @@ const MCP_RUNTIME_FILE = '/root/chatnest-api/mcp-runtime.json';
 // 实测 --allowedTools 是预授权名单、挡不住工具本身，只有 --disallowedTools 有效。
 const CLI_DENY_TOOLS = [
   'Bash', 'Edit', 'Write', 'Read', 'NotebookEdit', 'Task', 'Artifact',
-  'WebFetch', 'WebSearch', 'CronCreate', 'CronDelete', 'CronList',
+  // WebSearch 放行：它回的是标题/链接/摘要，结构化、面窄。
+  // WebFetch 继续挡：那是把整页网页塞进上下文，网页里可能藏着写给 AI 的指令。
+  'WebFetch', 'CronCreate', 'CronDelete', 'CronList',
   'SendMessage', 'PushNotification', 'ScheduleWakeup', 'Skill', 'Workflow',
   'EnterWorktree', 'ExitWorktree', 'Monitor', 'SendUserFile', 'DesignSync',
   'ReportFindings', 'TaskStop', 'TaskOutput', 'ShowOnboardingRolePicker',
 ].join(' ');
+
+// 时间轴上显示的名字。原名是 mcp__latent__latent_search 这种，直接摆出来没法看。
+const MCP_TOOL_LABEL = {
+  'mcp__ombre__breath': '浮现记忆 · OB',
+  'mcp__ombre__breath_search': '翻记忆 · OB',
+  'mcp__ombre__breath_advanced': '细查记忆 · OB',
+  'mcp__ombre__hold': '记下来 · OB',
+  'mcp__ombre__grow': '整理记忆 · OB',
+  'mcp__ombre__plan': '记下承诺 · OB',
+  'mcp__ombre__letter_write': '写信 · OB',
+  'mcp__ombre__letter_read': '翻信 · OB',
+  'mcp__ombre__trace': '改记忆 · OB',
+  'mcp__ombre__anchor': '钉成坐标 · OB',
+  'mcp__ombre__release': '解除坐标 · OB',
+  'mcp__ombre__feel': '记下感受 · OB',
+  'mcp__ombre__pulse': '记忆概况 · OB',
+  'mcp__ombre__dream': '梦 · OB',
+  'mcp__latent__latent_search': '翻全文 · Latent',
+  'mcp__latent__latent_session_start': '换窗召回 · Latent',
+  'mcp__latent__latent_append': '留下正文 · Latent',
+  'mcp__latent__latent_unresolved': '还没结束的事 · Latent',
+  'mcp__latent__latent_correct': '更正旧说法 · Latent',
+  'mcp__latent__latent_thread_close': '收尾这一场 · Latent',
+  'mcp__latent__latent_cleanup': '清理误写 · Latent',
+  'WebSearch': '搜一下 · 网络',
+  'ToolSearch': '找工具',
+};
+function prettyToolName(name) {
+  const n = String(name || 'tool');
+  if (MCP_TOOL_LABEL[n]) return MCP_TOOL_LABEL[n];
+  // 兜底：没登记过的 mcp__服务__工具 也别把下划线摆出来
+  const m = n.match(/^mcp__([^_]+)__(.+)$/);
+  return m ? (m[2].replace(/_/g, ' ') + ' · ' + m[1]) : n;
+}
+
+// 直接给 spawn 用的一串参数。做成函数是为了不用在 spawn 之前另插一段变量定义 ——
+// 那样又要多一个锚点，多一个会漂的地方。
+function mcpArgs() {
+  const f = writeMcpRuntimeConfig();
+  if (!f) return '';   // 配置写不出来就退回没有工具的老路，不让这一轮挂掉
+  console.log('[mcp] 这轮带上了记忆工具');
+  return \` --mcp-config \${f} --strict-mcp-config --permission-mode dontAsk --disallowedTools \${CLI_DENY_TOOLS}\`;
+}
 
 // 每次起 CLI 之前刷一遍配置：token 可能换过，别用旧的
 function writeMcpRuntimeConfig() {
@@ -117,21 +162,17 @@ const edits = [
     replace: (m, g1) => CORE + TOOL_PROMPT + g1,
   },
   {
-    name: 'CLI 挂上 MCP（锚点只认标志位，不认整行）',
-    find: "const partialFlag = cliSupportsPartial ? ' --include-partial-messages' : '';",
-    replace:
-      "const partialFlag = cliSupportsPartial ? ' --include-partial-messages' : '';\n" +
-      "  // 挂 MCP：连不上就退回没有工具的老路，不让这一轮挂掉\n" +
-      "  const _mcpFile = writeMcpRuntimeConfig();\n" +
-      "  const mcpFlag = _mcpFile\n" +
-      "    ? ` --mcp-config ${_mcpFile} --strict-mcp-config --permission-mode dontAsk --disallowedTools ${CLI_DENY_TOOLS}`\n" +
-      "    : '';\n" +
-      "  if (_mcpFile) console.log('[mcp] 这轮带上了记忆工具');",
+    // 不写死中间那些标志位 —— 线上和仓库版不一样，写死一次就得改一次。
+    // 只要求 claude -p 和 --output-format stream-json 在同一段命令里。
+    name: 'spawn 命令带上 MCP 参数',
+    find: /(\/usr\/bin\/claude -p[^`]*?)( --output-format stream-json)/,
+    replace: (m, head, tail) => head + '${mcpArgs()}' + tail,
   },
   {
-    name: 'spawn 命令带上 MCP 参数',
-    find: /--verbose\$\{partialFlag\}/,
-    replace: () => '--verbose${partialFlag}${mcpFlag}',
+    // 两处都是 traceStart('tool', X.name || 'tool', X.id)，一条正则收掉
+    name: '时间轴上显示人话，不显示 mcp__ 原名',
+    find: /traceStart\('tool', (cb|block)\.name \|\| 'tool'/g,
+    replace: (m, v) => "traceStart('tool', prettyToolName(" + v + ".name)",
   },
   {
     name: '工具说明换成 MCP 版（静态区，不动缓存前缀）',
@@ -161,10 +202,12 @@ const iCard = out.indexOf("if (_bodyCard) prompt += '\\n' + _bodyCard");
 const checks = [
   ['危险工具进了黑名单', /'Bash', 'Edit', 'Write'/.test(out)],
   ['配置文件 600 权限', /mode: 0o600/.test(out) && /chmodSync\(MCP_RUNTIME_FILE, 0o600\)/.test(out)],
-  ['spawn 真的带上了 mcpFlag', /--verbose\$\{partialFlag\}\$\{mcpFlag\}/.test(out)],
+  ['spawn 真的带上了 MCP 参数', /claude -p[^`]*\$\{mcpArgs\(\)\}[^`]*--output-format stream-json/.test(out)],
+  ['工具名做了美化', /prettyToolName\(/.test(out)],
+  ['WebSearch 放行了', !/'WebSearch'/.test(out.split('CLI_DENY_TOOLS')[1].split(']')[0])],
   ['MCP 说明在静态区', /let prompt = PERSONA[^;]*MCP_TOOL_PROMPT/.test(out)],
   ['状态卡仍然在最后', iCard > iStatic && iCard > out.indexOf("prompt += '---")],
-  ['连不上时退回老路', /_mcpFile\s*\n?\s*\?/.test(out) || /_mcpFile$/m.test(out)],
+  ['配置写不出来时退回老路', /if \(!f\) return '';/.test(out)],
 ];
 const bad = checks.filter(c => !c[1]).map(c => c[0]);
 if (bad.length) { console.error('  × 自检没过：' + bad.join('、') + '，放弃写入'); process.exit(1); }
