@@ -227,14 +227,11 @@ const edits = [
       "  if (!req.body.retry_message_id) conv.history.push({ id: userMsgId, role: 'user', content: message, time: new Date().toISOString() });",
   },
   {
-    name: '新回复接上旧版本（中转站路径）',
-    find: "      conv.history.push({ id: assistantMsgId, role: 'assistant', content: fullResponse, traces: cleanTraces(), time: new Date().toISOString() });",
-    replace: "      conv.history.push(mergeRetryBranches({ id: assistantMsgId, role: 'assistant', content: fullResponse, traces: cleanTraces(), time: new Date().toISOString() }, _retriedMsg));",
-  },
-  {
-    name: '新回复接上旧版本（CC 订阅路径）',
-    find: "    conv.history.push({ id: assistantMsgId, role: 'assistant', content: fullResponse, thinking: thinkingText, traces: finalTraces, time: new Date().toISOString() });",
-    replace: "    conv.history.push(mergeRetryBranches({ id: assistantMsgId, role: 'assistant', content: fullResponse, thinking: thinkingText, traces: finalTraces, time: new Date().toISOString() }, _retriedMsg));",
+    // 两条路径一起处理。别写死整行 —— 中间那些字段线上和仓库版不一样，
+    // 写死一次就得改一次。只认「push 一个 assistant 消息对象」这个形状。
+    name: '新回复接上旧版本（两条路径）',
+    find: /conv\.history\.push\((\{[^;]*?role: ['"]assistant['"][^;]*?\})\);/g,
+    replace: (m, obj) => 'conv.history.push(mergeRetryBranches(' + obj + ', _retriedMsg));',
   },
   {
     name: '分支接口',
@@ -261,7 +258,7 @@ if (missed.length) {
 const checks = [
   ['分叉在落用户消息之前', out.indexOf('forkForEdit(conv, convId') < out.indexOf("if (!req.body.retry_message_id) conv.history.push({ id: userMsgId")],
   ['存不下就不截断', /if \(!branchId\) return \{ ok: false, reason: 'save_failed' \}/.test(out)],
-  ['两条路径都接上了旧版本', (out.match(/mergeRetryBranches\(/g) || []).length >= 3],
+  ['两条路径都接上了旧版本', (out.match(/conv\.history\.push\(mergeRetryBranches\(/g) || []).length === 2],
 ];
 const bad = checks.filter(c => !c[1]).map(c => c[0]);
 if (bad.length) { console.error('  × 自检没过：' + bad.join('、') + '，放弃写入'); process.exit(1); }
