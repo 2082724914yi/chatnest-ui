@@ -57,13 +57,17 @@ const edits = [
       "  prompt += '小衍:';",
   },
   {
+    // 拆成两个小锚点：原来那条把整行写死，线上少一段（比如没有 _handoff）就整条对不上
     name: '中转站路径：状态卡移出 system',
-    find:
-      "      const sysContent = PERSONA + (memories ? `\\n\\n[相关记忆]\\n${memories}\\n[记忆结束]` : '') + (_handoff ? `\\n\\n${_handoff}` : '') + (_bodyCard ? `\\n\\n${_bodyCard}\\n\\n${PULSE_TOOL_PROMPT}` : '') + (projectContext ? `\\n\\n${projectContext}` : '');",
-    replace:
-      "      // 状态卡不进 system —— system 在最前面，改一个字后面整段历史都白缓存。\n" +
-      "      // 工具说明是静态的，留在 system；状态卡改成挂在消息末尾。\n" +
-      "      const sysContent = PERSONA + '\\n\\n' + PULSE_TOOL_PROMPT + (memories ? `\\n\\n[相关记忆]\\n${memories}\\n[记忆结束]` : '') + (_handoff ? `\\n\\n${_handoff}` : '') + (projectContext ? `\\n\\n${projectContext}` : '');",
+    find: / \+ \(_bodyCard \? `\\n\\n\$\{_bodyCard\}\\n\\n\$\{PULSE_TOOL_PROMPT\}` : ''\)/,
+    replace: () => '',
+  },
+  {
+    name: '中转站路径：工具说明留在 system',
+    // system 在最前面，改一个字后面整段历史都白缓存。工具说明是静态的，留这儿；
+    // 状态卡每轮变，改挂到消息末尾。
+    find: 'const sysContent = PERSONA + (memories ?',
+    replace: "const sysContent = PERSONA + '\\n\\n' + PULSE_TOOL_PROMPT + (memories ?",
   },
   {
     name: '中转站路径：状态卡挂到消息末尾',
@@ -78,8 +82,9 @@ const edits = [
 let out = src;
 const missed = [];
 for (const e of edits) {
-  if (!out.includes(e.find)) { missed.push(e.name); continue; }
+  const before = out;
   out = out.replace(e.find, e.replace);
+  if (out === before) missed.push(e.name);
 }
 
 console.log('\n补丁结果：');
@@ -92,7 +97,9 @@ if (missed.length) {
 // 改完必须还是"静态在前、状态卡在后"，否则等于白改
 const iStatic = out.indexOf('let prompt = PERSONA');
 const iCard = out.indexOf("if (_bodyCard) prompt += '\\n' + _bodyCard");
-const iHistory = out.indexOf("prompt += '---\\n以下是最近的对话");
+// 「最近的」三个字两版不一样，自检也得两种都认 —— 上面锚点已经容错了，
+// 这里再写死一次等于白容错
+const iHistory = (() => { const m = out.match(/prompt \+= '---\\n以下是(?:最近的)?对话/); return m ? m.index : -1; })();
 const checks = [
   ['状态卡在历史之后', iCard > iHistory && iHistory > 0],
   ['状态卡在静态区之后', iCard > iStatic && iStatic > 0],

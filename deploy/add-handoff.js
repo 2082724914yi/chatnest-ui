@@ -112,8 +112,9 @@ const edits = [
   },
   {
     name: '注入（CC 订阅路径）',
-    // 放在紧贴当前对话的位置：记忆是远的，尾巴是近的，顺序不能反
-    find: /(\n  prompt \+= '---\\n以下是最近的对话，请续写小衍的最新回复：\\n\\n';)/,
+    // 放在紧贴当前对话的位置：记忆是远的，尾巴是近的，顺序不能反。
+    // 「最近的」三个字线上和仓库版不一样，两种都认。
+    find: /(\n  prompt \+= '---\\n以下是(?:最近的)?对话，请续写小衍的最新回复：\\n\\n';)/,
     replace: (m, g1) => "\n  if (_handoff) prompt += _handoff;" + g1,
   },
   {
@@ -123,7 +124,9 @@ const edits = [
   },
   {
     name: '窗口内历史别压得太狠',
-    // 原来 10 轮以外只留 600 字，一场长聊前面基本被扔光
+    // 原来 10 轮以外只留 600 字，一场长聊前面基本被扔光。
+    // 线上那份没有 compressHistory，所以这条是可选的 —— 找不到就跳过，不拖垮整个补丁。
+    optional: true,
     find: /function compressHistory\(history, keepRecent = 10, maxOlderChars = 600\)/,
     replace: () => 'function compressHistory(history, keepRecent = 14, maxOlderChars = 2000)',
   },
@@ -131,10 +134,11 @@ const edits = [
 
 let out = src;
 const missed = [];
+const skipped = [];
 for (const e of edits) {
   const before = out;
   out = out.replace(e.find, e.replace);
-  if (out === before) missed.push(e.name);
+  if (out === before) (e.optional ? skipped : missed).push(e.name);
 }
 
 console.log('\n补丁结果：');
@@ -155,6 +159,6 @@ const backup = target + '.bak.' + new Date().toISOString().replace(/[-:T]/g, '')
 fs.copyFileSync(target, backup);
 fs.writeFileSync(target, out);
 
-for (const e of edits) console.log('  √ ' + e.name);
+for (const e of edits) console.log(skipped.includes(e.name) ? '  · ' + e.name + '（这份里没有，跳过）' : '  √ ' + e.name);
 console.log('\n  备份: ' + backup);
 console.log('  接下来: pm2 restart chatnest-api');

@@ -293,7 +293,9 @@ if (missed.length) {
 // 缓存前缀不能被这次改动破坏：工具说明必须在静态区，召回必须在历史之前
 const iStatic = out.indexOf('let prompt = PERSONA');
 const iRecall = out.indexOf('if (latentRecall) prompt +=');
-const iHistory = out.indexOf("prompt += '---\\n以下是最近的对话");
+// 「最近的」三个字两版不一样，自检也得两种都认 —— 上面锚点已经容错了，
+// 这里再写死一次等于白容错
+const iHistory = (() => { const m = out.match(/prompt \+= '---\\n以下是(?:最近的)?对话/); return m ? m.index : -1; })();
 const iCard = out.indexOf("if (_bodyCard) prompt += '\\n' + _bodyCard");
 const checks = [
   ['工具说明在静态区', /let prompt = PERSONA[^;]*LATENT_TOOL_PROMPT/.test(out)],
