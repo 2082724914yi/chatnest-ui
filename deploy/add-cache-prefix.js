@@ -69,9 +69,11 @@ const edits = [
       "  }",
   },
   {
+    // 只认路径后面那截 —— 线上是 /usr/bin/claude，测试副本是 claude，
+    // 之前写死 `claude -p` 就在她线上没匹配上。这截两边都一样。
     name: 'spawn 带上前缀 flag',
-    find: "`stdbuf -o0 claude -p${modelFlag}${effortFlag} --verbose${partialFlag}${mcpArgs()} --output-format stream-json < \"${tmpFile}\"; ${cleanupCmd}`",
-    replace: "`stdbuf -o0 claude -p${modelFlag}${effortFlag}${sysFlag} --verbose${partialFlag}${mcpArgs()} --output-format stream-json < \"${tmpFile}\"; ${cleanupCmd}`",
+    find: "-p${modelFlag}${effortFlag} --verbose${partialFlag}${mcpArgs()}",
+    replace: "-p${modelFlag}${effortFlag}${sysFlag} --verbose${partialFlag}${mcpArgs()}",
   },
   {
     name: 'done 带缓存命中（流式路径）',
