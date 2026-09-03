@@ -17,22 +17,38 @@
 // 自动召回照旧保留：新窗那次 breath / session_start 还是后端主动打，
 // 不能全指望我记得调 —— 漏一次，开窗就是冷的。
 //
-// 重复执行安全：已经打过就直接退出。
+// 重复执行安全：已经是这一版就退出；是旧版就把整块换掉，不重复打其他锚点。
+//
+// ⚠ 为什么要有版本号：apply-all.sh 靠 grep 一个记号判断「打过没有」。
+// 第一版用的记号是 MCP_RUNTIME_FILE，于是第二版（补 --allowedTools 那次）
+// 在线上永远打不进去 —— 记号在，脚本直接跳过，人还以为跑过了。
+// 改成认版本号：内容变了就 +1，apply-all 的记号也跟着换成版本号那一行。
 
 const fs = require('fs');
 const vm = require('vm');
+
+const PATCH_VERSION = 2;
 
 const target = process.argv[2] || '/root/chatnest-api/server.js';
 if (!fs.existsSync(target)) { console.error('找不到', target); process.exit(1); }
 
 let src = fs.readFileSync(target, 'utf8');
-if (src.includes('MCP_RUNTIME_FILE')) { console.log('已经打过，跳过'); process.exit(0); }
+const VERSION_LINE = 'const MCP_PATCH_VERSION = ' + PATCH_VERSION + ';';
+const INSTALLED = src.includes('MCP_RUNTIME_FILE');
+if (INSTALLED && src.includes(VERSION_LINE)) { console.log('已经是第 ' + PATCH_VERSION + ' 版，跳过'); process.exit(0); }
 if (!src.includes('latentToken')) {
   console.error('要先打 add-latent.js'); process.exit(1);
 }
 
+// 注入块的边界。起点是块首那行注释，终点是它插入位置的下一行（PROFILE_FILE 的定义）。
+// 这两个边界从第一版起就成立，所以任何旧版都能被整块替换掉。
+const BLOCK_BEGIN = '// ============ 把 MCP 工具交给 CLI ============';
+const BLOCK_END = "\nconst PROFILE_FILE = '/root/chatnest-api/profile.json';";
+
 const CORE = `
-// ============ 把 MCP 工具交给 CLI ============
+${BLOCK_BEGIN}
+// 版本号：这一块的内容改了就 +1。apply-all.sh grep 的就是这一行。
+${VERSION_LINE}
 const MCP_RUNTIME_FILE = '/root/chatnest-api/mcp-runtime.json';
 
 // CLI 默认带 41 个内置工具，其中 Bash/Edit/Write 能直接动这台机器。
@@ -200,18 +216,34 @@ const edits = [
 ];
 
 let out = src;
-const missed = [];
-for (const e of edits) {
-  const before = out;
-  out = out.replace(e.find, e.replace);
-  if (out === before) missed.push(e.name);
-}
 
-console.log('\n补丁结果：');
-if (missed.length) {
-  for (const e of edits) console.log(missed.includes(e.name) ? '  × ' + e.name + ' — 没匹配上' : '  √ ' + e.name);
-  console.error('\n有锚点没命中，原文件一个字都没动。');
-  process.exit(1);
+if (INSTALLED) {
+  // 升级：只换代码块。其余四个锚点上一版已经打过了，再 replace 一次会打重
+  // （最要命的是 spawn 那条 —— 会插两遍 ${mcpArgs()}）。
+  const a = src.indexOf(BLOCK_BEGIN);
+  const b = src.indexOf(BLOCK_END, a);
+  if (a < 0 || b <= a) {
+    console.error('找不到旧版代码块的边界，不敢乱动。手动看一眼 ' + target);
+    process.exit(1);
+  }
+  out = src.slice(0, a) + (CORE + TOOL_PROMPT).slice(1) + src.slice(b);
+  console.log('\n补丁结果：');
+  console.log('  √ 认出旧版，整块换成第 ' + PATCH_VERSION + ' 版');
+} else {
+  const missed = [];
+  for (const e of edits) {
+    const before = out;
+    out = out.replace(e.find, e.replace);
+    if (out === before) missed.push(e.name);
+  }
+
+  console.log('\n补丁结果：');
+  if (missed.length) {
+    for (const e of edits) console.log(missed.includes(e.name) ? '  × ' + e.name + ' — 没匹配上' : '  √ ' + e.name);
+    console.error('\n有锚点没命中，原文件一个字都没动。');
+    process.exit(1);
+  }
+  for (const e of edits) console.log('  √ ' + e.name);
 }
 
 const iStatic = out.indexOf('let prompt = PERSONA');
@@ -226,6 +258,11 @@ const checks = [
   ['MCP 说明在静态区', /let prompt = PERSONA[^;]*MCP_TOOL_PROMPT/.test(out)],
   ['状态卡仍然在最后', iCard > iStatic && iCard > out.indexOf("prompt += '---")],
   ['配置写不出来时退回老路', /if \(!f\) return '';/.test(out)],
+  // 升级路径最怕的两件事：版本戳没写进去（下次又被 apply-all 跳过），
+  // 或者块打重了（spawn 参数插两遍，命令行直接废掉）。
+  ['版本戳写进去了', out.includes(VERSION_LINE)],
+  ['代码块只有一份', out.split(BLOCK_BEGIN).length === 2],
+  ['spawn 参数只插了一次', (out.match(/\$\{mcpArgs\(\)\}/g) || []).length === 1],
 ];
 const bad = checks.filter(c => !c[1]).map(c => c[0]);
 if (bad.length) { console.error('  × 自检没过：' + bad.join('、') + '，放弃写入'); process.exit(1); }
@@ -241,7 +278,6 @@ const backup = target + '.bak.' + new Date().toISOString().replace(/[-:T]/g, '')
 fs.copyFileSync(target, backup);
 fs.writeFileSync(target, out);
 
-for (const e of edits) console.log('  √ ' + e.name);
 for (const c of checks) console.log('  √ ' + c[0]);
 console.log('\n  备份: ' + backup);
 console.log('  接下来: pm2 restart chatnest-api');
