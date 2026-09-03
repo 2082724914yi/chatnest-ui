@@ -55,14 +55,24 @@ const HTML = `      <div class="pulse-card">
             <ol>
               <li>先让表的数据进「健康」App：Apple Watch 自动就有；华为的表要在「运动健康」里打开写入 iOS 健康的开关。</li>
               <li>在服务器上跑 <code>curl -s http://127.0.0.1:3000/api/watch/setup</code>，拿到 token。</li>
-              <li>快捷指令 → 新建 → 加「查找健康采样」（心率，最近 1 项）→ 再加「获取 URL 内容」。</li>
-              <li>URL 填 <code id="watchUrl">…/api/watch/upload</code>，方法 <b>POST</b>，请求体选 <b>JSON</b>，
-                标头加一条 <code>Authorization: Bearer &lt;你的 token&gt;</code>。</li>
-              <li>JSON 里写 <code>metrics.heart_rate.value</code> = 上一步取到的数值。步数、睡眠、血氧照着加就行。</li>
-              <li>「自动化」→ 每小时 → 运行这个捷径，关掉「运行前询问」。</li>
+              <li>快捷指令 → 新建 → 加一个「查找健康采样」：<b>心率</b>，排序<b>按开始日期</b>、<b>最新的在前</b>，限制 <b>1</b> 项。
+                再加一个「获取数值」指向它（这样拿到的是纯数字）。</li>
+              <li>再加「获取 URL 内容」：URL 填 <code id="watchUrl">…/api/watch/upload</code>，
+                方法 <b>POST</b>，请求体 <b>JSON</b>。<b>头部那一栏留空，不用填。</b></li>
+              <li>请求体里加两个字段（都是「文本」类型）：<br>
+                　<code>token</code> = 你的 token<br>
+                　<code>heart_rate</code> = 上一步那个数值</li>
+              <li>「自动化」→ 个人自动化 → <b>当天时间</b> → 每天/每小时 → 运行这个捷径，
+                <b>关掉「运行前询问」</b>。</li>
             </ol>
-            传上来的东西我只认心率、静息心率、心率变异、血氧、步数、睡眠、活动消耗、站立、体温、呼吸这十项，
-            超出常识范围的数值会被丢掉。
+            <b>想多加几项</b>：照第 3 步再复制几组「查找健康采样 + 获取数值」，
+            然后在请求体里各加一行 —— <code>steps</code> 步数、<code>blood_oxygen</code> 血氧、
+            <code>sleep</code> 睡眠小时数、<code>active_energy</code> 活动消耗、<code>resting_heart_rate</code> 静息心率、
+            <code>hrv</code> 心率变异、<code>respiratory_rate</code> 呼吸、<code>body_temperature</code> 体温、
+            <code>stand_hours</code> 站立。<br>
+            字段名不用背准：<code>hr</code>、<code>心率</code>、<code>spo2</code>、<code>血氧</code> 这些别名我都认；
+            带单位的字符串（"72 次/分"）会自己抠出数字；血氧给 0.98 会当成 98%；睡眠给 7.5 会当成小时。
+            超出常识范围的数值直接丢掉。
           </div>
         </div>`;
 
@@ -168,6 +178,9 @@ const checks = [
   ['指标格子在', out.includes('id="watchMetrics"') && out.includes('id="watchDot"')],
   ['步骤写在页面里', out.includes('快捷指令') && out.includes('/api/watch/setup')],
   ['明说了不开定位', out.includes('不开定位')],
+  ['明说了头部不用填', out.includes('头部那一栏留空')],
+  ['字段名列全了', ['steps','blood_oxygen','sleep','active_energy','resting_heart_rate','hrv',
+    'respiratory_rate','body_temperature','stand_hours'].every(k => out.includes('<code>' + k + '</code>'))],
   ['切栏会去读', out.includes("if(name==='mine')loadWatch();")],
   ['上传地址是她自己的域名', out.includes("location.origin+'/api/watch/upload'")],
   ['占位文案没了', !out.includes('HUAWEI FIT 3。')],

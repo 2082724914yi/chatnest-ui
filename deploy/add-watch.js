@@ -22,7 +22,7 @@
 const fs = require('fs');
 const vm = require('vm');
 
-const PATCH_VERSION = 1;
+const PATCH_VERSION = 2;
 
 const target = process.argv[2] || '/root/chatnest-api/server.js';
 if (!fs.existsSync(target)) { console.error('找不到', target); process.exit(1); }
@@ -55,6 +55,28 @@ const WATCH_METRICS = {
   body_temperature: { label: '体温', unit: '℃', min: 30, max: 45 },
   respiratory_rate: { label: '呼吸', unit: '次/分', min: 4, max: 60 },
 };
+
+// 捷径里手填字段名，谁也记不住 metrics.blood_oxygen 这种。这些都收。
+const WATCH_ALIAS = {
+  hr: 'heart_rate', bpm: 'heart_rate', heartrate: 'heart_rate', heart: 'heart_rate', 心率: 'heart_rate',
+  resting: 'resting_heart_rate', resting_hr: 'resting_heart_rate', 静息心率: 'resting_heart_rate',
+  hrv_ms: 'hrv', 心率变异: 'hrv',
+  spo2: 'blood_oxygen', oxygen: 'blood_oxygen', o2: 'blood_oxygen', 血氧: 'blood_oxygen',
+  step: 'steps', step_count: 'steps', 步数: 'steps',
+  sleep: 'sleep_minutes', sleep_min: 'sleep_minutes', 睡眠: 'sleep_minutes',
+  energy: 'active_energy', calories: 'active_energy', kcal: 'active_energy', 活动消耗: 'active_energy',
+  stand: 'stand_hours', 站立: 'stand_hours',
+  temperature: 'body_temperature', temp: 'body_temperature', 体温: 'body_temperature',
+  respiration: 'respiratory_rate', breathing: 'respiratory_rate', 呼吸: 'respiratory_rate',
+};
+
+// 同一个东西 iOS 给的单位不一定跟我这儿一样，能换算的就换，别让她在捷径里算
+function watchNormalize(key, v) {
+  if (key === 'blood_oxygen' && v > 0 && v <= 1) return v * 100;       // 健康里血氧是 0–1 的小数
+  if (key === 'sleep_minutes' && v > 0 && v <= 24) return v * 60;      // 填的是小时
+  if (key === 'body_temperature' && v > 80) return (v - 32) * 5 / 9;   // 华氏
+  return v;
+}
 
 function watchToken() {
   try {
@@ -103,17 +125,37 @@ function watchAgoText(age) {
   return Math.round(age / 86400) + ' 天前';
 }
 
-// 捷径传上来的东西一律当外部输入：字段名要在册，数值要在范围内，其余丢掉
+// 捷径传上来的东西一律当外部输入：字段名要在册，数值要在范围内，其余丢掉。
+// 三种写法都收 —— 顶层扁平（捷径里最好填的那种）、metrics 里嵌一层、别名。
+//   { "heart_rate": 72 }
+//   { "metrics": { "heart_rate": { "value": 72 } } }
+//   { "hr": "72 次/分" }
 function watchSanitize(payload) {
   const out = {};
-  const raw = (payload && payload.metrics) || {};
+  const flat = (payload && typeof payload === 'object') ? payload : {};
+  const nested = (flat.metrics && typeof flat.metrics === 'object') ? flat.metrics : {};
+
+  const pick = (k) => {
+    for (const src of [nested, flat]) {
+      if (src[k] !== undefined && src[k] !== null) return src[k];
+      for (const a of Object.keys(WATCH_ALIAS)) {
+        if (WATCH_ALIAS[a] === k && src[a] !== undefined && src[a] !== null) return src[a];
+      }
+    }
+    return undefined;
+  };
+
   for (const k of Object.keys(WATCH_METRICS)) {
     const spec = WATCH_METRICS[k];
-    let m = raw[k];
-    if (m === undefined || m === null) continue;
+    let m = pick(k);
+    if (m === undefined) continue;
     if (typeof m === 'number' || typeof m === 'string') m = { value: m };
     if (typeof m !== 'object') continue;
-    const v = Number(m.value);
+    // 捷径常常连单位一起给（"72 次/分"），把第一个数字抠出来
+    const s = String(m.value === undefined ? m : m.value).replace(/,/g, '');
+    const hit = s.match(/-?\\d+(?:\\.\\d+)?/);
+    if (!hit) continue;
+    const v = watchNormalize(k, Number(hit[0]));
     if (!Number.isFinite(v) || v < spec.min || v > spec.max) continue;
     const sampled = typeof m.sampled_at === 'string' && Date.parse(m.sampled_at)
       ? new Date(m.sampled_at).toISOString() : null;
@@ -254,6 +296,10 @@ const checks = [
   ['token 文件是 600', /mode: 0o600/.test(out.slice(out.indexOf('function watchToken'), out.indexOf('function watchRead')))],
   ['setup 只给本机', /这个只能在服务器上看/.test(out)],
   ['字段有白名单', /for \(const k of Object\.keys\(WATCH_METRICS\)\)/.test(out)],
+  ['顶层扁平也收', /const nested = \(flat\.metrics/.test(out) && /for \(const src of \[nested, flat\]\)/.test(out)],
+  ['别名表在', /WATCH_ALIAS/.test(out) && /spo2: 'blood_oxygen'/.test(out)],
+  ['带单位的字符串能抠出数字', /match\(\/-\?\\d\+/.test(out)],
+  ['血氧小数会换算', /v > 0 && v <= 1\) return v \* 100/.test(out)],
   ['数值超范围就丢', /v < spec\.min \|\| v > spec\.max/.test(out)],
   ['隔太久的不注入', /if \(fresh === 'stale'\) return '';/.test(out)],
   ['不新鲜时点明时间', /别说成"你现在"/.test(out)],
