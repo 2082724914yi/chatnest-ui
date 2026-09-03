@@ -2356,7 +2356,8 @@ function actions(row,raw,userText,userAttachments=[]){
     }
   }
 }
-function messageId(row){const id=parseInt(row?.dataset?.msgId||'',10);return Number.isFinite(id)?id:null}
+/* 后端的 id 是 'msg-<hex>'，parseInt 出来是 NaN。这里只做非空判断，原样返回字符串。 */
+function messageId(row){const id=String(row?.dataset?.msgId||'').trim();return id||null}
 function removeRowsAfter(row,{includeSelf=false}={}){
   if(!row)return;
   document.querySelector('.stream-disclaimer')?.remove();
@@ -2379,7 +2380,37 @@ async function editUserAndRegenerate(row,nextText){
   removeRowsAfter(row);
   await sendMessage(nextText,false,[],[],{editMessageId:id,userRow:row});
 }
-const _editState={active:false,row:null,savedInput:''};
+const _editState={active:false,row:null,savedInput:'',assistant:false};
+
+/* 编辑助手消息：原地改内容，不重新生成。
+   改的是「我说过什么」，不是「让我重答」——重答是 renovate 那条路。 */
+async function editAssistantInPlace(row,nextText){
+  const id=messageId(row);
+  if(!id){toast('这条消息还没落盘，等一下再试');return}
+  if(!state.convId){toast('会话还没建立');return}
+  try{
+    const r=await fetch('/api/conversations/'+encodeURIComponent(state.convId)+'/messages/'+encodeURIComponent(id),{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json',Authorization:`Bearer ${state.token}`},
+      body:JSON.stringify({content:nextText})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.ok){toast(d.error||'改不动，稍后再试');return}
+    setAssistantRowText(row,nextText);
+    const m=(state._loadedMessages||[]).find(x=>String(x.id)===String(id));
+    if(m){m.text=nextText;m.edited=true}
+    if(state.convId)_refreshConvCache(state.convId);
+    toast('改好了');
+  }catch(e){toast('改不动：'+(e.message||e))}
+}
+/* 助手气泡的正文节点跟用户的不一样，单独写一个，别去动 setUserRowText */
+function setAssistantRowText(row,text){
+  if(!row)return;
+  row.dataset.raw=text;
+  const body=row.querySelector('.msg-text,.bubble-text,.md,.msg-body')||row.querySelector('.bubble')||row;
+  try{ body.textContent=text; }catch(e){}
+}
+
 function _resizeComposerInput(){
   const maxH=144;
   const prevH=Math.round(parseFloat(input.style.height)||input.offsetHeight||0);
@@ -2403,7 +2434,7 @@ function enterEditMode(row,text){
 }
 function exitEditMode({restore=true}={}){
   const saved=_editState.savedInput||'';
-  _editState.active=false;_editState.row=null;_editState.savedInput='';
+  _editState.active=false;_editState.row=null;_editState.savedInput='';_editState.assistant=false;
   $('editBanner')?.classList.add('hidden');
   input.value=restore?saved:'';_resizeComposerInput();updateSendButton();
 }
@@ -5326,8 +5357,9 @@ async function sendMessage(text,showUser=true,files=[],existingAttachments=[],op
       const keepSelf=!!options.editMessageId;
       state._historyHasNewer=false;
       streamInner.querySelectorAll('.load-more-history.newer').forEach(el=>el.remove());
-      state._loadedMessages=(state._loadedMessages||[]).filter(m=>
-        keepSelf?Number(m.id)<=Number(branchId):Number(m.id)<Number(branchId));
+      // id 是字符串，比不了大小；消息本来就是按时间排的数组，按下标截断才对
+      const _bi=(state._loadedMessages||[]).findIndex(m=>String(m.id)===String(branchId));
+      if(_bi>=0)state._loadedMessages=(state._loadedMessages||[]).slice(0,keepSelf?_bi+1:_bi);
       state._newestMessageId=state._loadedMessages[state._loadedMessages.length-1]?.id||null;
     }else{
       await _restoreTailAfterJump({silent:true});
@@ -5401,7 +5433,7 @@ async function sendMessage(text,showUser=true,files=[],existingAttachments=[],op
     }
   }
 }
-send.onclick=()=>{clearStaleBusy();if(state.busy){stopActiveResponseNow();return}if(_editState.active){const row=_editState.row,next=input.value.trim(),raw=row?.dataset?.raw||'';if(!next){toast('消息不能为空');return}if(next===raw){exitEditMode();return}exitEditMode({restore:false});editUserAndRegenerate(row,next);return}if(!hasComposerContent())return;sendMessage(input.value.trim(),true,[...state.pendingFiles])};
+send.onclick=()=>{clearStaleBusy();if(state.busy){stopActiveResponseNow();return}if(_editState.active){const row=_editState.row,next=input.value.trim(),raw=row?.dataset?.raw||'';const isAsst=!!_editState.assistant;if(!next){toast('消息不能为空');return}if(next===raw){exitEditMode();return}exitEditMode({restore:false});if(isAsst)editAssistantInPlace(row,next);else editUserAndRegenerate(row,next);return}if(!hasComposerContent())return;sendMessage(input.value.trim(),true,[...state.pendingFiles])};
 input.oninput=()=>{_resizeComposerInput();updateSendButton()};
 
 // --- 消息长按弹窗（照搬侧边栏 bindSessionMenu 模式）---
@@ -5591,7 +5623,8 @@ $('msgContextMenu').addEventListener('click',async e=>{
   closeMsgContext();
   if(action==='copy'){copyText(raw).then(()=>toast('已复制')).catch(()=>toast('复制失败'))}
   if(action==='edit'){
-    if(!isUser){toast('只能编辑你发出的消息');return}
+    // 助手消息也能编辑：走原地改写，不重新生成
+    _editState.assistant=!isUser;
     enterEditMode(source,raw);
   }
   if(action==='renovate'){
