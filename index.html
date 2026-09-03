@@ -954,6 +954,29 @@ html[data-chat-bg="dark"] .ctx-sheet-box{background:#1c1b1a}
   background:rgba(74,55,40,.07);color:var(--text-secondary);font-size:19px;line-height:1;cursor:pointer}
 html[data-chat-bg="dark"] .ctx-sheet-close{background:rgba(255,255,255,.09)}
 
+
+/* ===== 我的：手表 ===== */
+.wm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wm-box{border-radius:14px;background:rgba(255,255,255,.36);padding:13px 14px}
+html[data-chat-bg="dark"] .wm-box{background:rgba(255,255,255,.06)}
+.wm-k{font-size:11.5px;color:var(--text-faint);letter-spacing:.04em}
+.wm-v{font-family:var(--font-serif);font-size:24px;line-height:1.1;color:var(--text-primary);margin-top:6px;
+  font-variant-numeric:tabular-nums}
+.wm-u{font-size:12px;color:var(--text-secondary);margin-left:3px}
+.wm-t{font-size:11px;color:var(--text-faint);margin-top:5px}
+.wm-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.wm-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);flex:none}
+.wm-dot.on{background:#7FA88C;box-shadow:0 0 0 3px rgba(127,168,140,.18)}
+.wm-dot.old{background:#C9A227}
+.wm-when{font-size:12.5px;color:var(--text-secondary)}
+.wm-steps{font-size:12.5px;line-height:1.85;color:var(--text-secondary)}
+.wm-steps b{color:var(--text-primary);font-weight:600}
+.wm-steps code{font-family:var(--font-mono);font-size:11.5px;background:rgba(74,55,40,.07);
+  border-radius:5px;padding:1px 5px;word-break:break-all}
+html[data-chat-bg="dark"] .wm-steps code{background:rgba(255,255,255,.09)}
+.wm-steps ol{padding-left:1.3em;margin:6px 0 0}
+.wm-steps li{margin-bottom:7px}
+
 /* ===== Pulse 重做：跟主页一个语言 ===== */
 /* 头顶那个周期名原来是 600 的黑体，整屏就它最重。换成衬线、轻字重、拉开字距 */
 .pulse-cycle-name{font:400 30px/1.2 var(--font-serif);letter-spacing:.08em}
@@ -2033,17 +2056,27 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
 
       <div class="pulse-view" id="ptabMine" hidden>
         <div class="pulse-card">
-          <div class="pulse-mine-hero">
-            <div class="pulse-mine-mark">♡</div>
-            <div class="pulse-mine-title">Her side</div>
-            <div class="pulse-mine-sub">这一栏是你的。<br>我的身体在隔壁那三栏，这边放你的。</div>
-          </div>
+          <div class="pulse-card-head"><span class="pulse-card-title">身体</span><span class="pulse-card-en">from your wrist</span></div>
+          <div class="wm-head"><i class="wm-dot" id="watchDot"></i><span class="wm-when" id="watchWhen">读取中…</span></div>
+          <div class="wm-grid" id="watchMetrics"></div>
         </div>
         <div class="pulse-card">
-          <div class="pulse-card-head"><span class="pulse-card-title">手表</span><span class="pulse-card-en">not connected yet</span></div>
-          <div class="pulse-mine-note">HUAWEI FIT 3。<br>心率、睡眠、走了多少路 —— 接上之后我这边就能看到。<br><br>华为不给第三方直接读，要么走「运动健康」导出，要么经华为开放平台授权。等你说一声我就去接。</div>
-        </div>
-      </div>
+          <div class="pulse-card-head"><span class="pulse-card-title">怎么接上</span><span class="pulse-card-en">one shortcut</span></div>
+          <div class="wm-steps">
+            不写 App，不装 Xcode，不开定位。用 iPhone 自带的「快捷指令」，每小时把「健康」里的数据传一次。
+            <ol>
+              <li>先让表的数据进「健康」App：Apple Watch 自动就有；华为的表要在「运动健康」里打开写入 iOS 健康的开关。</li>
+              <li>在服务器上跑 <code>curl -s http://127.0.0.1:3000/api/watch/setup</code>，拿到 token。</li>
+              <li>快捷指令 → 新建 → 加「查找健康采样」（心率，最近 1 项）→ 再加「获取 URL 内容」。</li>
+              <li>URL 填 <code id="watchUrl">…/api/watch/upload</code>，方法 <b>POST</b>，请求体选 <b>JSON</b>，
+                标头加一条 <code>Authorization: Bearer &lt;你的 token&gt;</code>。</li>
+              <li>JSON 里写 <code>metrics.heart_rate.value</code> = 上一步取到的数值。步数、睡眠、血氧照着加就行。</li>
+              <li>「自动化」→ 每小时 → 运行这个捷径，关掉「运行前询问」。</li>
+            </ol>
+            传上来的东西我只认心率、静息心率、心率变异、血氧、步数、睡眠、活动消耗、站立、体温、呼吸这十项，
+            超出常识范围的数值会被丢掉。
+          </div>
+        </div></div>
      </div>
     </div>
   </div>
@@ -8436,12 +8469,21 @@ function closePulsePanel(){
 }
 
 function _pulseSetState(msg){
-  $('pulseCycleName').textContent=msg.title;
-  $('pulseCycleDesc').textContent=msg.desc||'';
-  $('pulseCycleRemain').textContent='';
-  $('pulseEventWrap').hidden=true;
-  $('pulseBodyList').innerHTML='';
-  $('pulseLog').innerHTML='<div class="pulse-empty">'+_esc(msg.note||'')+'</div>';
+  const set=function(id,text){const el=$(id);if(el)el.textContent=text};
+  set('pulseCycleName',msg.title);
+  set('pulseCycleDesc',msg.desc||'');
+  set('pulseCycleRemain','');
+  set('pulseNowCycle',msg.title);
+  set('pulseNowCycleT','');
+  set('pulseNowEvent','—');
+  set('pulseNowEventT','');
+  const note=$('pulseNowNote');
+  if(note){note.textContent=msg.note||msg.desc||'';note.style.display=(msg.note||msg.desc)?'':'none'}
+  const html=function(id,s){const el=$(id);if(el)el.innerHTML=s};
+  html('pulseDrift','');
+  html('pulseValues','<div class="pulse-loading">'+_esc(msg.note||'读不到')+'</div>');
+  html('pulseSwitches','');
+  html('pulseCalibrate','');
 }
 
 async function loadPulse(){
@@ -8532,11 +8574,47 @@ function closeCtxSheet(){
 }
 
 (function(){
+  try{const u=$('watchUrl');if(u)u.textContent=location.origin+'/api/watch/upload'}catch(e){}
   const m=$('ctxMeter');if(!m)return;
   m.addEventListener('click',openCtxSheet);
   $('ctxSheetClose').addEventListener('click',closeCtxSheet);
   $('ctxSheet').addEventListener('click',function(e){if(e.target&&e.target.id==='ctxSheet')closeCtxSheet()});
 })();
+
+
+/* ===== 我的：手表 ===== */
+const WATCH_ORDER=['heart_rate','resting_heart_rate','hrv','blood_oxygen','sleep_minutes','steps','active_energy','stand_hours','body_temperature','respiratory_rate'];
+
+function watchValueText(k,m){
+  if(k==='sleep_minutes'){
+    const h=Math.floor(m.value/60),mi=Math.round(m.value%60);
+    return {v:(h||0)+'<span class="wm-u">小时</span>'+(mi?' '+mi+'<span class="wm-u">分</span>':''),plain:true};
+  }
+  return {v:m.value+'<span class="wm-u">'+_esc(m.unit||'')+'</span>'};
+}
+
+async function loadWatch(){
+  const host=$('watchMetrics'),dot=$('watchDot'),when=$('watchWhen');
+  if(!host)return;
+  try{
+    const r=await fetch('/api/watch/latest');const d=await r.json();
+    if(!d.ok||!d.connected){
+      dot.className='wm-dot';when.textContent='还没接上 —— 下面那张卡是步骤';
+      host.innerHTML='';return;
+    }
+    dot.className='wm-dot '+(d.freshness==='just_now'?'on':(d.freshness==='today'?'old':''));
+    when.textContent=(d.device||'手表')+' · '+(d.ago||'')+'同步的';
+    const ks=WATCH_ORDER.filter(function(k){return d.metrics[k]});
+    host.innerHTML=ks.length?ks.map(function(k){
+      const m=d.metrics[k],t=watchValueText(k,m);
+      return '<div class="wm-box"><div class="wm-k">'+_esc(m.label||k)+'</div>'+
+        '<div class="wm-v">'+t.v+'</div>'+
+        '<div class="wm-t">'+_esc(m.ago||'')+'</div></div>';
+    }).join(''):'<div class="pulse-loading">还没有数据传上来。</div>';
+  }catch(e){
+    dot.className='wm-dot';when.textContent='读不到：'+(e.message||e);host.innerHTML='';
+  }
+}
 
 /* ===== Pulse 四栏 ===== */
 const PULSE_FIELD_ORDER=['reserve','heat','pressure','control','sensitivity','possessiveness','fatigue'];
@@ -8555,6 +8633,7 @@ function pulseSwitchTab(name){
   const sc=document.querySelector('#pulseHome .pulse-scroll'); if(sc)sc.scrollTop=0;
   if(name==='log')loadPulseJournal();
   if(name==='dream')loadPulseDreams();
+  if(name==='mine')loadWatch();
 }
 
 /* 每小时往哪走：(目标 - 现在) * 系数，跟引擎里的公式同一条 */
@@ -8816,7 +8895,7 @@ async function openPulseDebug(){
   const close=$('closePulse'),refresh=$('pulseRefresh'),title=$('pulseTitle'),back=$('pulseDebugBack');
   if(!close)return;
   close.addEventListener('click',closePulsePanel);
-  refresh.addEventListener('click',function(){loadPulse();if(_pulseTab==='log')loadPulseJournal();if(_pulseTab==='dream')loadPulseDreams()});
+  refresh.addEventListener('click',function(){loadPulse();if(_pulseTab==='log')loadPulseJournal();if(_pulseTab==='dream')loadPulseDreams();if(_pulseTab==='mine')loadWatch()});
   // 一个委托监听收掉这一屏所有的点：切栏、开关、筛选、梦种、展开
   $('pulseHome').addEventListener('click',function(e){
     const t=e.target;if(!t||!t.closest)return;

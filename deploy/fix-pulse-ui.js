@@ -584,6 +584,38 @@ const edits = [
 ` + JS + '\n',
   },
   {
+    // 出错时那条路还在往旧结构上写（pulseEventWrap / pulseBodyList / pulseLog 都被换掉了），
+    // 于是「服务没响应」会先崩在 setting 'hidden' 上，屏幕上显示的是 JS 报错而不是原因
+    // ⚠ 这个文件用 split/join 做替换，find 和 replace 都必须是字符串。
+    //   正则 + 函数在这儿会把函数的源码原样拼进 HTML（踩过一次）。
+    name: '出错时也走新结构',
+    find: `function _pulseSetState(msg){
+  $('pulseCycleName').textContent=msg.title;
+  $('pulseCycleDesc').textContent=msg.desc||'';
+  $('pulseCycleRemain').textContent='';
+  $('pulseEventWrap').hidden=true;
+  $('pulseBodyList').innerHTML='';
+  $('pulseLog').innerHTML='<div class="pulse-empty">'+_esc(msg.note||'')+'</div>';
+}`,
+    replace: `function _pulseSetState(msg){
+  const set=function(id,text){const el=$(id);if(el)el.textContent=text};
+  set('pulseCycleName',msg.title);
+  set('pulseCycleDesc',msg.desc||'');
+  set('pulseCycleRemain','');
+  set('pulseNowCycle',msg.title);
+  set('pulseNowCycleT','');
+  set('pulseNowEvent','—');
+  set('pulseNowEventT','');
+  const note=$('pulseNowNote');
+  if(note){note.textContent=msg.note||msg.desc||'';note.style.display=(msg.note||msg.desc)?'':'none'}
+  const html=function(id,s){const el=$(id);if(el)el.innerHTML=s};
+  html('pulseDrift','');
+  html('pulseValues','<div class="pulse-loading">'+_esc(msg.note||'读不到')+'</div>');
+  html('pulseSwitches','');
+  html('pulseCalibrate','');
+}`,
+  },
+  {
     name: '进页面时把周期表和开关一起拉下来',
     find: "    const d=await r.json();\n    if(!d.enabled){\n      _pulseSetState({title:'关着',desc:'身体系统现在是关的',note:''});\n      panel.className='pulse-tone-off show';return;\n    }\n    renderPulse(d);",
     replace:
@@ -667,6 +699,11 @@ const checks = [
     .every(k => (src.includes(k) ? out.includes(k) : true))],
   ['只插了一次', (out.match(/id="pulseTabBar"/g) || []).length === 1
     && (out.match(/function renderPulseBodyTab/g) || []).length === 1],
+  // 换结构最容易漏的就是这个：HTML 里的元素删了，别处还在 $() 它，一调就崩
+  ['没有指向已删元素的引用', ['pulseEventWrap', 'pulseEventName', 'pulseEventRemain', 'pulseEventNote',
+    'pulseBodyList', 'pulseLog'].every(k => !out.includes("$('" + k + "')"))],
+  // split/join 会把函数当字符串拼进去。这条防的是那次事故重演。
+  ['没有把补丁自己的代码写进页面', !out.includes('(m, g1)') && !out.includes('() => `')],
 ];
 const bad = checks.filter(c => !c[1]).map(c => c[0]);
 if (bad.length) { console.error('  × 自检没过：' + bad.join('、') + '，放弃写入'); process.exit(1); }
