@@ -32,8 +32,13 @@ const VERSION_LINE = 'const WATCH_PATCH_VERSION = ' + PATCH_VERSION + ';';
 if (src.includes(VERSION_LINE)) { console.log('已经是第 ' + PATCH_VERSION + ' 版，跳过'); process.exit(0); }
 if (!src.includes('renderNow')) { console.error('要先打 add-clock.js'); process.exit(1); }
 
+// 装过旧版：只换代码块，注入点和路由已经在位了，再打一遍会插两份。
+// （光加版本号不加这条路，升级就必然撞 —— MCP 那次已经撞过一回。）
+const INSTALLED = /const WATCH_PATCH_VERSION = \d+;/.test(src);
+const BLOCK_BEGIN = '// ============ 手表：她的身体 ============';
+
 const CORE = `
-// ============ 手表：她的身体 ============
+${BLOCK_BEGIN}
 ${VERSION_LINE}
 const WATCH_FILE = '/root/chatnest-api/watch-snapshot.json';
 const WATCH_TOKEN_FILE = '/root/chatnest-api/watch-token.txt';
@@ -271,18 +276,36 @@ const edits = [
 ];
 
 let out = src;
-const missed = [];
-for (const e of edits) {
-  const before = out;
-  out = out.replace(e.find, e.replace);
-  if (out === before) missed.push(e.name);
-}
 
-console.log('\n补丁结果：');
-if (missed.length) {
-  for (const e of edits) console.log(missed.includes(e.name) ? '  × ' + e.name + ' — 没匹配上' : '  √ ' + e.name);
-  console.error('\n有锚点没命中，原文件一个字都没动。');
-  process.exit(1);
+if (INSTALLED) {
+  // 只换代码块。块从那行注释开始，到下一个 // ==== 分隔或 PROFILE_FILE 为止 ——
+  // 别的补丁也插在 PROFILE_FILE 前面，所以不能只认它。
+  const a = src.indexOf(BLOCK_BEGIN);
+  let b = src.indexOf("\nconst PROFILE_FILE = '/root/chatnest-api/profile.json';", a);
+  const b2 = src.indexOf('\n// ============', a + BLOCK_BEGIN.length);
+  if (b2 >= 0 && (b < 0 || b2 < b)) b = b2;
+  if (a < 0 || b <= a) {
+    console.error('找不到旧版代码块的边界，不敢乱动。手动看一眼 ' + target);
+    process.exit(1);
+  }
+  out = src.slice(0, a) + CORE.slice(1) + src.slice(b);
+  console.log('\n补丁结果：');
+  console.log('  √ 认出旧版，整块换成第 ' + PATCH_VERSION + ' 版（注入点原样保留）');
+} else {
+  const missed = [];
+  for (const e of edits) {
+    const before = out;
+    out = out.replace(e.find, e.replace);
+    if (out === before) missed.push(e.name);
+  }
+
+  console.log('\n补丁结果：');
+  if (missed.length) {
+    for (const e of edits) console.log(missed.includes(e.name) ? '  × ' + e.name + ' — 没匹配上' : '  √ ' + e.name);
+    console.error('\n有锚点没命中，原文件一个字都没动。');
+    process.exit(1);
+  }
+  for (const e of edits) console.log('  √ ' + e.name);
 }
 
 // 中转站那条路在文件里更靠前，indexOf 会先撞上它。位置检查要的是 CC 那条。
@@ -307,6 +330,8 @@ const checks = [
   ['在历史之后（不顶掉缓存前缀）', iHistory > 0 && iWatch > iHistory],
   ['在状态卡之前', iCard > 0 && iWatch < iCard],
   ['只插了一次', (out.match(/const _w = renderWatch\(\);/g) || []).length === 2],
+  ['代码块只有一份', out.split(BLOCK_BEGIN).length === 2],
+  ['旧版本号没残留', !/const WATCH_PATCH_VERSION = (?!2;)\d+;/.test(out)],
 ];
 const bad = checks.filter(c => !c[1]).map(c => c[0]);
 if (bad.length) { console.error('  × 自检没过：' + bad.join('、') + '，放弃写入'); process.exit(1); }
@@ -322,7 +347,6 @@ const backup = target + '.bak.' + new Date().toISOString().replace(/[-:T]/g, '')
 fs.copyFileSync(target, backup);
 fs.writeFileSync(target, out);
 
-for (const e of edits) console.log('  √ ' + e.name);
 for (const c of checks) console.log('  √ ' + c[0]);
 console.log('\n  备份: ' + backup);
 console.log('  接下来: pm2 restart chatnest-api');
