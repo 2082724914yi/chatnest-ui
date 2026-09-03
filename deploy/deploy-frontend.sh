@@ -4,7 +4,9 @@
 #   curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deploy/deploy-frontend.sh | sudo bash
 set -uo pipefail
 
-RAW_URL=https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/index.html
+# 默认 main。补丁还在分支上没合过去时用 BRANCH=分支名 覆盖。
+BRANCH=${BRANCH:-main}
+RAW_URL=https://raw.githubusercontent.com/2082724914yi/chatnest-ui/$BRANCH/index.html
 SITE=${SITE:-https://xiaoyixiaoyan.top/index.html}
 
 ok(){ printf '  \033[32m√\033[0m %s\n' "$*"; }

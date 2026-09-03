@@ -1823,6 +1823,10 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
     </div>
     <div class="profile-section">
       <div class="pulse-section-title">现在还没结束的</div>
+      <div id="latentUnresolvedOut"><div class="lt-empty">读取中…</div></div>
+    </div>
+    <div class="profile-section">
+      <div class="pulse-section-title">最近留下的</div>
       <div id="latentRecall"><div class="lt-empty">读取中…</div></div>
     </div>
   </div>
@@ -5383,6 +5387,9 @@ async function sendMessage(text,showUser=true,files=[],existingAttachments=[],op
     body.topP=_settingsVal('topP',0.9);
     body.maxTokens=_settingsVal('maxTokens',4096);
     body.contextCount=_settingsVal('contextCount',20);
+    // 手机上的此刻。服务器在机房，她在哪儿服务器不知道，只有这台设备知道
+    body.clientTime=new Date().toISOString();
+    try{body.clientTz=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){body.clientTz=''}
     // Send enabled MCP servers to backend for CLI integration
     const enabledMcp=_mcpServers.filter(s=>s.enabled&&s.url);
     if(enabledMcp.length)body.mcpServers=enabledMcp.map(s=>({name:s.name,url:s.url,token:s.token||'',transport:s.transport||'http',headers:s.headers||[],enabled:true,disabledTools:s.disabledTools||[]}));
@@ -8044,13 +8051,27 @@ async function openLatentPage(){
   showProfilePage('latentHome');
   $('latentSearchOut').innerHTML='';
   $('latentRecall').innerHTML='<div class="lt-empty">读取中…</div>';
-  try{
-    var r=await fetch('/api/latent/recall');
-    if(!r.ok){$('latentRecall').innerHTML='<div class="lt-empty">记忆库没连上。<br>可能是服务还没起来。</div>';return}
-    var d=await r.json();
-    $('latentRecall').innerHTML=d.text?('<div class="lt-block">'+_esc(d.text)+'</div>')
-      :'<div class="lt-empty">现在没有没结束的事。<br>干净的。</div>';
-  }catch(e){$('latentRecall').innerHTML='<div class="lt-empty">'+_esc(String(e.message||e))+'</div>'}
+  $('latentUnresolvedOut').innerHTML='<div class="lt-empty">读取中…</div>';
+  // 两栏各问各的，互不拖累：一边挂了另一边照样出内容
+  fetch('/api/latent/unresolved').then(function(r){
+    if(!r.ok)throw new Error('没连上');return r.json();
+  }).then(function(d){
+    var t=(d&&d.text||'').trim();
+    $('latentUnresolvedOut').innerHTML=t?('<div class="lt-block">'+_esc(t)+'</div>')
+      :'<div class="lt-empty">没有没结束的事。<br>干净的。</div>';
+  }).catch(function(){
+    $('latentUnresolvedOut').innerHTML='<div class="lt-empty">读不到。<br>可能是服务还没起来。</div>';
+  });
+  fetch('/api/latent/recall').then(function(r){
+    if(!r.ok)throw new Error('没连上');return r.json();
+  }).then(function(d){
+    // clean 是剥掉系统提示词之后的正文；老后端没有这个字段，退回 text
+    var t=((d&&(d.clean||d.text))||'').trim();
+    $('latentRecall').innerHTML=t?('<div class="lt-block">'+_esc(t)+'</div>')
+      :'<div class="lt-empty">还没留下什么。</div>';
+  }).catch(function(){
+    $('latentRecall').innerHTML='<div class="lt-empty">记忆库没连上。<br>可能是服务还没起来。</div>';
+  });
 }
 async function latentDoSearch(){
   var q=($('latentQuery').value||'').trim();
