@@ -54,6 +54,7 @@ add-pulse-console.js|PULSE_CONSOLE_VERSION = 1|Pulse 日志 / 开关 / 校准
 add-pulse-dreams.js|PULSE_DREAM_VERSION = 1|梦（梦种 + 织梦 + 余波结算）
 add-compaction.js|COMPACTION_VERSION = 1|交接信（长聊不再从中间断掉）
 add-watch.js|WATCH_PATCH_VERSION = 2|手表（她的心率进我上下文）
+fix-tool-leak.js|thinkState === 'hidden'|工具标签不再漏进气泡
 "
 
 say "1/3 逐个补丁检查"
