@@ -34,18 +34,36 @@ if (!src.includes('MOMENTS_TOOL_PROMPT')) {
 // --------------------------------------------------------------------------
 function wireMomentsPrompt(code) {
   const lines = code.split('\n');
-  const hits = [];
-  lines.forEach((ln, i) => {
-    if (!/\bOB_TOOL_PROMPT\b/.test(ln)) return;
-    if (/(const|let|var)\s+OB_TOOL_PROMPT\s*=/.test(ln)) return;  // 定义行，跳过
-    if (/\bMOMENTS_TOOL_PROMPT\b/.test(ln)) return;               // 已经接过了
-    hits.push(i);
-  });
-  if (!hits.length) return { ok: false, lines: lines.filter(l => /OB_TOOL_PROMPT/.test(l)).slice(0, 5) };
-  const i = hits[0];
-  lines[i] = lines[i].replace(/\bOB_TOOL_PROMPT\b/,
-    "OB_TOOL_PROMPT + '\\n' + MOMENTS_TOOL_PROMPT") + ' // MOMENTS_PROMPT_WIRED';
-  return { ok: true, before: code.split('\n')[i], after: lines[i], code: lines.join('\n') };
+  const done = i => ({ ok: true, before: code.split('\n')[i], after: lines[i], code: lines.join('\n') });
+  const has = re => lines.findIndex(l => re.test(l) && !/\bMOMENTS_TOOL_PROMPT\b/.test(l));
+
+  // 首选：SYSTEM_PREFIX —— add-cache-prefix 打过之后就是这个形态，
+  // 人设和各种工具说明都并进这个"稳定前缀"里一起进缓存。
+  // 把朋友圈说明也放进去，既接上了，又能跟着吃缓存，不用每轮重新付费。
+  let i = has(/^\s*(const|let|var)\s+SYSTEM_PREFIX\s*=/);
+  if (i >= 0) {
+    lines[i] = /;\s*$/.test(lines[i])
+      ? lines[i].replace(/;\s*$/, " + '\\n' + MOMENTS_TOOL_PROMPT; // MOMENTS_PROMPT_WIRED")
+      : lines[i] + " + '\\n' + MOMENTS_TOOL_PROMPT; // MOMENTS_PROMPT_WIRED";
+    return done(i);
+  }
+
+  // 其次：谁在用这几个说明变量，就跟在谁后面。覆盖没打过 add-cache-prefix 的老形态。
+  for (const name of ['PULSE_TOOL_PROMPT', 'MCP_TOOL_PROMPT', 'OB_TOOL_PROMPT', 'THINK_PROMPT']) {
+    const re = new RegExp('\\b' + name + '\\b');
+    i = lines.findIndex(l =>
+      re.test(l) &&
+      !new RegExp('(const|let|var)\\s+' + name + '\\s*=').test(l) &&  // 定义行不算
+      !/\bMOMENTS_TOOL_PROMPT\b/.test(l));
+    if (i >= 0) {
+      lines[i] = lines[i].replace(re, name + " + '\\n' + MOMENTS_TOOL_PROMPT") + ' // MOMENTS_PROMPT_WIRED';
+      return done(i);
+    }
+  }
+
+  // 都没有：把相关的行捞出来给人看，别瞎猜
+  const seen = lines.filter(l => /SYSTEM_PREFIX|TOOL_PROMPT|let prompt|prompt \+=/.test(l)).slice(0, 8);
+  return { ok: false, lines: seen };
 }
 
 // --------------------------------------------------------------------------
