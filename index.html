@@ -5045,6 +5045,9 @@ function _renderAssistant(root){
     <div class="settings-slider-row"><div class="settings-slider-label"><span>上下文消息数</span><span id="stgCtxVal">${ctxCount}</span></div><input type="range" class="settings-slider" id="stgCtxSlider" min="1" max="100" value="${ctxCount}"></div>
     <div class="settings-slider-row"><div class="settings-slider-label"><span>最大输出 Tokens</span><span id="stgMaxTVal">${maxTokens}</span></div><input type="range" class="settings-slider" id="stgMaxTSlider" min="256" max="16384" value="${maxTokens}" step="256"></div>
   </div></div>
+  <div class="settings-section"><div class="settings-section-title">常驻会话</div><div class="settings-card">
+    <div class="settings-row"><div class="settings-row-body"><div class="settings-row-title">持续进程模式</div><div class="settings-row-desc">进程常驻、历史进增量缓存，更省额度。开了聊天走这条；编辑/重试仍走原来的</div></div><button class="settings-toggle${_settingsVal('daemonMode',false)?' on':''}" id="stgDaemon"></button></div>
+  </div></div>
   <div class="settings-section"><div class="settings-section-title">思考预算</div><div class="settings-card"><div class="settings-radio-group">
     <button class="settings-radio" data-tb="low"><div class="settings-radio-dot${thinkBudget==='low'?' selected':''}"></div><div class="settings-radio-label">Low · 快速简单</div></button>
     <button class="settings-radio" data-tb="medium"><div class="settings-radio-dot${thinkBudget==='medium'?' selected':''}"></div><div class="settings-radio-label">Medium · 日常平衡</div></button>
@@ -5065,6 +5068,7 @@ function _renderAssistant(root){
   root.querySelector('#stgTopPSlider').oninput=e=>{const v=(+e.target.value/100).toFixed(2);root.querySelector('#stgTopPVal').textContent=v;_settingsSet('topP',+v)};
   root.querySelector('#stgCtxSlider').oninput=e=>{root.querySelector('#stgCtxVal').textContent=e.target.value;_settingsSet('contextCount',+e.target.value)};
   root.querySelector('#stgMaxTSlider').oninput=e=>{root.querySelector('#stgMaxTVal').textContent=e.target.value;_settingsSet('maxTokens',+e.target.value)};
+  {const dm=root.querySelector('#stgDaemon');if(dm)dm.onclick=()=>{const on=!_settingsVal('daemonMode',false);_settingsSet('daemonMode',on);dm.classList.toggle('on',on)}}
   root.querySelectorAll('[data-tb]').forEach(btn=>{
     btn.onclick=()=>{_settingsSet('thinkingBudget',btn.dataset.tb);_renderAssistant(root)};
   });
@@ -5748,6 +5752,8 @@ async function sendMessage(text,showUser=true,files=[],existingAttachments=[],op
     body.topP=_settingsVal('topP',0.9);
     body.maxTokens=_settingsVal('maxTokens',4096);
     body.contextCount=_settingsVal('contextCount',20);
+    // 常驻会话（-p persistent）：开了就走常驻进程，历史进增量缓存、更省额度。默认关，灰度
+    if(_settingsVal('daemonMode',false)&&!branchMode)body.daemon=true;
     // 手机上的此刻。服务器在机房，她在哪儿服务器不知道，只有这台设备知道
     body.clientTime=new Date().toISOString();
     try{body.clientTz=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){body.clientTz=''}

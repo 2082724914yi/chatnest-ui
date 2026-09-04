@@ -57,6 +57,7 @@ add-watch.js|WATCH_PATCH_VERSION = 2|手表（她的心率进我上下文）
 fix-tool-leak.js|thinkState === 'hidden'|工具标签不再漏进气泡
 cut-native-thinking.js|MAX_THINKING_TOKENS|砍原生思考链（省额度，留 <think>）
 add-cache-prefix.js|SYSTEM_PREFIX|稳定前缀进缓存 + done带命中量
+add-daemon.js|DAEMON_PATCH_VERSION|常驻会话（-p persistent，灰度，前端带 daemon:true 才走）
 "
 
 say "1/3 逐个补丁检查"
