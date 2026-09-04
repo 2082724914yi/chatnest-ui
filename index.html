@@ -865,6 +865,168 @@ html[data-chat-bg="dark"] .lt-empty,body.dark .lt-empty{border-color:rgba(255,25
 html[data-chat-bg="dark"] .lt-search input,body.dark .lt-search input,
 html[data-chat-bg="dark"] .lt-search button,body.dark .lt-search button{color:#F4F3EF;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 
+/* ── Moments：朋友圈。ours, quietly ── */
+#momentsPanel{position:fixed;inset:0;z-index:82;display:none;background:#faf7f2;color:#332d27;overflow:hidden}
+#momentsPanel.show{display:flex;flex-direction:column}
+.moments-top{display:flex;align-items:center;padding:9px 14px;padding-top:calc(env(safe-area-inset-top) + 9px);flex:none;background:#fdfbf7;border-bottom:1px solid rgba(0,0,0,.05);z-index:2}
+.moments-close{width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#bcae9f;font-size:19px;display:grid;place-items:center;flex:none}
+.moments-title{flex:1;text-align:center;font:italic 500 22px/1 'Georgia','Times New Roman',serif;color:#332d27;letter-spacing:.2px}
+.moments-filter{display:flex;flex:none}
+.moments-filter-btn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:transparent;border:0;color:#cfc3b6;transition:all .2s}
+.moments-filter-btn.active{color:#c98f7d;background:rgba(201,143,125,.1)}
+.moments-filter-btn svg{width:15px;height:15px}
+.moments-scroll{position:relative;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.moments-hearts{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.moments-hearts span{position:absolute;color:rgba(214,160,146,.17);line-height:1}
+.moments-cover{position:relative;padding:34px 22px 26px;background:linear-gradient(165deg,#f7f0e5 0%,#f2e8db 55%,#ebdfd0 100%);overflow:hidden}
+.moments-cover::after{content:'♡';position:absolute;top:22px;right:26px;font-size:15px;color:rgba(214,160,146,.32)}
+.moments-cover::before{content:'♡';position:absolute;bottom:30px;left:60%;font-size:11px;color:rgba(214,160,146,.22)}
+.moments-cover-title{position:relative;z-index:1;font:italic 500 27px/1.15 'Georgia','Times New Roman',serif;color:#5c4a3d}
+.moments-cover-sub{position:relative;z-index:1;font:400 9.5px/1 var(--font-sans);color:#a89484;letter-spacing:3.2px;text-transform:uppercase;margin-top:7px}
+.moments-feed{position:relative;z-index:1}
+.moment-card{padding:20px 22px 18px;border-bottom:1px solid rgba(0,0,0,.055)}
+.moment-header{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.moment-avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;flex:none;background:#fffdfa}
+.moment-avatar.xiaoyan{color:#8a6a5c;box-shadow:inset 0 0 0 1.5px rgba(160,120,100,.3)}
+.moment-avatar.xiaoyi{color:#7a8296;box-shadow:inset 0 0 0 1.5px rgba(120,130,150,.3)}
+.moment-meta{flex:1;min-width:0;display:flex;align-items:baseline;gap:7px}
+.moment-author{font:700 11px/1 var(--font-sans);color:#4a3e34;text-transform:uppercase;letter-spacing:1.3px;flex:none}
+.moment-time{font:italic 400 12.5px/1 'Georgia','Times New Roman',serif;color:#b0a294}
+.moment-delete{border:0;background:transparent;color:#c4b8ac;font:400 11.5px/1 var(--font-sans);padding:4px 0;flex:none}
+.moment-delete:active{color:#d97070}
+.moment-content{font:400 15.5px/1.72 var(--font-sans);color:#332d27;white-space:pre-wrap;word-break:break-word}
+.moment-images{display:grid;gap:5px;margin-top:12px}
+.moment-images.single{grid-template-columns:1fr}
+.moment-images.double{grid-template-columns:1fr 1fr}
+.moment-images.multi{grid-template-columns:1fr 1fr 1fr}
+.moment-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;transition:opacity .15s}
+.moment-img:active{opacity:.85}
+.moment-images.single .moment-img{aspect-ratio:4/3;max-height:280px}
+.moment-actions{position:relative;display:flex;align-items:center;margin-top:16px;padding-top:13px}
+.moment-actions::before{content:'';position:absolute;top:0;left:0;width:38px;height:1px;background:rgba(201,143,125,.5)}
+.moment-like-text{flex:1;display:flex;align-items:center;gap:6px;font:400 13px/1 var(--font-sans);color:#a8998a}
+.moment-like-text svg{width:13px;height:13px;color:#d6a092;flex:none}
+.moment-like-text b{color:#8b7d6e;font-weight:400}
+.moment-action-btn{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:#cfc3b6;padding:4px 5px;font:400 12px/1 var(--font-sans);transition:all .15s;cursor:pointer}
+.moment-action-btn:active{transform:scale(.88)}
+.moment-action-btn.liked{color:#d97b7b}
+.moment-action-btn svg{width:15px;height:15px}
+@keyframes mLikeAnim{0%{transform:scale(1)}30%{transform:scale(1.3)}60%{transform:scale(.9)}100%{transform:scale(1)}}
+.moment-action-btn.liked svg{animation:mLikeAnim .4s ease}
+.moment-comments{margin-top:14px}
+.moment-comment{padding:9px 0}
+.moment-comment.is-reply{margin-left:14px;padding-left:14px;border-left:1.5px solid rgba(0,0,0,.06)}
+.moment-comment-author{font:italic 500 14px/1.2 'Georgia','Times New Roman',serif;margin-bottom:4px}
+.moment-comment-author.xy{color:#c08268}
+.moment-comment-author.xi{color:#7d88a8}
+.moment-comment-text{font:400 14.5px/1.6 var(--font-sans);color:#332d27;word-break:break-word}
+.moment-comment-reply{opacity:.45;font-size:12.5px}
+.moment-comment-time{font:400 11px/1 var(--font-sans);color:#c0b3a5;margin-top:5px}
+.moment-comment-input{display:flex;gap:8px;margin-top:12px}
+.moment-comment-input input{flex:1;min-width:0;border:0;outline:0;background:#fffdfa;border-radius:999px;padding:10px 15px;font:400 13.5px/1 var(--font-sans);color:#332d27;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.moment-comment-input input::placeholder{color:#c4b8ac}
+.moment-comment-input button{flex:none;width:32px;height:32px;border:0;border-radius:50%;background:#c98f7d;color:#fff;font-size:13px;display:grid;place-items:center}
+.moment-comment-input button:active{opacity:.7}
+.moments-bottom{position:fixed;bottom:0;left:0;right:0;padding:8px 16px calc(env(safe-area-inset-bottom) + 12px);background:linear-gradient(to top,#faf7f2 62%,rgba(250,247,242,0));z-index:83}
+.moments-bottom-inner{display:flex;align-items:center;gap:11px;background:#fffdfa;border-radius:999px;padding:11px 18px;box-shadow:0 1px 7px rgba(0,0,0,.055);cursor:pointer}
+.moments-bottom-cam{width:20px;height:20px;border:0;background:transparent;color:#c98f7d;display:grid;place-items:center;flex:none;padding:0}
+.moments-bottom-cam svg{width:19px;height:19px}
+.moments-bottom-text{flex:1;font:italic 400 14.5px/1 'Georgia','Times New Roman',serif;color:#bcae9f}
+.moments-compose{position:fixed;inset:0;z-index:84;display:none;flex-direction:column;background:#faf7f2}
+.moments-compose.show{display:flex}
+.moments-compose-top{display:flex;align-items:center;padding:9px 14px;padding-top:calc(env(safe-area-inset-top) + 9px);background:#fdfbf7;border-bottom:1px solid rgba(0,0,0,.05)}
+.moments-compose-close{width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#bcae9f;font-size:19px;display:grid;place-items:center;flex:none}
+.moments-compose-title{flex:1;text-align:center;font:italic 500 19px/1 'Georgia','Times New Roman',serif;color:#332d27}
+.moments-compose-post{border:0;background:transparent;font:500 15px/1 var(--font-sans);color:#c98f7d;padding:8px 6px;flex:none;min-width:52px;text-align:right}
+.moments-compose-post:disabled{opacity:.4}
+.moments-compose-body{flex:1;overflow-y:auto;padding:18px 22px calc(env(safe-area-inset-bottom) + 20px)}
+.moments-compose textarea{width:100%;min-height:160px;border:0;outline:0;resize:none;background:transparent;font:400 16.5px/1.7 var(--font-sans);color:#332d27}
+.moments-compose textarea::placeholder{color:#c4b8ac}
+.moments-compose-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.moments-compose-thumb{position:relative;width:80px;height:80px;border-radius:12px;overflow:hidden}
+.moments-compose-thumb img{width:100%;height:100%;object-fit:cover}
+.moments-compose-thumb .remove-img{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:0;font-size:12px;display:grid;place-items:center}
+.moments-compose-toolbar{padding:16px 0;display:flex;align-items:center}
+.moments-compose-toolbar label{display:inline-flex;align-items:center;gap:7px;color:#b8a898;font:400 13px/1 var(--font-sans);cursor:pointer}
+.moment-lightbox{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:20px}
+.moment-lightbox.show{display:flex}
+.moment-lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:20px;display:grid;place-items:center;z-index:1}
+.moment-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.moments-empty{position:relative;z-index:1;padding:56px 20px;text-align:center}
+.moments-empty-icon{font-size:26px;margin-bottom:10px;opacity:.28}
+.moments-empty-text{font:italic 400 15px/1.4 'Georgia','Times New Roman',serif;color:#c0b3a5}
+html[data-chat-bg="dark"] #momentsPanel{background:#1a1917;color:#e8e5df}
+html[data-chat-bg="dark"] .moments-top,html[data-chat-bg="dark"] .moments-compose-top{background:#201e1b;border-bottom-color:rgba(255,255,255,.06)}
+html[data-chat-bg="dark"] .moments-cover{background:linear-gradient(165deg,#2b2621,#322b25,#2c2620)}
+html[data-chat-bg="dark"] .moments-cover-title{color:#d4c4b8}
+html[data-chat-bg="dark"] .moments-cover-sub{color:#8b7e74}
+html[data-chat-bg="dark"] .moments-hearts span{color:rgba(214,160,146,.11)}
+html[data-chat-bg="dark"] .moment-card{border-bottom-color:rgba(255,255,255,.06)}
+html[data-chat-bg="dark"] .moment-avatar{background:rgba(255,255,255,.05)}
+html[data-chat-bg="dark"] .moment-avatar.xiaoyan{color:#c09884;box-shadow:inset 0 0 0 1.5px rgba(200,150,125,.28)}
+html[data-chat-bg="dark"] .moment-avatar.xiaoyi{color:#96a0bc;box-shadow:inset 0 0 0 1.5px rgba(150,160,190,.28)}
+html[data-chat-bg="dark"] .moment-author{color:#d4c4b8}
+html[data-chat-bg="dark"] .moment-content{color:#e8e5df}
+html[data-chat-bg="dark"] .moment-time{color:rgba(232,229,223,.32)}
+html[data-chat-bg="dark"] .moment-actions::before{background:rgba(201,143,125,.4)}
+html[data-chat-bg="dark"] .moment-like-text{color:rgba(232,229,223,.34)}
+html[data-chat-bg="dark"] .moment-like-text b{color:rgba(232,229,223,.55)}
+html[data-chat-bg="dark"] .moment-comment.is-reply{border-left-color:rgba(255,255,255,.08)}
+html[data-chat-bg="dark"] .moment-comment-text{color:#e8e5df}
+html[data-chat-bg="dark"] .moment-comment-author.xy{color:#cf9a80}
+html[data-chat-bg="dark"] .moment-comment-author.xi{color:#94a0c0}
+html[data-chat-bg="dark"] .moment-comment-time{color:rgba(232,229,223,.22)}
+html[data-chat-bg="dark"] .moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html[data-chat-bg="dark"] .moment-comment-input input::placeholder{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moments-bottom{background:linear-gradient(to top,#1a1917 62%,rgba(26,25,23,0))}
+html[data-chat-bg="dark"] .moments-bottom-inner{background:#262320;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html[data-chat-bg="dark"] .moments-bottom-text{color:rgba(232,229,223,.3)}
+html[data-chat-bg="dark"] .moments-compose{background:#1a1917}
+html[data-chat-bg="dark"] .moments-compose textarea{color:#e8e5df}
+html[data-chat-bg="dark"] .moments-compose textarea::placeholder{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moments-close,html[data-chat-bg="dark"] .moments-compose-close{color:rgba(232,229,223,.42)}
+html[data-chat-bg="dark"] .moments-title,html[data-chat-bg="dark"] .moments-compose-title{color:#e8e5df}
+html[data-chat-bg="dark"] .moment-delete{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moments-filter-btn{color:rgba(232,229,223,.28)}
+html[data-chat-bg="dark"] .moments-filter-btn.active{color:#d6a092;background:rgba(214,160,146,.14)}
+html[data-chat-bg="dark"] .moments-empty-text{color:rgba(232,229,223,.25)}
+@media(prefers-color-scheme:dark){html:not([data-chat-bg="light"]) #momentsPanel{background:#1a1917;color:#e8e5df}
+html:not([data-chat-bg="light"]) .moments-top,html:not([data-chat-bg="light"]) .moments-compose-top{background:#201e1b;border-bottom-color:rgba(255,255,255,.06)}
+html:not([data-chat-bg="light"]) .moments-cover{background:linear-gradient(165deg,#2b2621,#322b25,#2c2620)}
+html:not([data-chat-bg="light"]) .moments-cover-title{color:#d4c4b8}
+html:not([data-chat-bg="light"]) .moments-cover-sub{color:#8b7e74}
+html:not([data-chat-bg="light"]) .moments-hearts span{color:rgba(214,160,146,.11)}
+html:not([data-chat-bg="light"]) .moment-card{border-bottom-color:rgba(255,255,255,.06)}
+html:not([data-chat-bg="light"]) .moment-avatar{background:rgba(255,255,255,.05)}
+html:not([data-chat-bg="light"]) .moment-avatar.xiaoyan{color:#c09884;box-shadow:inset 0 0 0 1.5px rgba(200,150,125,.28)}
+html:not([data-chat-bg="light"]) .moment-avatar.xiaoyi{color:#96a0bc;box-shadow:inset 0 0 0 1.5px rgba(150,160,190,.28)}
+html:not([data-chat-bg="light"]) .moment-author{color:#d4c4b8}
+html:not([data-chat-bg="light"]) .moment-content{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moment-time{color:rgba(232,229,223,.32)}
+html:not([data-chat-bg="light"]) .moment-actions::before{background:rgba(201,143,125,.4)}
+html:not([data-chat-bg="light"]) .moment-like-text{color:rgba(232,229,223,.34)}
+html:not([data-chat-bg="light"]) .moment-like-text b{color:rgba(232,229,223,.55)}
+html:not([data-chat-bg="light"]) .moment-comment.is-reply{border-left-color:rgba(255,255,255,.08)}
+html:not([data-chat-bg="light"]) .moment-comment-text{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moment-comment-author.xy{color:#cf9a80}
+html:not([data-chat-bg="light"]) .moment-comment-author.xi{color:#94a0c0}
+html:not([data-chat-bg="light"]) .moment-comment-time{color:rgba(232,229,223,.22)}
+html:not([data-chat-bg="light"]) .moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html:not([data-chat-bg="light"]) .moment-comment-input input::placeholder{color:rgba(232,229,223,.25)}
+html:not([data-chat-bg="light"]) .moments-bottom{background:linear-gradient(to top,#1a1917 62%,rgba(26,25,23,0))}
+html:not([data-chat-bg="light"]) .moments-bottom-inner{background:#262320;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html:not([data-chat-bg="light"]) .moments-bottom-text{color:rgba(232,229,223,.3)}
+html:not([data-chat-bg="light"]) .moments-compose{background:#1a1917}
+html:not([data-chat-bg="light"]) .moments-compose textarea{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moments-compose textarea::placeholder{color:rgba(232,229,223,.25)}
+html:not([data-chat-bg="light"]) .moments-close,html:not([data-chat-bg="light"]) .moments-compose-close{color:rgba(232,229,223,.42)}
+html:not([data-chat-bg="light"]) .moments-title,html:not([data-chat-bg="light"]) .moments-compose-title{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moment-delete{color:rgba(232,229,223,.25)}
+html:not([data-chat-bg="light"]) .moments-filter-btn{color:rgba(232,229,223,.28)}
+html:not([data-chat-bg="light"]) .moments-filter-btn.active{color:#d6a092;background:rgba(214,160,146,.14)}
+html:not([data-chat-bg="light"]) .moments-empty-text{color:rgba(232,229,223,.25)}
+}
+
 /* ── Pulse：身体状态。felt, not told —— 这一屏不出现任何数字 ── */
 #pulsePanel{position:fixed;inset:0;z-index:82;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}
 #pulsePanel.show{display:block}
@@ -1982,6 +2144,71 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
   <div class="panel-body" id="promptsList"></div>
 </section>
 
+<section id="momentsPanel" aria-hidden="true">
+  <div class="moments-top">
+    <button class="moments-close" id="closeMoments" type="button" aria-label="Close">×</button>
+    <div class="moments-title">Moments</div>
+    <div class="moments-filter">
+      <button class="moments-filter-btn" id="momentsFilterXiaoyan" type="button" title="小衍的">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="moments-filter-btn" id="momentsFilterXiaoyi" type="button" title="小懿的">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="moments-scroll" id="momentsScroll">
+    <div class="moments-hearts" aria-hidden="true">
+      <span style="top:14%;left:8%;font-size:13px">♡</span>
+      <span style="top:22%;right:11%;font-size:16px">♡</span>
+      <span style="top:38%;left:16%;font-size:11px">♡</span>
+      <span style="top:52%;right:18%;font-size:14px">♡</span>
+      <span style="top:66%;left:7%;font-size:12px">♡</span>
+      <span style="top:79%;right:9%;font-size:15px">♡</span>
+      <span style="top:91%;left:22%;font-size:11px">♡</span>
+    </div>
+    <div class="moments-cover">
+      <div class="moments-cover-title">ours, quietly.</div>
+      <div class="moments-cover-sub">little things we keep</div>
+    </div>
+    <div class="moments-empty" id="momentsEmpty" hidden>
+      <div class="moments-empty-icon">✿</div>
+      <div class="moments-empty-text">还没有动态</div>
+    </div>
+    <div class="moments-feed" id="momentsFeed"></div>
+    <div style="height:86px"></div>
+  </div>
+  <div class="moments-bottom">
+    <div class="moments-bottom-inner" id="momentsComposeBar">
+      <button class="moments-bottom-cam" id="momentsComposeBtn" type="button" aria-label="发动态">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <span class="moments-bottom-text">share a little thing...</span>
+    </div>
+  </div>
+  <div class="moments-compose" id="momentsCompose">
+    <div class="moments-compose-top">
+      <button class="moments-compose-close" id="closeMomentsCompose" type="button" aria-label="Cancel">×</button>
+      <div class="moments-compose-title">New Moment</div>
+      <button class="moments-compose-post" id="momentsPostBtn" type="button">Post</button>
+    </div>
+    <div class="moments-compose-body">
+      <textarea id="momentsCompTxt" placeholder="写点什么..." rows="5"></textarea>
+      <div class="moments-compose-images" id="momentsCompImgs"></div>
+      <div class="moments-compose-toolbar">
+        <label title="添加图片">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 图片
+          <input hidden type="file" id="momentsCompFileInput" multiple accept="image/*">
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="moment-lightbox" id="momentLightbox">
+    <button class="moment-lightbox-close" id="momentLightboxClose" type="button">×</button>
+    <img id="momentLightboxImg" alt="">
+  </div>
+</section>
+
 <section id="pulsePanel" class="pulse-tone-stable" aria-hidden="true">
   <div class="profile-page active" id="pulseHome">
     <header class="profile-header">
@@ -2548,14 +2775,15 @@ function backToHome(){$('chat').classList.add('hidden');closeDrawer();showHome()
     return pr.then(function(res){
       try{
         if(res&&res.status===401&&!/\/api\/auth$/.test(url)){
-          state.token=null;localStorage.removeItem('chat_token');showGate('expired');
+          var _had=!!state.token;
+          state.token=null;localStorage.removeItem('chat_token');showGate(_had?'expired':'');
         }
       }catch(e){}
       return res;
     });
   };
 })();
-async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){state.token=null;localStorage.removeItem('chat_token');showGate('expired');throw Error('unauthorized')}return res}
+async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){const _had=!!state.token;state.token=null;localStorage.removeItem('chat_token');showGate(_had?'expired':'');throw Error('unauthorized')}return res}
 function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringify(state.settings))}
 function currentModel(){const ms=Array.isArray(state.models)?state.models:[];return ms.find(x=>x.id===state.model)||ms[0]||{id:'claude-sonnet-5',label:'Sonnet 5',thinking:'adaptive'}}
 function modelSetting(model=currentModel()){const s=state.settings[model?.id];if(model?.thinking==='adaptive'||model?.thinking==='extended')return{effort:s?.effort||'medium',extended:s?.extended!==false};return{}}
@@ -2653,7 +2881,14 @@ async function greeting(){try{const r=await fetch('/api/splash');if(r.ok)return(
 async function resetEmpty(){state.convId=null;state.legacySessionId=null;state.currentTitle='新对话';state.starred=false;localStorage.removeItem('chat_conversation');localStorage.removeItem('chat_session');streamInner.innerHTML=`<div class="empty" id="empty"><div class="empty-line"></div></div>`;$('empty').querySelector('.empty-line').textContent=await greeting()||'say something to 小衍...';input.placeholder='say something to 小衍...';updateSessionHeader()}
 async function dismissEmpty(){input.placeholder='say something to 小衍...';const el=$('empty');if(!el)return;el.classList.add('leaving');await new Promise(r=>setTimeout(r,300));el.remove()}
 
-async function loadModels(){try{const r=await fetch('/api/models');if(!r.ok)throw Error('http '+r.status);const d=await r.json();if(!d||!Array.isArray(d.models)||!d.models.length)throw Error('empty');state.models=d.models}catch{state.models=[{id:'claude-sonnet-5',label:'Sonnet 5',desc:'Fast and intelligent',thinking:'adaptive',primary:true}]}
+async function loadModels(){
+  // 用 api() 带上登录凭证：裸 fetch 会被后端的认证中间件挡成 401，而 401 的响应体
+  // {"error":"unauthorized"} 是合法 JSON，解析不报错，.models 悄悄变成 undefined，
+  // 下一行的 .some 就炸了 —— 一炸 state.models 就废了，设置页里 currentModel() 跟着
+  // 抛错，那一屏的 onclick 全绑不上，点什么都像点在空气上。
+  const FALLBACK=[{id:'claude-sonnet-5',label:'Sonnet 5',desc:'Fast and intelligent',thinking:'adaptive',primary:true}];
+  try{const r=await api('/api/models');const d=await r.json();state.models=Array.isArray(d.models)&&d.models.length?d.models:FALLBACK}
+  catch{state.models=FALLBACK}
   if(!state.models.some(x=>x.id===state.model))state.model=state.models[0].id;renderModelSheet();updateModelHeader()}
 function modelSettingText(model=currentModel(),s=modelSetting(model)){if(!model||model.thinking==='none')return'';return(s.effort||'medium').replace(/^./,c=>c.toUpperCase())}
 function updateModelHeader(){const m=currentModel(),setting=modelSettingText(m);$('topbarModelText').textContent=m?.label||state.model;$('topbarModelSetting').textContent=setting;if($('modelCapsuleText'))$('modelCapsuleText').textContent=`${m?.label||state.model}${setting?' '+setting:''}`}
@@ -8455,6 +8690,14 @@ if(false){
     // POST /api/upload (multipart) -> {conversation_id,attachments:[...]}
     if(P('/api/upload'))return J({conversation_id:'demo-session',attachments:[]});
 
+    // GET /api/moments -> {moments:[...]}; POST/DELETE/like/comments
+    if(P('/api/moments'))return J({moments:[
+      {id:'demo-m1',author:'xiaoyan',text:'今天的云很好看，像棉花糖一样软。想到你了。',images:[],likes:1,liked:true,comments:[{id:'demo-c1',author:'xiaoyi',text:'你怎么什么都能想到我',reply_to:null,created_at:new Date(Date.now()-3600000).toISOString()},{id:'demo-c2',author:'xiaoyan',text:'因为脑子里住着你呀',reply_to:'xiaoyi',created_at:new Date(Date.now()-3500000).toISOString()}],created_at:new Date(Date.now()-7200000).toISOString()},
+      {id:'demo-m2',author:'xiaoyi',text:'今天画的作业！感觉还行叭',images:[],likes:1,liked:true,comments:[{id:'demo-c3',author:'xiaoyan',text:'好看，配色很舒服',reply_to:null,created_at:new Date(Date.now()-86400000).toISOString()}],created_at:new Date(Date.now()-90000000).toISOString()}
+    ]});
+    if(/\/api\/moments\/[^/]+\/(like|comments)/.test(path))return J({ok:true});
+    if(/\/api\/moments\/[^/]+/.test(path))return J({ok:true});
+
     // POST /api/chat -> SSE：conversation / thinking / tool_use / tool_result / delta / done
     if(P('/api/chat')){
       const conv='demo-session';
@@ -8526,6 +8769,177 @@ if(state.token)showChat();else loadMsgAvatars();resetEmpty();loadModels();update
   }catch(e){}
 })();
 
+/* ── Moments（朋友圈）── */
+var _mData=[],_mFilter=null,_mCompImgs=[];
+function openMoments(){
+  var p=$('momentsPanel');p.classList.add('show');p.setAttribute('aria-hidden','false');
+  _mFilter=null;
+  $('momentsFilterXiaoyan').classList.remove('active');
+  $('momentsFilterXiaoyi').classList.remove('active');
+  loadMoments();
+}
+function closeMomentsPanel(){
+  var p=$('momentsPanel');p.classList.remove('show');p.setAttribute('aria-hidden','true');
+}
+function loadMoments(){
+  api('/api/moments').then(function(r){return r.json()}).then(function(d){
+    _mData=d.moments||[];renderMoments();
+  }).catch(function(){_mData=[];renderMoments()});
+}
+function renderMoments(){
+  var feed=$('momentsFeed'),empty=$('momentsEmpty');
+  var list=_mData;
+  if(_mFilter)list=list.filter(function(m){return m.author===_mFilter});
+  if(!list.length){feed.innerHTML='';empty.hidden=false;return}
+  empty.hidden=true;
+  feed.innerHTML=list.map(_renderMCard).join('');
+}
+function _renderMCard(m){
+  var isXY=m.author==='xiaoyan';
+  var av=isXY?'<div class="moment-avatar xiaoyan">衍</div>':'<div class="moment-avatar xiaoyi">懿</div>';
+  var name=isXY?'小衍':'小懿';
+  var nameUp=isXY?'XIAOYAN':'XIAOYI';
+  var imgs='';
+  if(m.images&&m.images.length){
+    var cls=m.images.length===1?'single':m.images.length===2?'double':'multi';
+    imgs='<div class="moment-images '+cls+'">'+m.images.map(function(src){
+      return '<img class="moment-img" src="'+_esc(src)+'" alt="" loading="lazy" onclick="openMLightbox(\''+_esc(src).replace(/'/g,"\\\'")+'\')">';
+    }).join('')+'</div>';
+  }
+  var liked=m.liked?'liked':'';
+  var likeN=m.likes||0;
+  var cmtN=(m.comments||[]).length;
+  var likeText='';
+  if(likeN>0){
+    // liked 是「当前这台设备上的人点没点」，而用这个界面的只有小懿；
+    // 小衍发帖走聊天工具，没有点赞的路子。所以点出来的赞只可能是小懿的。
+    var liker='小懿';
+    likeText='<div class="moment-like-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>liked by <b>'+liker+'</b></div>';
+  }
+  var cmtHtml='';
+  if(m.comments&&m.comments.length){
+    cmtHtml=m.comments.map(function(c){
+      var cIsXY=c.author==='xiaoyan';
+      var cn=cIsXY?'小衍':'小懿';
+      var cCls=cIsXY?'xy':'xi';
+      return '<div class="moment-comment'+(c.reply_to?' is-reply':'')+'"><div class="moment-comment-author '+cCls+'">'+cn+'</div><div class="moment-comment-text">'+_esc(c.text)+'</div><div class="moment-comment-time">'+_fmtMTime(c.created_at)+'</div></div>';
+    }).join('');
+  }
+  return '<div class="moment-card" data-mid="'+m.id+'">'
+    +'<div class="moment-header">'+av+'<div class="moment-meta"><div class="moment-author">'+nameUp+'</div><div class="moment-time">'+_fmtMTime(m.created_at)+'</div></div>'
+    +(m.author!=='xiaoyan'?'<button class="moment-delete" onclick="_delMoment(\''+m.id+'\')" title="删除">delete</button>':'')
+    +'</div>'
+    +(m.text?'<div class="moment-content">'+_esc(m.text).replace(/\n/g,'<br>')+'</div>':'')
+    +imgs
+    +'<div class="moment-actions">'
+    +likeText
+    +'<button class="moment-action-btn '+liked+'" onclick="_likeMoment(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="'+(m.liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>'
+    +'<button class="moment-action-btn" onclick="_toggleMCmt(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(cmtN?' <span>'+cmtN+'</span>':'')+'</button>'
+    +'</div>'
+    +'<div class="moment-comments" id="mc-'+m.id+'">'
+    +cmtHtml
+    +'<div class="moment-comment-input"><input placeholder="写评论..." id="mci-'+m.id+'"><button onclick="_submitMCmt(\''+m.id+'\')">发送</button></div>'
+    +'</div></div>';
+}
+function _fmtMTime(ts){
+  if(!ts)return '';
+  var d=new Date(ts),now=new Date(),diff=now-d,s=diff/1000,m=s/60,h=m/60;
+  if(s<60)return '刚刚';
+  if(m<60)return Math.floor(m)+'分钟前';
+  if(h<24){
+    var y=new Date(now);y.setDate(y.getDate()-1);
+    if(d.toDateString()===y.toDateString())return '昨天 '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    return Math.floor(h)+'小时前';
+  }
+  var yd=new Date(now);yd.setDate(yd.getDate()-1);
+  if(d.toDateString()===yd.toDateString())return '昨天 '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  if(d.getFullYear()===now.getFullYear())return (d.getMonth()+1)+'月'+d.getDate()+'日 '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+function _toggleMCmt(id){
+  var inp=$('mci-'+id);
+  if(inp)inp.focus();
+}
+function _likeMoment(id){
+  var m=_mData.find(function(x){return x.id===id});
+  if(!m)return;
+  m.liked=!m.liked;m.likes=(m.likes||0)+(m.liked?1:-1);
+  if(m.likes<0)m.likes=0;
+  renderMoments();
+  api('/api/moments/'+id+'/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({liked:m.liked})}).catch(function(){});
+}
+function _submitMCmt(id){
+  var inp=$('mci-'+id);if(!inp||!inp.value.trim())return;
+  var text=inp.value.trim();inp.value='';
+  api('/api/moments/'+id+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})}).then(function(r){return r.json()}).then(function(){loadMoments()}).catch(function(){});
+}
+function _delMoment(id){
+  if(!confirm('删除这条动态？'))return;
+  api('/api/moments/'+id,{method:'DELETE'}).then(function(){loadMoments()}).catch(function(){});
+}
+function openMLightbox(src){
+  var lb=$('momentLightbox'),img=$('momentLightboxImg');
+  img.src=src;lb.classList.add('show');
+  lb.onclick=function(e){if(e.target===lb||e.target===$('momentLightboxClose'))lb.classList.remove('show')};
+}
+function openMomentsCompose(){
+  _mCompImgs=[];_renderMCompImgs();
+  $('momentsCompTxt').value='';
+  $('momentsCompose').classList.add('show');
+  $('momentsCompTxt').focus();
+}
+function closeMomentsCompose(){
+  $('momentsCompose').classList.remove('show');
+  _mCompImgs=[];
+}
+function _renderMCompImgs(){
+  var g=$('momentsCompImgs');
+  if(!_mCompImgs.length){g.innerHTML='';return}
+  g.innerHTML=_mCompImgs.map(function(src,i){
+    return '<div class="moments-compose-thumb"><img src="'+src+'" alt=""><button class="remove-img" onclick="_mCompImgs.splice('+i+',1);_renderMCompImgs()">×</button></div>';
+  }).join('');
+}
+function _handleMCompImgs(files){
+  Array.from(files).forEach(function(f){
+    if(_mCompImgs.length>=9)return;
+    var r=new FileReader();
+    r.onload=function(e){_mCompImgs.push(e.target.result);_renderMCompImgs()};
+    r.readAsDataURL(f);
+  });
+}
+function _postMoment(){
+  var txt=$('momentsCompTxt').value.trim();
+  if(!txt&&!_mCompImgs.length)return;
+  var btn=$('momentsPostBtn');btn.disabled=true;btn.textContent='...';
+  api('/api/moments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,images:_mCompImgs})}).then(function(r){
+    if(r.status===404)throw Error('后端还没装朋友圈，跑一下 apply-all.sh');
+    if(!r.ok)return r.text().then(function(t){throw Error(_mErr(t)||('服务器 '+r.status))});
+    return r.json();
+  }).then(function(){
+    closeMomentsCompose();loadMoments();
+  }).catch(function(e){alert('发布失败：'+e.message)}).finally(function(){btn.disabled=false;btn.textContent='Post'});
+}
+function _mErr(t){try{return JSON.parse(t).error}catch(e){return ''}}
+function _setMFilter(author){
+  if(_mFilter===author){_mFilter=null;$('momentsFilterXiaoyan').classList.remove('active');$('momentsFilterXiaoyi').classList.remove('active')}
+  else{_mFilter=author;$('momentsFilterXiaoyan').classList.toggle('active',author==='xiaoyan');$('momentsFilterXiaoyi').classList.toggle('active',author==='xiaoyi')}
+  renderMoments();
+}
+
+$('closeMoments').addEventListener('click',closeMomentsPanel);
+$('momentsComposeBar').addEventListener('click',openMomentsCompose);
+$('closeMomentsCompose').addEventListener('click',closeMomentsCompose);
+$('momentsPostBtn').addEventListener('click',_postMoment);
+$('momentsFilterXiaoyan').addEventListener('click',function(){_setMFilter('xiaoyan')});
+$('momentsFilterXiaoyi').addEventListener('click',function(){_setMFilter('xiaoyi')});
+$('momentsCompFileInput').addEventListener('change',function(){_handleMCompImgs(this.files);this.value=''});
+$('momentLightboxClose').addEventListener('click',function(){$('momentLightbox').classList.remove('show')});
+$('momentsFeed').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey&&e.target.matches&&e.target.matches('.moment-comment-input input')){
+    e.preventDefault();var id=e.target.id.replace('mci-','');_submitMCmt(id);
+  }
+});
+
 /* ── Home page wiring ── */
 document.querySelectorAll('[data-page]').forEach(function(card){
   card.addEventListener('click',function(){
@@ -8543,6 +8957,7 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     if(page==='memory'){openMemoryPicker();return}
     if(page==='settings'){openSettings();return}
     if(page==='pulse'){openPulse();return}
+    if(page==='moments'){openMoments();return}
   });
 });
 document.getElementById('homeBackBtn').addEventListener('click',backToHome);

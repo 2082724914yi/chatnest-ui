@@ -62,6 +62,7 @@ cut-native-thinking.js|MAX_THINKING_TOKENS|砍原生思考链（省额度，留 
 add-cache-prefix.js|SYSTEM_PREFIX|稳定前缀进缓存 + done带命中量
 add-daemon.js|DAEMON_PATCH_VERSION|常驻会话（-p persistent，灰度，前端带 daemon:true 才走）
 add-auth.js|AUTH_PATCH_VERSION|把门关上（/api 默认全拦 + 随机会过期的 token + 登录限流 + CORS 收紧）
+add-moments.js|MOMENTS_FILE|朋友圈
 "
 
 say "1/3 逐个补丁检查"
