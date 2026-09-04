@@ -87,13 +87,13 @@ const ROUTES = `
 app.use('/api/moment-images', express.static(MOMENTS_IMG_DIR));
 
 // ── Moments CRUD ──
-app.get('/api/moments', requireAuth, (req, res) => {
+app.get('/api/moments', (req, res) => {
   const list = loadMoments();
   list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   res.json({ moments: list });
 });
 
-app.post('/api/moments', requireAuth, (req, res) => {
+app.post('/api/moments', (req, res) => {
   const { text, images, author } = req.body;
   if (!text && (!images || !images.length)) return res.status(400).json({ error: '内容不能为空' });
   const list = loadMoments();
@@ -119,7 +119,7 @@ app.post('/api/moments', requireAuth, (req, res) => {
   res.json(m);
 });
 
-app.delete('/api/moments/:id', requireAuth, (req, res) => {
+app.delete('/api/moments/:id', (req, res) => {
   let list = loadMoments();
   const idx = list.findIndex(m => m.id === req.params.id);
   if (idx < 0) return res.status(404).json({ error: '找不到' });
@@ -135,7 +135,7 @@ app.delete('/api/moments/:id', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/moments/:id/like', requireAuth, (req, res) => {
+app.post('/api/moments/:id/like', (req, res) => {
   const list = loadMoments();
   const m = list.find(x => x.id === req.params.id);
   if (!m) return res.status(404).json({ error: '找不到' });
@@ -146,7 +146,7 @@ app.post('/api/moments/:id/like', requireAuth, (req, res) => {
   res.json({ likes: m.likes, liked: m.liked });
 });
 
-app.post('/api/moments/:id/comments', requireAuth, (req, res) => {
+app.post('/api/moments/:id/comments', (req, res) => {
   const list = loadMoments();
   const m = list.find(x => x.id === req.params.id);
   if (!m) return res.status(404).json({ error: '找不到' });
@@ -165,7 +165,7 @@ app.post('/api/moments/:id/comments', requireAuth, (req, res) => {
   res.json(c);
 });
 
-app.get('/api/moments/:id/comments', requireAuth, (req, res) => {
+app.get('/api/moments/:id/comments', (req, res) => {
   const list = loadMoments();
   const m = list.find(x => x.id === req.params.id);
   if (!m) return res.status(404).json({ error: '找不到' });

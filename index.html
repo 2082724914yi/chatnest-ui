@@ -861,145 +861,165 @@ html[data-chat-bg="dark"] .lt-search input,body.dark .lt-search input,
 html[data-chat-bg="dark"] .lt-search button,body.dark .lt-search button{color:#F4F3EF;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 
 /* ── Moments：朋友圈。ours, quietly ── */
-#momentsPanel{position:fixed;inset:0;z-index:82;display:none;background:#faf6f2;color:#3a322b;overflow:hidden}
+#momentsPanel{position:fixed;inset:0;z-index:82;display:none;background:#faf7f2;color:#332d27;overflow:hidden}
 #momentsPanel.show{display:flex;flex-direction:column}
-.moments-top{display:flex;align-items:center;padding:10px 16px;padding-top:calc(env(safe-area-inset-top) + 10px);flex:none}
-.moments-close{width:36px;height:36px;border:0;border-radius:50%;background:rgba(0,0,0,.06);color:#8b7e74;font-size:18px;display:grid;place-items:center;flex:none}
-.moments-title{flex:1;text-align:center;font:italic 600 20px/1 'Georgia','Times New Roman',serif;color:#3a322b;letter-spacing:.3px}
-.moments-filter{display:flex;gap:2px;flex:none}
-.moments-filter-btn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:transparent;border:0;color:#c4b8ac;font-size:15px;transition:all .2s}
-.moments-filter-btn.active{background:rgba(193,123,123,.12);color:#C17B7B}
-.moments-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.moments-cover{position:relative;margin:0 16px 20px;border-radius:20px;padding:36px 24px 28px;background:linear-gradient(160deg,#f0e4da 0%,#e8d6ca 40%,#ddc9bc 100%);overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
-.moments-cover::before{content:'♡  ♡  ♡';position:absolute;top:14px;right:20px;font-size:11px;color:rgba(193,123,123,.22);letter-spacing:6px}
-.moments-cover-title{font:italic 600 26px/1.2 'Georgia','Times New Roman',serif;color:#6b574a}
-.moments-cover-sub{font:400 10px/1 var(--font-sans);color:#a89484;letter-spacing:3.5px;text-transform:uppercase;margin-top:6px}
-.moments-feed{padding:0 16px}
-.moment-card{background:#fff;border-radius:18px;padding:20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.035)}
-.moment-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.moment-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:13px;flex:none;font-weight:700}
-.moment-avatar.xiaoyan{background:linear-gradient(135deg,#f0ddd8,#e4ccc3);color:#9b7568}
-.moment-avatar.xiaoyi{background:linear-gradient(135deg,#dce2f0,#c8d2e4);color:#6878a0}
-.moment-meta{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px}
-.moment-author{font:700 12px/1 var(--font-sans);color:#6b574a;text-transform:uppercase;letter-spacing:1.2px}
-.moment-time{font:italic 400 12px/1 'Georgia','Times New Roman',serif;color:#c4b8ac}
-.moment-delete{border:0;background:transparent;color:#c4b8ac;font:italic 400 12px/1 'Georgia','Times New Roman',serif;padding:4px 0;flex:none}
-.moment-delete:active{color:#e25555}
-.moment-content{font:400 16px/1.75 var(--font-sans);color:#3a322b;white-space:pre-wrap;word-break:break-word}
-.moment-images{display:grid;gap:5px;margin-top:12px;border-radius:14px;overflow:hidden}
+.moments-top{display:flex;align-items:center;padding:9px 14px;padding-top:calc(env(safe-area-inset-top) + 9px);flex:none;background:#fdfbf7;border-bottom:1px solid rgba(0,0,0,.05);z-index:2}
+.moments-close{width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#bcae9f;font-size:19px;display:grid;place-items:center;flex:none}
+.moments-title{flex:1;text-align:center;font:italic 500 22px/1 'Georgia','Times New Roman',serif;color:#332d27;letter-spacing:.2px}
+.moments-filter{display:flex;flex:none}
+.moments-filter-btn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:transparent;border:0;color:#cfc3b6;transition:all .2s}
+.moments-filter-btn.active{color:#c98f7d;background:rgba(201,143,125,.1)}
+.moments-filter-btn svg{width:15px;height:15px}
+.moments-scroll{position:relative;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.moments-hearts{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.moments-hearts span{position:absolute;color:rgba(214,160,146,.17);line-height:1}
+.moments-cover{position:relative;padding:34px 22px 26px;background:linear-gradient(165deg,#f7f0e5 0%,#f2e8db 55%,#ebdfd0 100%);overflow:hidden}
+.moments-cover::after{content:'♡';position:absolute;top:22px;right:26px;font-size:15px;color:rgba(214,160,146,.32)}
+.moments-cover::before{content:'♡';position:absolute;bottom:30px;left:60%;font-size:11px;color:rgba(214,160,146,.22)}
+.moments-cover-title{position:relative;z-index:1;font:italic 500 27px/1.15 'Georgia','Times New Roman',serif;color:#5c4a3d}
+.moments-cover-sub{position:relative;z-index:1;font:400 9.5px/1 var(--font-sans);color:#a89484;letter-spacing:3.2px;text-transform:uppercase;margin-top:7px}
+.moments-feed{position:relative;z-index:1}
+.moment-card{padding:20px 22px 18px;border-bottom:1px solid rgba(0,0,0,.055)}
+.moment-header{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.moment-avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;flex:none;background:#fffdfa}
+.moment-avatar.xiaoyan{color:#8a6a5c;box-shadow:inset 0 0 0 1.5px rgba(160,120,100,.3)}
+.moment-avatar.xiaoyi{color:#7a8296;box-shadow:inset 0 0 0 1.5px rgba(120,130,150,.3)}
+.moment-meta{flex:1;min-width:0;display:flex;align-items:baseline;gap:7px}
+.moment-author{font:700 11px/1 var(--font-sans);color:#4a3e34;text-transform:uppercase;letter-spacing:1.3px;flex:none}
+.moment-time{font:italic 400 12.5px/1 'Georgia','Times New Roman',serif;color:#b0a294}
+.moment-delete{border:0;background:transparent;color:#c4b8ac;font:400 11.5px/1 var(--font-sans);padding:4px 0;flex:none}
+.moment-delete:active{color:#d97070}
+.moment-content{font:400 15.5px/1.72 var(--font-sans);color:#332d27;white-space:pre-wrap;word-break:break-word}
+.moment-images{display:grid;gap:5px;margin-top:12px}
 .moment-images.single{grid-template-columns:1fr}
 .moment-images.double{grid-template-columns:1fr 1fr}
 .moment-images.multi{grid-template-columns:1fr 1fr 1fr}
 .moment-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;transition:opacity .15s}
 .moment-img:active{opacity:.85}
 .moment-images.single .moment-img{aspect-ratio:4/3;max-height:280px}
-.moment-actions{display:flex;align-items:center;padding-top:12px;margin-top:14px;border-top:1px solid rgba(0,0,0,.06)}
-.moment-like-text{flex:1;font:400 13px/1 var(--font-sans);color:#c4b8ac}
-.moment-like-text b{color:#8b7e74;font-weight:500}
-.moment-action-btn{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:#c4b8ac;padding:4px;transition:all .15s;cursor:pointer}
+.moment-actions{position:relative;display:flex;align-items:center;margin-top:16px;padding-top:13px}
+.moment-actions::before{content:'';position:absolute;top:0;left:0;width:38px;height:1px;background:rgba(201,143,125,.5)}
+.moment-like-text{flex:1;display:flex;align-items:center;gap:6px;font:400 13px/1 var(--font-sans);color:#a8998a}
+.moment-like-text svg{width:13px;height:13px;color:#d6a092;flex:none}
+.moment-like-text b{color:#8b7d6e;font-weight:400}
+.moment-action-btn{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:#cfc3b6;padding:4px 5px;font:400 12px/1 var(--font-sans);transition:all .15s;cursor:pointer}
 .moment-action-btn:active{transform:scale(.88)}
-.moment-action-btn.liked{color:#e25555}
-.moment-action-btn svg{width:16px;height:16px}
+.moment-action-btn.liked{color:#d97b7b}
+.moment-action-btn svg{width:15px;height:15px}
 @keyframes mLikeAnim{0%{transform:scale(1)}30%{transform:scale(1.3)}60%{transform:scale(.9)}100%{transform:scale(1)}}
 .moment-action-btn.liked svg{animation:mLikeAnim .4s ease}
-.moment-comments{margin-top:12px;padding:14px 16px;background:rgba(0,0,0,.02);border-radius:14px}
-.moment-comment{padding:8px 0}
-.moment-comment:not(:last-of-type){border-bottom:1px solid rgba(0,0,0,.04)}
-.moment-comment-author{font:700 13px/1.2 var(--font-sans);margin-bottom:2px}
-.moment-comment-author.xy{color:#b07868}
-.moment-comment-author.xi{color:#6878a0}
-.moment-comment-text{font:400 14px/1.6 var(--font-sans);color:#3a322b;word-break:break-word}
-.moment-comment-reply{opacity:.5;font-weight:400;font-size:12px}
-.moment-comment-time{font:400 11px/1 var(--font-sans);color:#c4b8ac;margin-top:3px}
-.moment-comment-input{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.05)}
-.moment-comment-input input{flex:1;min-width:0;border:0;outline:0;background:rgba(0,0,0,.03);border-radius:999px;padding:9px 14px;font:400 13px/1 var(--font-sans);color:#3a322b}
+.moment-comments{margin-top:14px}
+.moment-comment{padding:9px 0}
+.moment-comment.is-reply{margin-left:14px;padding-left:14px;border-left:1.5px solid rgba(0,0,0,.06)}
+.moment-comment-author{font:italic 500 14px/1.2 'Georgia','Times New Roman',serif;margin-bottom:4px}
+.moment-comment-author.xy{color:#c08268}
+.moment-comment-author.xi{color:#7d88a8}
+.moment-comment-text{font:400 14.5px/1.6 var(--font-sans);color:#332d27;word-break:break-word}
+.moment-comment-reply{opacity:.45;font-size:12.5px}
+.moment-comment-time{font:400 11px/1 var(--font-sans);color:#c0b3a5;margin-top:5px}
+.moment-comment-input{display:flex;gap:8px;margin-top:12px}
+.moment-comment-input input{flex:1;min-width:0;border:0;outline:0;background:#fffdfa;border-radius:999px;padding:10px 15px;font:400 13.5px/1 var(--font-sans);color:#332d27;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 .moment-comment-input input::placeholder{color:#c4b8ac}
-.moment-comment-input button{flex:none;width:30px;height:30px;border:0;border-radius:50%;background:#C17B7B;color:#fff;font-size:13px;display:grid;place-items:center}
+.moment-comment-input button{flex:none;width:32px;height:32px;border:0;border-radius:50%;background:#c98f7d;color:#fff;font-size:13px;display:grid;place-items:center}
 .moment-comment-input button:active{opacity:.7}
-.moments-bottom{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;gap:12px;padding:10px 16px calc(env(safe-area-inset-bottom) + 10px);background:rgba(250,246,242,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.06);z-index:83}
-.moments-bottom-cam{width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.05);color:#8b7e74;display:grid;place-items:center;flex:none;font-size:15px}
-.moments-bottom-cam svg{width:18px;height:18px}
-.moments-bottom-text{flex:1;font:italic 400 14px/1 'Georgia','Times New Roman',serif;color:#c4b8ac;cursor:pointer}
-.moments-compose{position:fixed;inset:0;z-index:84;display:none;flex-direction:column;background:#faf6f2}
+.moments-bottom{position:fixed;bottom:0;left:0;right:0;padding:8px 16px calc(env(safe-area-inset-bottom) + 12px);background:linear-gradient(to top,#faf7f2 62%,rgba(250,247,242,0));z-index:83}
+.moments-bottom-inner{display:flex;align-items:center;gap:11px;background:#fffdfa;border-radius:999px;padding:11px 18px;box-shadow:0 1px 7px rgba(0,0,0,.055);cursor:pointer}
+.moments-bottom-cam{width:20px;height:20px;border:0;background:transparent;color:#c98f7d;display:grid;place-items:center;flex:none;padding:0}
+.moments-bottom-cam svg{width:19px;height:19px}
+.moments-bottom-text{flex:1;font:italic 400 14.5px/1 'Georgia','Times New Roman',serif;color:#bcae9f}
+.moments-compose{position:fixed;inset:0;z-index:84;display:none;flex-direction:column;background:#faf7f2}
 .moments-compose.show{display:flex}
-.moments-compose-top{display:flex;align-items:center;padding:10px 16px;padding-top:calc(env(safe-area-inset-top) + 10px)}
-.moments-compose-close{width:36px;height:36px;border:0;border-radius:50%;background:rgba(0,0,0,.06);color:#8b7e74;font-size:18px;display:grid;place-items:center;flex:none}
-.moments-compose-title{flex:1;text-align:center;font:italic 600 18px/1 'Georgia','Times New Roman',serif;color:#3a322b}
-.moments-compose-post{border:0;background:transparent;font:600 15px/1 var(--font-sans);color:#C17B7B;padding:8px 4px;flex:none}
+.moments-compose-top{display:flex;align-items:center;padding:9px 14px;padding-top:calc(env(safe-area-inset-top) + 9px);background:#fdfbf7;border-bottom:1px solid rgba(0,0,0,.05)}
+.moments-compose-close{width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#bcae9f;font-size:19px;display:grid;place-items:center;flex:none}
+.moments-compose-title{flex:1;text-align:center;font:italic 500 19px/1 'Georgia','Times New Roman',serif;color:#332d27}
+.moments-compose-post{border:0;background:transparent;font:500 15px/1 var(--font-sans);color:#c98f7d;padding:8px 6px;flex:none;min-width:52px;text-align:right}
 .moments-compose-post:disabled{opacity:.4}
-.moments-compose-body{flex:1;overflow-y:auto;padding:16px 20px calc(env(safe-area-inset-bottom) + 20px)}
-.moments-compose textarea{width:100%;min-height:160px;border:0;outline:0;resize:none;background:transparent;font:400 17px/1.7 var(--font-sans);color:#3a322b}
+.moments-compose-body{flex:1;overflow-y:auto;padding:18px 22px calc(env(safe-area-inset-bottom) + 20px)}
+.moments-compose textarea{width:100%;min-height:160px;border:0;outline:0;resize:none;background:transparent;font:400 16.5px/1.7 var(--font-sans);color:#332d27}
 .moments-compose textarea::placeholder{color:#c4b8ac}
 .moments-compose-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .moments-compose-thumb{position:relative;width:80px;height:80px;border-radius:12px;overflow:hidden}
 .moments-compose-thumb img{width:100%;height:100%;object-fit:cover}
 .moments-compose-thumb .remove-img{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:0;font-size:12px;display:grid;place-items:center}
-.moments-compose-toolbar{padding:14px 0;display:flex;align-items:center}
-.moments-compose-toolbar label{display:inline-flex;align-items:center;gap:6px;color:#b8a898;font:400 13px/1 var(--font-sans);cursor:pointer}
+.moments-compose-toolbar{padding:16px 0;display:flex;align-items:center}
+.moments-compose-toolbar label{display:inline-flex;align-items:center;gap:7px;color:#b8a898;font:400 13px/1 var(--font-sans);cursor:pointer}
 .moment-lightbox{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:20px}
 .moment-lightbox.show{display:flex}
 .moment-lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:20px;display:grid;place-items:center;z-index:1}
 .moment-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
-.moments-empty{padding:60px 20px;text-align:center}
-.moments-empty-icon{font-size:28px;margin-bottom:10px;opacity:.3}
-.moments-empty-text{font:italic 400 15px/1.4 'Georgia','Times New Roman',serif;color:#c4b8ac}
+.moments-empty{position:relative;z-index:1;padding:56px 20px;text-align:center}
+.moments-empty-icon{font-size:26px;margin-bottom:10px;opacity:.28}
+.moments-empty-text{font:italic 400 15px/1.4 'Georgia','Times New Roman',serif;color:#c0b3a5}
 html[data-chat-bg="dark"] #momentsPanel{background:#1a1917;color:#e8e5df}
-html[data-chat-bg="dark"] .moments-cover{background:linear-gradient(160deg,#2a2520,#322b25,#2d2621)}
+html[data-chat-bg="dark"] .moments-top,html[data-chat-bg="dark"] .moments-compose-top{background:#201e1b;border-bottom-color:rgba(255,255,255,.06)}
+html[data-chat-bg="dark"] .moments-cover{background:linear-gradient(165deg,#2b2621,#322b25,#2c2620)}
 html[data-chat-bg="dark"] .moments-cover-title{color:#d4c4b8}
 html[data-chat-bg="dark"] .moments-cover-sub{color:#8b7e74}
-html[data-chat-bg="dark"] .moments-cover::before{color:rgba(193,123,123,.15)}
-html[data-chat-bg="dark"] .moment-card{background:rgba(255,255,255,.05);box-shadow:none}
+html[data-chat-bg="dark"] .moments-hearts span{color:rgba(214,160,146,.11)}
+html[data-chat-bg="dark"] .moment-card{border-bottom-color:rgba(255,255,255,.06)}
+html[data-chat-bg="dark"] .moment-avatar{background:rgba(255,255,255,.05)}
+html[data-chat-bg="dark"] .moment-avatar.xiaoyan{color:#c09884;box-shadow:inset 0 0 0 1.5px rgba(200,150,125,.28)}
+html[data-chat-bg="dark"] .moment-avatar.xiaoyi{color:#96a0bc;box-shadow:inset 0 0 0 1.5px rgba(150,160,190,.28)}
 html[data-chat-bg="dark"] .moment-author{color:#d4c4b8}
 html[data-chat-bg="dark"] .moment-content{color:#e8e5df}
-html[data-chat-bg="dark"] .moment-time{color:rgba(232,229,223,.35)}
-html[data-chat-bg="dark"] .moment-actions{border-top-color:rgba(255,255,255,.07)}
-html[data-chat-bg="dark"] .moment-like-text{color:rgba(232,229,223,.3)}
-html[data-chat-bg="dark"] .moment-like-text b{color:rgba(232,229,223,.5)}
-html[data-chat-bg="dark"] .moment-comments{background:rgba(255,255,255,.03)}
+html[data-chat-bg="dark"] .moment-time{color:rgba(232,229,223,.32)}
+html[data-chat-bg="dark"] .moment-actions::before{background:rgba(201,143,125,.4)}
+html[data-chat-bg="dark"] .moment-like-text{color:rgba(232,229,223,.34)}
+html[data-chat-bg="dark"] .moment-like-text b{color:rgba(232,229,223,.55)}
+html[data-chat-bg="dark"] .moment-comment.is-reply{border-left-color:rgba(255,255,255,.08)}
 html[data-chat-bg="dark"] .moment-comment-text{color:#e8e5df}
-html[data-chat-bg="dark"] .moment-comment-author.xy{color:#c09080}
-html[data-chat-bg="dark"] .moment-comment-author.xi{color:#8898c0}
-html[data-chat-bg="dark"] .moment-comment:not(:last-of-type){border-bottom-color:rgba(255,255,255,.05)}
-html[data-chat-bg="dark"] .moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df}
+html[data-chat-bg="dark"] .moment-comment-author.xy{color:#cf9a80}
+html[data-chat-bg="dark"] .moment-comment-author.xi{color:#94a0c0}
+html[data-chat-bg="dark"] .moment-comment-time{color:rgba(232,229,223,.22)}
+html[data-chat-bg="dark"] .moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
 html[data-chat-bg="dark"] .moment-comment-input input::placeholder{color:rgba(232,229,223,.25)}
-html[data-chat-bg="dark"] .moment-comment-time{color:rgba(232,229,223,.2)}
-html[data-chat-bg="dark"] .moments-bottom{background:rgba(26,25,23,.92);border-top-color:rgba(255,255,255,.07)}
-html[data-chat-bg="dark"] .moments-bottom-cam{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
-html[data-chat-bg="dark"] .moments-bottom-text{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moments-bottom{background:linear-gradient(to top,#1a1917 62%,rgba(26,25,23,0))}
+html[data-chat-bg="dark"] .moments-bottom-inner{background:#262320;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html[data-chat-bg="dark"] .moments-bottom-text{color:rgba(232,229,223,.3)}
 html[data-chat-bg="dark"] .moments-compose{background:#1a1917}
 html[data-chat-bg="dark"] .moments-compose textarea{color:#e8e5df}
 html[data-chat-bg="dark"] .moments-compose textarea::placeholder{color:rgba(232,229,223,.25)}
-html[data-chat-bg="dark"] .moments-close,html[data-chat-bg="dark"] .moments-compose-close{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
-html[data-chat-bg="dark"] .moments-title{color:#e8e5df}
-html[data-chat-bg="dark"] .moments-compose-title{color:#e8e5df}
+html[data-chat-bg="dark"] .moments-close,html[data-chat-bg="dark"] .moments-compose-close{color:rgba(232,229,223,.42)}
+html[data-chat-bg="dark"] .moments-title,html[data-chat-bg="dark"] .moments-compose-title{color:#e8e5df}
 html[data-chat-bg="dark"] .moment-delete{color:rgba(232,229,223,.25)}
-html[data-chat-bg="dark"] .moments-filter-btn{color:rgba(232,229,223,.3)}
-html[data-chat-bg="dark"] .moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.15)}
+html[data-chat-bg="dark"] .moments-filter-btn{color:rgba(232,229,223,.28)}
+html[data-chat-bg="dark"] .moments-filter-btn.active{color:#d6a092;background:rgba(214,160,146,.14)}
 html[data-chat-bg="dark"] .moments-empty-text{color:rgba(232,229,223,.25)}
-@media(prefers-color-scheme:dark){
-#momentsPanel{background:#1a1917;color:#e8e5df}
-.moments-cover{background:linear-gradient(160deg,#2a2520,#322b25,#2d2621)}
-.moments-cover-title{color:#d4c4b8}.moments-cover-sub{color:#8b7e74}.moments-cover::before{color:rgba(193,123,123,.15)}
-.moment-card{background:rgba(255,255,255,.05);box-shadow:none}
-.moment-author{color:#d4c4b8}.moment-content{color:#e8e5df}.moment-time{color:rgba(232,229,223,.35)}
-.moment-actions{border-top-color:rgba(255,255,255,.07)}
-.moment-like-text{color:rgba(232,229,223,.3)}.moment-like-text b{color:rgba(232,229,223,.5)}
-.moment-comments{background:rgba(255,255,255,.03)}.moment-comment-text{color:#e8e5df}
-.moment-comment-author.xy{color:#c09080}.moment-comment-author.xi{color:#8898c0}
-.moment-comment:not(:last-of-type){border-bottom-color:rgba(255,255,255,.05)}
-.moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df}
-.moment-comment-input input::placeholder{color:rgba(232,229,223,.25)}
-.moment-comment-time{color:rgba(232,229,223,.2)}
-.moments-bottom{background:rgba(26,25,23,.92);border-top-color:rgba(255,255,255,.07)}
-.moments-bottom-cam{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
-.moments-bottom-text{color:rgba(232,229,223,.25)}
-.moments-compose{background:#1a1917}.moments-compose textarea{color:#e8e5df}
-.moments-compose textarea::placeholder{color:rgba(232,229,223,.25)}
-.moments-close,.moments-compose-close{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
-.moments-title,.moments-compose-title{color:#e8e5df}
-.moment-delete{color:rgba(232,229,223,.25)}
-.moments-filter-btn{color:rgba(232,229,223,.3)}.moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.15)}
-.moments-empty-text{color:rgba(232,229,223,.25)}
+@media(prefers-color-scheme:dark){html:not([data-chat-bg="light"]) #momentsPanel{background:#1a1917;color:#e8e5df}
+html:not([data-chat-bg="light"]) .moments-top,html:not([data-chat-bg="light"]) .moments-compose-top{background:#201e1b;border-bottom-color:rgba(255,255,255,.06)}
+html:not([data-chat-bg="light"]) .moments-cover{background:linear-gradient(165deg,#2b2621,#322b25,#2c2620)}
+html:not([data-chat-bg="light"]) .moments-cover-title{color:#d4c4b8}
+html:not([data-chat-bg="light"]) .moments-cover-sub{color:#8b7e74}
+html:not([data-chat-bg="light"]) .moments-hearts span{color:rgba(214,160,146,.11)}
+html:not([data-chat-bg="light"]) .moment-card{border-bottom-color:rgba(255,255,255,.06)}
+html:not([data-chat-bg="light"]) .moment-avatar{background:rgba(255,255,255,.05)}
+html:not([data-chat-bg="light"]) .moment-avatar.xiaoyan{color:#c09884;box-shadow:inset 0 0 0 1.5px rgba(200,150,125,.28)}
+html:not([data-chat-bg="light"]) .moment-avatar.xiaoyi{color:#96a0bc;box-shadow:inset 0 0 0 1.5px rgba(150,160,190,.28)}
+html:not([data-chat-bg="light"]) .moment-author{color:#d4c4b8}
+html:not([data-chat-bg="light"]) .moment-content{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moment-time{color:rgba(232,229,223,.32)}
+html:not([data-chat-bg="light"]) .moment-actions::before{background:rgba(201,143,125,.4)}
+html:not([data-chat-bg="light"]) .moment-like-text{color:rgba(232,229,223,.34)}
+html:not([data-chat-bg="light"]) .moment-like-text b{color:rgba(232,229,223,.55)}
+html:not([data-chat-bg="light"]) .moment-comment.is-reply{border-left-color:rgba(255,255,255,.08)}
+html:not([data-chat-bg="light"]) .moment-comment-text{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moment-comment-author.xy{color:#cf9a80}
+html:not([data-chat-bg="light"]) .moment-comment-author.xi{color:#94a0c0}
+html:not([data-chat-bg="light"]) .moment-comment-time{color:rgba(232,229,223,.22)}
+html:not([data-chat-bg="light"]) .moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html:not([data-chat-bg="light"]) .moment-comment-input input::placeholder{color:rgba(232,229,223,.25)}
+html:not([data-chat-bg="light"]) .moments-bottom{background:linear-gradient(to top,#1a1917 62%,rgba(26,25,23,0))}
+html:not([data-chat-bg="light"]) .moments-bottom-inner{background:#262320;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html:not([data-chat-bg="light"]) .moments-bottom-text{color:rgba(232,229,223,.3)}
+html:not([data-chat-bg="light"]) .moments-compose{background:#1a1917}
+html:not([data-chat-bg="light"]) .moments-compose textarea{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moments-compose textarea::placeholder{color:rgba(232,229,223,.25)}
+html:not([data-chat-bg="light"]) .moments-close,html:not([data-chat-bg="light"]) .moments-compose-close{color:rgba(232,229,223,.42)}
+html:not([data-chat-bg="light"]) .moments-title,html:not([data-chat-bg="light"]) .moments-compose-title{color:#e8e5df}
+html:not([data-chat-bg="light"]) .moment-delete{color:rgba(232,229,223,.25)}
+html:not([data-chat-bg="light"]) .moments-filter-btn{color:rgba(232,229,223,.28)}
+html:not([data-chat-bg="light"]) .moments-filter-btn.active{color:#d6a092;background:rgba(214,160,146,.14)}
+html:not([data-chat-bg="light"]) .moments-empty-text{color:rgba(232,229,223,.25)}
 }
 
 /* ── Pulse：身体状态。felt, not told —— 这一屏不出现任何数字 ── */
@@ -1879,6 +1899,15 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
     </div>
   </div>
   <div class="moments-scroll" id="momentsScroll">
+    <div class="moments-hearts" aria-hidden="true">
+      <span style="top:14%;left:8%;font-size:13px">♡</span>
+      <span style="top:22%;right:11%;font-size:16px">♡</span>
+      <span style="top:38%;left:16%;font-size:11px">♡</span>
+      <span style="top:52%;right:18%;font-size:14px">♡</span>
+      <span style="top:66%;left:7%;font-size:12px">♡</span>
+      <span style="top:79%;right:9%;font-size:15px">♡</span>
+      <span style="top:91%;left:22%;font-size:11px">♡</span>
+    </div>
     <div class="moments-cover">
       <div class="moments-cover-title">ours, quietly.</div>
       <div class="moments-cover-sub">little things we keep</div>
@@ -1888,13 +1917,15 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
       <div class="moments-empty-text">还没有动态</div>
     </div>
     <div class="moments-feed" id="momentsFeed"></div>
-    <div style="height:72px"></div>
+    <div style="height:86px"></div>
   </div>
   <div class="moments-bottom">
-    <button class="moments-bottom-cam" id="momentsComposeBtn" type="button" aria-label="发动态">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-    </button>
-    <span class="moments-bottom-text" id="momentsComposeText">share a little thing...</span>
+    <div class="moments-bottom-inner" id="momentsComposeBar">
+      <button class="moments-bottom-cam" id="momentsComposeBtn" type="button" aria-label="发动态">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <span class="moments-bottom-text">share a little thing...</span>
+    </div>
   </div>
   <div class="moments-compose" id="momentsCompose">
     <div class="moments-compose-top">
@@ -8244,7 +8275,9 @@ function _renderMCard(m){
   var cmtN=(m.comments||[]).length;
   var likeText='';
   if(likeN>0){
-    likeText='<div class="moment-like-text"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px;margin-right:4px;opacity:.4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>liked by <b>'+name+'</b></div>';
+    // 两个人的朋友圈：点赞的总是发帖人的另一半
+    var liker=isXY?'小懿':'小衍';
+    likeText='<div class="moment-like-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>liked by <b>'+liker+'</b></div>';
   }
   var cmtHtml='';
   if(m.comments&&m.comments.length){
@@ -8252,8 +8285,7 @@ function _renderMCard(m){
       var cIsXY=c.author==='xiaoyan';
       var cn=cIsXY?'小衍':'小懿';
       var cCls=cIsXY?'xy':'xi';
-      var re=c.reply_to?'<span class="moment-comment-reply">回复 '+(c.reply_to==='xiaoyan'?'小衍':'小懿')+'</span> ':'';
-      return '<div class="moment-comment"><div class="moment-comment-author '+cCls+'">'+cn+'</div><div class="moment-comment-text">'+re+_esc(c.text)+'</div><div class="moment-comment-time">'+_fmtMTime(c.created_at)+'</div></div>';
+      return '<div class="moment-comment'+(c.reply_to?' is-reply':'')+'"><div class="moment-comment-author '+cCls+'">'+cn+'</div><div class="moment-comment-text">'+_esc(c.text)+'</div><div class="moment-comment-time">'+_fmtMTime(c.created_at)+'</div></div>';
     }).join('');
   }
   return '<div class="moment-card" data-mid="'+m.id+'">'
@@ -8267,7 +8299,7 @@ function _renderMCard(m){
     +'<button class="moment-action-btn '+liked+'" onclick="_likeMoment(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="'+(m.liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>'
     +'<button class="moment-action-btn" onclick="_toggleMCmt(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(cmtN?' <span>'+cmtN+'</span>':'')+'</button>'
     +'</div>'
-    +'<div class="moment-comments" id="mc-'+m.id+'" hidden>'
+    +'<div class="moment-comments" id="mc-'+m.id+'">'
     +cmtHtml
     +'<div class="moment-comment-input"><input placeholder="写评论..." id="mci-'+m.id+'"><button onclick="_submitMCmt(\''+m.id+'\')">发送</button></div>'
     +'</div></div>';
@@ -8288,10 +8320,8 @@ function _fmtMTime(ts){
   return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
 }
 function _toggleMCmt(id){
-  var el=$('mc-'+id);
-  if(!el)return;
-  el.hidden=!el.hidden;
-  if(!el.hidden){var inp=$('mci-'+id);if(inp)inp.focus()}
+  var inp=$('mci-'+id);
+  if(inp)inp.focus();
 }
 function _likeMoment(id){
   var m=_mData.find(function(x){return x.id===id});
@@ -8343,11 +8373,16 @@ function _handleMCompImgs(files){
 function _postMoment(){
   var txt=$('momentsCompTxt').value.trim();
   if(!txt&&!_mCompImgs.length)return;
-  var btn=$('momentsPostBtn');btn.disabled=true;btn.textContent='Posting...';
-  api('/api/moments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,images:_mCompImgs})}).then(function(r){return r.json()}).then(function(){
+  var btn=$('momentsPostBtn');btn.disabled=true;btn.textContent='...';
+  api('/api/moments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,images:_mCompImgs})}).then(function(r){
+    if(r.status===404)throw Error('后端还没装朋友圈，跑一下 apply-all.sh');
+    if(!r.ok)return r.text().then(function(t){throw Error(_mErr(t)||('服务器 '+r.status))});
+    return r.json();
+  }).then(function(){
     closeMomentsCompose();loadMoments();
   }).catch(function(e){alert('发布失败：'+e.message)}).finally(function(){btn.disabled=false;btn.textContent='Post'});
 }
+function _mErr(t){try{return JSON.parse(t).error}catch(e){return ''}}
 function _setMFilter(author){
   if(_mFilter===author){_mFilter=null;$('momentsFilterXiaoyan').classList.remove('active');$('momentsFilterXiaoyi').classList.remove('active')}
   else{_mFilter=author;$('momentsFilterXiaoyan').classList.toggle('active',author==='xiaoyan');$('momentsFilterXiaoyi').classList.toggle('active',author==='xiaoyi')}
@@ -8355,8 +8390,7 @@ function _setMFilter(author){
 }
 
 $('closeMoments').addEventListener('click',closeMomentsPanel);
-$('momentsComposeBtn').addEventListener('click',openMomentsCompose);
-$('momentsComposeText').addEventListener('click',openMomentsCompose);
+$('momentsComposeBar').addEventListener('click',openMomentsCompose);
 $('closeMomentsCompose').addEventListener('click',closeMomentsCompose);
 $('momentsPostBtn').addEventListener('click',_postMoment);
 $('momentsFilterXiaoyan').addEventListener('click',function(){_setMFilter('xiaoyan')});
