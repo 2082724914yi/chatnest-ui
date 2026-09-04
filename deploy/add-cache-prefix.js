@@ -69,11 +69,12 @@ const edits = [
       "  }",
   },
   {
-    // 只认路径后面那截 —— 线上是 /usr/bin/claude，测试副本是 claude，
-    // 之前写死 `claude -p` 就在她线上没匹配上。这截两边都一样。
+    // 只认绝对不变的那一小截：-p 后面永远紧跟 modelFlag、effortFlag。
+    // 后面 verbose/partial/mcpArgs 的顺序在她线上会漂（补丁插入位置不同），
+    // 之前把那些也写进锚点就一直没中。sysFlag 插在 effortFlag 之后就够了。
     name: 'spawn 带上前缀 flag',
-    find: "-p${modelFlag}${effortFlag} --verbose${partialFlag}${mcpArgs()}",
-    replace: "-p${modelFlag}${effortFlag}${sysFlag} --verbose${partialFlag}${mcpArgs()}",
+    find: "-p${modelFlag}${effortFlag}",
+    replace: "-p${modelFlag}${effortFlag}${sysFlag}",
   },
   {
     name: 'done 带缓存命中（流式路径）',
@@ -109,7 +110,7 @@ const checks = [
   ['前缀常量在', iSys > 0],
   ['管道从记忆开始（人设不在管道里了）', iSys < iMem && !/let prompt = PERSONA/.test(out)],
   ['写了前缀文件', /append-system-prompt-file \$\{_sf\}/.test(out)],
-  ['spawn 挂上了 flag', /claude -p\$\{modelFlag\}\$\{effortFlag\}\$\{sysFlag\}/.test(out)],
+  ['spawn 挂上了 flag', /-p\$\{modelFlag\}\$\{effortFlag\}\$\{sysFlag\}/.test(out)],
   ['状态卡还在最后', iCard > iMem],
   ['缓存命中进了 done', /cache_read: u\.cache_read_input_tokens/.test(out)
     && (out.match(/usage: normUsage\(/g) || []).length === 2],
