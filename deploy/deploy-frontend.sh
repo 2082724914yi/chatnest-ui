@@ -53,11 +53,21 @@ if [ -z "$NGINX_BIN" ]; then
     _is_nginx "$c" && { NGINX_BIN="$c"; break; }
   done
 fi
+# -T 把配置 dump 到 stdout，"syntax is ok / test is successful" 走的是 stderr，那是正常信息不是报错。
+# 所以先看它到底成功没有（退出码），再谈找不找得到 root —— 这两件事不是一回事。
+NGX_CONF=$("${NGINX_BIN:-nginx}" -T 2>/dev/null); NGX_RC=$?
 NGX_ERR=$("${NGINX_BIN:-nginx}" -T 2>&1 >/dev/null | head -4)
-ROOTS=$("${NGINX_BIN:-nginx}" -T 2>/dev/null | awk '$1=="root"{gsub(/;/,"",$2); print $2}' | sort -u)
+# root 那行前面有缩进、后面可能跟注释，路径也可能带引号：整行抓，别只看第一个字段
+ROOTS=$(printf '%s\n' "$NGX_CONF" \
+  | grep -oE '^[[:space:]]*(root|alias)[[:space:]]+[^;]+;' \
+  | sed -E 's/^[[:space:]]*(root|alias)[[:space:]]+//; s/;$//; s/^"//; s/"$//' \
+  | sort -u)
 if [ -n "${ROOTS:-}" ]; then
   echo "  用的 nginx: ${NGINX_BIN:-nginx}"
   echo "$ROOTS" | sed 's/^/  配置里的 root: /'
+elif [ "${NGX_RC:-1}" = 0 ]; then
+  # 配置读到了，只是里面没写 root（比如全是 proxy_pass 反代）—— 这不算失败
+  no "nginx 配置读到了，但里面没有 root/alias 指向静态目录"
 else
   no "读不到 nginx 配置（试过：${NGINX_BIN:-没找到 nginx 二进制}）"
   # 把真正的原因打出来 —— 闷着只能靠猜，猜了两轮了
