@@ -33,8 +33,33 @@ if [ "$LIVE_SIZE" = "$NEWSIZE" ]; then
 fi
 
 say "3/5 找 nginx 真正在读的目录"
-ROOTS=$(nginx -T 2>/dev/null | awk '$1=="root"{gsub(/;/,"",$2); print $2}' | sort -u)
-[ -n "${ROOTS:-}" ] && echo "$ROOTS" | sed 's/^/  配置里的 root: /' || no "读不到 nginx 配置（nginx -T 失败）"
+# nginx 不一定叫 nginx、也不一定在 PATH 里（宝塔装在 /www/server、openresty 装在自己目录）。
+# 最靠谱的是从**正在跑的** master 进程反查它自己的二进制，那份必然是线上在用的那个。
+# 认定之前先问它一句 -v：pgrep 那条会匹配到任何命令行里带这串字的进程，
+# 光看"能执行"会把 bash 自己当成 nginx。
+_is_nginx(){ [ -n "${1:-}" ] && [ -x "$1" ] && "$1" -v 2>&1 | grep -qi nginx; }
+NGINX_BIN=""
+_c=$(command -v nginx 2>/dev/null || true)
+_is_nginx "${_c:-}" && NGINX_BIN="$_c"
+if [ -z "$NGINX_BIN" ]; then
+  for p in $(pgrep -f 'nginx: master' 2>/dev/null || true); do
+    b=$(readlink -f "/proc/$p/exe" 2>/dev/null || true)
+    _is_nginx "${b:-}" && { NGINX_BIN="$b"; break; }
+  done
+fi
+if [ -z "$NGINX_BIN" ]; then
+  for c in /usr/sbin/nginx /usr/local/nginx/sbin/nginx /www/server/nginx/sbin/nginx \
+           /usr/local/openresty/nginx/sbin/nginx /opt/nginx/sbin/nginx; do
+    _is_nginx "$c" && { NGINX_BIN="$c"; break; }
+  done
+fi
+ROOTS=$("${NGINX_BIN:-nginx}" -T 2>/dev/null | awk '$1=="root"{gsub(/;/,"",$2); print $2}' | sort -u)
+if [ -n "${ROOTS:-}" ]; then
+  echo "  用的 nginx: ${NGINX_BIN:-nginx}"
+  echo "$ROOTS" | sed 's/^/  配置里的 root: /'
+else
+  no "读不到 nginx 配置（试过：${NGINX_BIN:-没找到 nginx 二进制}）"
+fi
 
 # 真目标 = 目录里的 index.html 大小正好等于外网那份
 TARGETS=""
@@ -64,7 +89,7 @@ for f in $TARGETS; do
   cp "$NEW" "$f" && ok "已写入 $f（$(wc -c < "$f") 字节，旧的已备份）"
 done
 rm -f "$NEW"
-nginx -s reload 2>/dev/null && ok "nginx 已 reload" || true
+"${NGINX_BIN:-nginx}" -s reload 2>/dev/null && ok "nginx 已 reload" || true
 
 say "5/5 从外网再验一次"
 sleep 2
