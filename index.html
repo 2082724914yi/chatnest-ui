@@ -2605,6 +2605,16 @@ function scrollBottomSticky(){
       }).observe(streamInner);
     }
   }catch(e){}
+  // 视口变化：加到主屏幕后从图标冷启动、地址栏收起、转屏、键盘弹起 ——
+  // 这些让"能滚多远"变了，但消息本身没长高，上面那个 ResizeObserver 压根不会响。
+  // 浏览器里正常、主屏幕打开却停在第一句，就是栽在这儿。
+  var _reStick=function(){ if(_atBottom)scrollBottom(); else _syncJumpBtn(); };
+  window.addEventListener('resize',_reStick,{passive:true});
+  window.addEventListener('orientationchange',_reStick,{passive:true});
+  window.addEventListener('pageshow',_reStick);
+  try{ if(window.visualViewport)window.visualViewport.addEventListener('resize',_reStick,{passive:true}); }catch(e){}
+  // 别让浏览器自作主张恢复上次的滚动位置，它会跟我们抢
+  try{ if('scrollRestoration' in history)history.scrollRestoration='manual'; }catch(e){}
 })();
 function appendDisclaimer(){return}
 async function greeting(){try{const r=await fetch('/api/splash');if(r.ok)return(await r.json()).line}catch{}return''}
