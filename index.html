@@ -2410,7 +2410,14 @@ async function greeting(){try{const r=await fetch('/api/splash');if(r.ok)return(
 async function resetEmpty(){state.convId=null;state.legacySessionId=null;state.currentTitle='新对话';state.starred=false;localStorage.removeItem('chat_conversation');localStorage.removeItem('chat_session');streamInner.innerHTML=`<div class="empty" id="empty"><div class="empty-line"></div></div>`;$('empty').querySelector('.empty-line').textContent=await greeting()||'say something to 小衍...';input.placeholder='say something to 小衍...';updateSessionHeader()}
 async function dismissEmpty(){input.placeholder='say something to 小衍...';const el=$('empty');if(!el)return;el.classList.add('leaving');await new Promise(r=>setTimeout(r,300));el.remove()}
 
-async function loadModels(){try{const r=await fetch('/api/models');state.models=(await r.json()).models}catch{state.models=[{id:'claude-sonnet-5',label:'Sonnet 5',desc:'Fast and intelligent',thinking:'adaptive',primary:true}]}
+async function loadModels(){
+  // 用 api() 带上登录凭证：裸 fetch 会被后端的认证中间件挡成 401，而 401 的响应体
+  // {"error":"unauthorized"} 是合法 JSON，解析不报错，.models 悄悄变成 undefined，
+  // 下一行的 .some 就炸了 —— 一炸 state.models 就废了，设置页里 currentModel() 跟着
+  // 抛错，那一屏的 onclick 全绑不上，点什么都像点在空气上。
+  const FALLBACK=[{id:'claude-sonnet-5',label:'Sonnet 5',desc:'Fast and intelligent',thinking:'adaptive',primary:true}];
+  try{const r=await api('/api/models');const d=await r.json();state.models=Array.isArray(d.models)&&d.models.length?d.models:FALLBACK}
+  catch{state.models=FALLBACK}
   if(!state.models.some(x=>x.id===state.model))state.model=state.models[0].id;renderModelSheet();updateModelHeader()}
 function modelSettingText(model=currentModel(),s=modelSetting(model)){if(!model||model.thinking==='none')return'';return(s.effort||'medium').replace(/^./,c=>c.toUpperCase())}
 function updateModelHeader(){const m=currentModel(),setting=modelSettingText(m);$('topbarModelText').textContent=m?.label||state.model;$('topbarModelSetting').textContent=setting;if($('modelCapsuleText'))$('modelCapsuleText').textContent=`${m?.label||state.model}${setting?' '+setting:''}`}
