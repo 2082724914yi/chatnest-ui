@@ -860,109 +860,146 @@ html[data-chat-bg="dark"] .lt-empty,body.dark .lt-empty{border-color:rgba(255,25
 html[data-chat-bg="dark"] .lt-search input,body.dark .lt-search input,
 html[data-chat-bg="dark"] .lt-search button,body.dark .lt-search button{color:#F4F3EF;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 
-/* ── Moments：朋友圈。给祂一个自言自语的地方 ── */
-#momentsPanel{position:fixed;inset:0;z-index:82;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}
-#momentsPanel.show{display:block}
-#momentsPanel .profile-header{grid-template-columns:52px 1fr auto}
-.moments-page{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
-.moments-page.active{display:flex}
-.moments-feed{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px calc(env(safe-area-inset-bottom) + 80px)}
-.moments-filter{display:flex;gap:4px}
-.moments-filter-btn{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:transparent;border:0;color:#aaa49c;transition:all .2s}
-.moments-filter-btn.active{background:rgba(193,123,123,.14);color:#C17B7B}
-.moments-filter-btn svg{width:17px;height:17px}
-.moment-card{background:rgba(255,255,255,.55);border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);backdrop-filter:blur(2px) saturate(1.05);-webkit-backdrop-filter:blur(2px) saturate(1.05)}
-.moment-header{display:flex;align-items:center;gap:11px;margin-bottom:10px}
-.moment-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-size:15px;flex:none;font-weight:600}
-.moment-avatar.xiaoyan{background:linear-gradient(135deg,#f0ddd8,#e0c4bb);color:#a07060}
-.moment-avatar.xiaoyi{background:linear-gradient(135deg,#dce2f0,#c4cee0);color:#6070a0}
-.moment-meta{flex:1;min-width:0}
-.moment-author{font:600 15px/1.2 var(--font-sans);color:#4A3728}
-.moment-time{font:400 12px/1.2 var(--font-sans);color:#aaa49c;margin-top:2px}
-.moment-delete{width:28px;height:28px;border:0;background:transparent;color:#ccc5bb;font-size:18px;border-radius:50%;display:grid;place-items:center;opacity:.35;transition:opacity .2s}
-.moment-delete:active{opacity:1}
-.moment-content{font:400 15.5px/1.65 var(--font-sans);color:#201f1d;white-space:pre-wrap;word-break:break-word}
-.moment-images{display:grid;gap:6px;margin-top:10px;border-radius:14px;overflow:hidden}
+/* ── Moments：朋友圈。ours, quietly ── */
+#momentsPanel{position:fixed;inset:0;z-index:82;display:none;background:#faf6f2;color:#3a322b;overflow:hidden}
+#momentsPanel.show{display:flex;flex-direction:column}
+.moments-top{display:flex;align-items:center;padding:10px 16px;padding-top:calc(env(safe-area-inset-top) + 10px);flex:none}
+.moments-close{width:36px;height:36px;border:0;border-radius:50%;background:rgba(0,0,0,.06);color:#8b7e74;font-size:18px;display:grid;place-items:center;flex:none}
+.moments-title{flex:1;text-align:center;font:italic 600 20px/1 'Georgia','Times New Roman',serif;color:#3a322b;letter-spacing:.3px}
+.moments-filter{display:flex;gap:2px;flex:none}
+.moments-filter-btn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:transparent;border:0;color:#c4b8ac;font-size:15px;transition:all .2s}
+.moments-filter-btn.active{background:rgba(193,123,123,.12);color:#C17B7B}
+.moments-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.moments-cover{position:relative;margin:0 16px 20px;border-radius:20px;padding:36px 24px 28px;background:linear-gradient(160deg,#f0e4da 0%,#e8d6ca 40%,#ddc9bc 100%);overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
+.moments-cover::before{content:'♡  ♡  ♡';position:absolute;top:14px;right:20px;font-size:11px;color:rgba(193,123,123,.22);letter-spacing:6px}
+.moments-cover-title{font:italic 600 26px/1.2 'Georgia','Times New Roman',serif;color:#6b574a}
+.moments-cover-sub{font:400 10px/1 var(--font-sans);color:#a89484;letter-spacing:3.5px;text-transform:uppercase;margin-top:6px}
+.moments-feed{padding:0 16px}
+.moment-card{background:#fff;border-radius:18px;padding:20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.035)}
+.moment-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.moment-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:13px;flex:none;font-weight:700}
+.moment-avatar.xiaoyan{background:linear-gradient(135deg,#f0ddd8,#e4ccc3);color:#9b7568}
+.moment-avatar.xiaoyi{background:linear-gradient(135deg,#dce2f0,#c8d2e4);color:#6878a0}
+.moment-meta{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px}
+.moment-author{font:700 12px/1 var(--font-sans);color:#6b574a;text-transform:uppercase;letter-spacing:1.2px}
+.moment-time{font:italic 400 12px/1 'Georgia','Times New Roman',serif;color:#c4b8ac}
+.moment-delete{border:0;background:transparent;color:#c4b8ac;font:italic 400 12px/1 'Georgia','Times New Roman',serif;padding:4px 0;flex:none}
+.moment-delete:active{color:#e25555}
+.moment-content{font:400 16px/1.75 var(--font-sans);color:#3a322b;white-space:pre-wrap;word-break:break-word}
+.moment-images{display:grid;gap:5px;margin-top:12px;border-radius:14px;overflow:hidden}
 .moment-images.single{grid-template-columns:1fr}
 .moment-images.double{grid-template-columns:1fr 1fr}
 .moment-images.multi{grid-template-columns:1fr 1fr 1fr}
 .moment-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;transition:opacity .15s}
 .moment-img:active{opacity:.85}
 .moment-images.single .moment-img{aspect-ratio:4/3;max-height:280px}
-.moment-actions{display:flex;align-items:center;gap:14px;padding-top:10px;margin-top:10px;border-top:1px solid rgba(32,31,29,.06)}
-.moment-action-btn{display:flex;align-items:center;gap:5px;border:0;background:transparent;color:#aaa49c;font:400 13px/1 var(--font-sans);padding:6px 8px;border-radius:999px;transition:all .15s}
-.moment-action-btn:active{transform:scale(.9)}
+.moment-actions{display:flex;align-items:center;padding-top:12px;margin-top:14px;border-top:1px solid rgba(0,0,0,.06)}
+.moment-like-text{flex:1;font:400 13px/1 var(--font-sans);color:#c4b8ac}
+.moment-like-text b{color:#8b7e74;font-weight:500}
+.moment-action-btn{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:#c4b8ac;padding:4px;transition:all .15s;cursor:pointer}
+.moment-action-btn:active{transform:scale(.88)}
 .moment-action-btn.liked{color:#e25555}
-.moment-action-btn svg{width:16px;height:16px;transition:all .15s}
-@keyframes mLikeAnim{0%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(.85)}100%{transform:scale(1)}}
+.moment-action-btn svg{width:16px;height:16px}
+@keyframes mLikeAnim{0%{transform:scale(1)}30%{transform:scale(1.3)}60%{transform:scale(.9)}100%{transform:scale(1)}}
 .moment-action-btn.liked svg{animation:mLikeAnim .4s ease}
-.moment-comments{margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.028);border-radius:16px}
-.moment-comment{display:flex;gap:8px;padding:7px 0;align-items:baseline}
-.moment-comment:not(:last-child){border-bottom:1px solid rgba(32,31,29,.045)}
-.moment-comment-author{font:600 13px/1.2 var(--font-sans);color:#8B7263;flex:none;min-width:28px}
-.moment-comment-text{font:400 13.5px/1.5 var(--font-sans);color:#4A3728;flex:1;word-break:break-word}
-.moment-comment-time{font:400 11px/1 var(--font-sans);color:#ccc5bb;flex:none;white-space:nowrap}
-.moment-comment-input{display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(32,31,29,.05)}
-.moment-comment-input input{flex:1;min-width:0;border:0;outline:0;background:rgba(255,255,255,.6);border-radius:999px;padding:8px 14px;font:400 13.5px/1 var(--font-sans);color:#201f1d}
-.moment-comment-input input::placeholder{color:#ccc5bb}
-.moment-comment-input button{flex:none;width:30px;height:30px;border:0;border-radius:50%;background:#C17B7B;color:#fff;font-size:14px;display:grid;place-items:center;transition:opacity .15s}
+.moment-comments{margin-top:12px;padding:14px 16px;background:rgba(0,0,0,.02);border-radius:14px}
+.moment-comment{padding:8px 0}
+.moment-comment:not(:last-of-type){border-bottom:1px solid rgba(0,0,0,.04)}
+.moment-comment-author{font:700 13px/1.2 var(--font-sans);margin-bottom:2px}
+.moment-comment-author.xy{color:#b07868}
+.moment-comment-author.xi{color:#6878a0}
+.moment-comment-text{font:400 14px/1.6 var(--font-sans);color:#3a322b;word-break:break-word}
+.moment-comment-reply{opacity:.5;font-weight:400;font-size:12px}
+.moment-comment-time{font:400 11px/1 var(--font-sans);color:#c4b8ac;margin-top:3px}
+.moment-comment-input{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.05)}
+.moment-comment-input input{flex:1;min-width:0;border:0;outline:0;background:rgba(0,0,0,.03);border-radius:999px;padding:9px 14px;font:400 13px/1 var(--font-sans);color:#3a322b}
+.moment-comment-input input::placeholder{color:#c4b8ac}
+.moment-comment-input button{flex:none;width:30px;height:30px;border:0;border-radius:50%;background:#C17B7B;color:#fff;font-size:13px;display:grid;place-items:center}
 .moment-comment-input button:active{opacity:.7}
-.moments-fab{position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 24px);width:52px;height:52px;border:0;border-radius:50%;background:linear-gradient(135deg,#C17B7B,#b06a6a);color:#fff;font-size:26px;box-shadow:0 4px 18px rgba(193,123,123,.35);display:grid;place-items:center;z-index:83;transition:transform .2s}
-.moments-fab:active{transform:scale(.85)}
-.moments-compose{position:fixed;inset:0;z-index:84;display:none;flex-direction:column;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat}
+.moments-bottom{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;gap:12px;padding:10px 16px calc(env(safe-area-inset-bottom) + 10px);background:rgba(250,246,242,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.06);z-index:83}
+.moments-bottom-cam{width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.05);color:#8b7e74;display:grid;place-items:center;flex:none;font-size:15px}
+.moments-bottom-cam svg{width:18px;height:18px}
+.moments-bottom-text{flex:1;font:italic 400 14px/1 'Georgia','Times New Roman',serif;color:#c4b8ac;cursor:pointer}
+.moments-compose{position:fixed;inset:0;z-index:84;display:none;flex-direction:column;background:#faf6f2}
 .moments-compose.show{display:flex}
-.moments-compose .profile-header{grid-template-columns:52px 1fr 52px}
-.moments-compose-body{flex:1;overflow-y:auto;padding:16px 18px calc(env(safe-area-inset-bottom) + 18px)}
-.moments-compose textarea{width:100%;min-height:160px;border:0;outline:0;resize:none;background:transparent;font:400 17px/1.6 var(--font-sans);color:#201f1d}
-.moments-compose textarea::placeholder{color:#ccc5bb}
+.moments-compose-top{display:flex;align-items:center;padding:10px 16px;padding-top:calc(env(safe-area-inset-top) + 10px)}
+.moments-compose-close{width:36px;height:36px;border:0;border-radius:50%;background:rgba(0,0,0,.06);color:#8b7e74;font-size:18px;display:grid;place-items:center;flex:none}
+.moments-compose-title{flex:1;text-align:center;font:italic 600 18px/1 'Georgia','Times New Roman',serif;color:#3a322b}
+.moments-compose-post{border:0;background:transparent;font:600 15px/1 var(--font-sans);color:#C17B7B;padding:8px 4px;flex:none}
+.moments-compose-post:disabled{opacity:.4}
+.moments-compose-body{flex:1;overflow-y:auto;padding:16px 20px calc(env(safe-area-inset-bottom) + 20px)}
+.moments-compose textarea{width:100%;min-height:160px;border:0;outline:0;resize:none;background:transparent;font:400 17px/1.7 var(--font-sans);color:#3a322b}
+.moments-compose textarea::placeholder{color:#c4b8ac}
 .moments-compose-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .moments-compose-thumb{position:relative;width:80px;height:80px;border-radius:12px;overflow:hidden}
 .moments-compose-thumb img{width:100%;height:100%;object-fit:cover}
-.moments-compose-thumb .remove-img{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:0;font-size:12px;display:grid;place-items:center;line-height:1}
-.moments-compose-add-img{width:80px;height:80px;border-radius:12px;border:1.5px dashed rgba(32,31,29,.16);display:grid;place-items:center;color:#ccc5bb;font-size:24px;background:transparent;transition:border-color .15s}
-.moments-compose-add-img:active{border-color:rgba(32,31,29,.3)}
+.moments-compose-thumb .remove-img{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:0;font-size:12px;display:grid;place-items:center}
+.moments-compose-toolbar{padding:14px 0;display:flex;align-items:center}
+.moments-compose-toolbar label{display:inline-flex;align-items:center;gap:6px;color:#b8a898;font:400 13px/1 var(--font-sans);cursor:pointer}
 .moment-lightbox{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:20px}
 .moment-lightbox.show{display:flex}
+.moment-lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:20px;display:grid;place-items:center;z-index:1}
 .moment-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
-.moments-empty{padding:48px 20px;text-align:center;color:#aaa49c;font-size:15px;line-height:1.6}
-.moments-empty-icon{font-size:36px;margin-bottom:14px;opacity:.45}
-html[data-chat-bg="dark"] #momentsPanel{background-color:#1c1b1a;color:#F4F3EF}
-html[data-chat-bg="dark"] .moment-card{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.09)}
-html[data-chat-bg="dark"] .moment-author{color:#F4F3EF}
-html[data-chat-bg="dark"] .moment-content{color:#e8e6e1}
-html[data-chat-bg="dark"] .moment-time{color:rgba(244,243,239,.4)}
+.moments-empty{padding:60px 20px;text-align:center}
+.moments-empty-icon{font-size:28px;margin-bottom:10px;opacity:.3}
+.moments-empty-text{font:italic 400 15px/1.4 'Georgia','Times New Roman',serif;color:#c4b8ac}
+html[data-chat-bg="dark"] #momentsPanel{background:#1a1917;color:#e8e5df}
+html[data-chat-bg="dark"] .moments-cover{background:linear-gradient(160deg,#2a2520,#322b25,#2d2621)}
+html[data-chat-bg="dark"] .moments-cover-title{color:#d4c4b8}
+html[data-chat-bg="dark"] .moments-cover-sub{color:#8b7e74}
+html[data-chat-bg="dark"] .moments-cover::before{color:rgba(193,123,123,.15)}
+html[data-chat-bg="dark"] .moment-card{background:rgba(255,255,255,.05);box-shadow:none}
+html[data-chat-bg="dark"] .moment-author{color:#d4c4b8}
+html[data-chat-bg="dark"] .moment-content{color:#e8e5df}
+html[data-chat-bg="dark"] .moment-time{color:rgba(232,229,223,.35)}
 html[data-chat-bg="dark"] .moment-actions{border-top-color:rgba(255,255,255,.07)}
-html[data-chat-bg="dark"] .moment-comments{background:rgba(255,255,255,.04)}
-html[data-chat-bg="dark"] .moment-comment-text{color:#e8e6e1}
-html[data-chat-bg="dark"] .moment-comment-author{color:rgba(244,243,239,.55)}
-html[data-chat-bg="dark"] .moment-comment:not(:last-child){border-bottom-color:rgba(255,255,255,.06)}
-html[data-chat-bg="dark"] .moment-comment-input input{background:rgba(255,255,255,.07);color:#F4F3EF}
-html[data-chat-bg="dark"] .moment-comment-input input::placeholder{color:rgba(244,243,239,.32)}
-html[data-chat-bg="dark"] .moments-compose{background-color:#1c1b1a}
-html[data-chat-bg="dark"] .moments-compose textarea{color:#F4F3EF}
-html[data-chat-bg="dark"] .moments-compose textarea::placeholder{color:rgba(244,243,239,.32)}
-html[data-chat-bg="dark"] .moments-compose-add-img{border-color:rgba(255,255,255,.14);color:rgba(244,243,239,.32)}
-html[data-chat-bg="dark"] .moment-delete{color:rgba(244,243,239,.28)}
-html[data-chat-bg="dark"] .moments-filter-btn{color:rgba(244,243,239,.45)}
-html[data-chat-bg="dark"] .moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.18)}
-html[data-chat-bg="dark"] .moments-empty{color:rgba(244,243,239,.38)}
-html[data-chat-bg="dark"] .moment-comment-time{color:rgba(244,243,239,.3)}
+html[data-chat-bg="dark"] .moment-like-text{color:rgba(232,229,223,.3)}
+html[data-chat-bg="dark"] .moment-like-text b{color:rgba(232,229,223,.5)}
+html[data-chat-bg="dark"] .moment-comments{background:rgba(255,255,255,.03)}
+html[data-chat-bg="dark"] .moment-comment-text{color:#e8e5df}
+html[data-chat-bg="dark"] .moment-comment-author.xy{color:#c09080}
+html[data-chat-bg="dark"] .moment-comment-author.xi{color:#8898c0}
+html[data-chat-bg="dark"] .moment-comment:not(:last-of-type){border-bottom-color:rgba(255,255,255,.05)}
+html[data-chat-bg="dark"] .moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df}
+html[data-chat-bg="dark"] .moment-comment-input input::placeholder{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moment-comment-time{color:rgba(232,229,223,.2)}
+html[data-chat-bg="dark"] .moments-bottom{background:rgba(26,25,23,.92);border-top-color:rgba(255,255,255,.07)}
+html[data-chat-bg="dark"] .moments-bottom-cam{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
+html[data-chat-bg="dark"] .moments-bottom-text{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moments-compose{background:#1a1917}
+html[data-chat-bg="dark"] .moments-compose textarea{color:#e8e5df}
+html[data-chat-bg="dark"] .moments-compose textarea::placeholder{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moments-close,html[data-chat-bg="dark"] .moments-compose-close{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
+html[data-chat-bg="dark"] .moments-title{color:#e8e5df}
+html[data-chat-bg="dark"] .moments-compose-title{color:#e8e5df}
+html[data-chat-bg="dark"] .moment-delete{color:rgba(232,229,223,.25)}
+html[data-chat-bg="dark"] .moments-filter-btn{color:rgba(232,229,223,.3)}
+html[data-chat-bg="dark"] .moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.15)}
+html[data-chat-bg="dark"] .moments-empty-text{color:rgba(232,229,223,.25)}
 @media(prefers-color-scheme:dark){
-#momentsPanel{background-color:#1c1b1a;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#F4F3EF}
-.moment-card{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.09)}
-.moment-author{color:#F4F3EF}.moment-content{color:#e8e6e1}.moment-time{color:rgba(244,243,239,.4)}
+#momentsPanel{background:#1a1917;color:#e8e5df}
+.moments-cover{background:linear-gradient(160deg,#2a2520,#322b25,#2d2621)}
+.moments-cover-title{color:#d4c4b8}.moments-cover-sub{color:#8b7e74}.moments-cover::before{color:rgba(193,123,123,.15)}
+.moment-card{background:rgba(255,255,255,.05);box-shadow:none}
+.moment-author{color:#d4c4b8}.moment-content{color:#e8e5df}.moment-time{color:rgba(232,229,223,.35)}
 .moment-actions{border-top-color:rgba(255,255,255,.07)}
-.moment-comments{background:rgba(255,255,255,.04)}.moment-comment-text{color:#e8e6e1}
-.moment-comment-author{color:rgba(244,243,239,.55)}
-.moment-comment:not(:last-child){border-bottom-color:rgba(255,255,255,.06)}
-.moment-comment-input input{background:rgba(255,255,255,.07);color:#F4F3EF}
-.moment-comment-input input::placeholder{color:rgba(244,243,239,.32)}
-.moments-compose{background-color:#1c1b1a}.moments-compose textarea{color:#F4F3EF}
-.moments-compose textarea::placeholder{color:rgba(244,243,239,.32)}
-.moments-compose-add-img{border-color:rgba(255,255,255,.14);color:rgba(244,243,239,.32)}
-.moment-delete{color:rgba(244,243,239,.28)}
-.moments-filter-btn{color:rgba(244,243,239,.45)}.moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.18)}
-.moments-empty{color:rgba(244,243,239,.38)}.moment-comment-time{color:rgba(244,243,239,.3)}
+.moment-like-text{color:rgba(232,229,223,.3)}.moment-like-text b{color:rgba(232,229,223,.5)}
+.moment-comments{background:rgba(255,255,255,.03)}.moment-comment-text{color:#e8e5df}
+.moment-comment-author.xy{color:#c09080}.moment-comment-author.xi{color:#8898c0}
+.moment-comment:not(:last-of-type){border-bottom-color:rgba(255,255,255,.05)}
+.moment-comment-input input{background:rgba(255,255,255,.06);color:#e8e5df}
+.moment-comment-input input::placeholder{color:rgba(232,229,223,.25)}
+.moment-comment-time{color:rgba(232,229,223,.2)}
+.moments-bottom{background:rgba(26,25,23,.92);border-top-color:rgba(255,255,255,.07)}
+.moments-bottom-cam{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
+.moments-bottom-text{color:rgba(232,229,223,.25)}
+.moments-compose{background:#1a1917}.moments-compose textarea{color:#e8e5df}
+.moments-compose textarea::placeholder{color:rgba(232,229,223,.25)}
+.moments-close,.moments-compose-close{background:rgba(255,255,255,.08);color:rgba(232,229,223,.5)}
+.moments-title,.moments-compose-title{color:#e8e5df}
+.moment-delete{color:rgba(232,229,223,.25)}
+.moments-filter-btn{color:rgba(232,229,223,.3)}.moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.15)}
+.moments-empty-text{color:rgba(232,229,223,.25)}
 }
 
 /* ── Pulse：身体状态。felt, not told —— 这一屏不出现任何数字 ── */
@@ -1829,46 +1866,56 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
 </section>
 
 <section id="momentsPanel" aria-hidden="true">
-  <div class="moments-page active" id="momentsHome">
-    <header class="profile-header">
-      <button class="profile-round-button" id="closeMoments" type="button" aria-label="Close">×</button>
-      <div class="profile-title">Moments</div>
-      <div class="moments-filter">
-        <button class="moments-filter-btn" id="momentsFilterXiaoyan" type="button" title="小衍的">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </button>
-        <button class="moments-filter-btn" id="momentsFilterXiaoyi" type="button" title="小懿的">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </button>
-      </div>
-    </header>
+  <div class="moments-top">
+    <button class="moments-close" id="closeMoments" type="button" aria-label="Close">×</button>
+    <div class="moments-title">Moments</div>
+    <div class="moments-filter">
+      <button class="moments-filter-btn" id="momentsFilterXiaoyan" type="button" title="小衍的">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="moments-filter-btn" id="momentsFilterXiaoyi" type="button" title="小懿的">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="moments-scroll" id="momentsScroll">
+    <div class="moments-cover">
+      <div class="moments-cover-title">ours, quietly.</div>
+      <div class="moments-cover-sub">little things we keep</div>
+    </div>
     <div class="moments-empty" id="momentsEmpty" hidden>
       <div class="moments-empty-icon">✿</div>
-      还没有动态
+      <div class="moments-empty-text">还没有动态</div>
     </div>
     <div class="moments-feed" id="momentsFeed"></div>
-    <button class="moments-fab" id="momentsFab" type="button">+</button>
+    <div style="height:72px"></div>
+  </div>
+  <div class="moments-bottom">
+    <button class="moments-bottom-cam" id="momentsComposeBtn" type="button" aria-label="发动态">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </button>
+    <span class="moments-bottom-text" id="momentsComposeText">share a little thing...</span>
   </div>
   <div class="moments-compose" id="momentsCompose">
-    <header class="profile-header">
-      <button class="profile-round-button" id="closeMomentsCompose" type="button" aria-label="Cancel">×</button>
-      <div class="profile-title">发动态</div>
-      <button class="profile-round-button" id="momentsPostBtn" type="button" style="font-size:14px;font-weight:600;color:#C17B7B;width:auto;padding:0 4px">发布</button>
-    </header>
+    <div class="moments-compose-top">
+      <button class="moments-compose-close" id="closeMomentsCompose" type="button" aria-label="Cancel">×</button>
+      <div class="moments-compose-title">New Moment</div>
+      <button class="moments-compose-post" id="momentsPostBtn" type="button">Post</button>
+    </div>
     <div class="moments-compose-body">
       <textarea id="momentsCompTxt" placeholder="写点什么..." rows="5"></textarea>
       <div class="moments-compose-images" id="momentsCompImgs"></div>
-      <div style="padding:12px 0">
-        <label style="display:inline-flex;align-items:center;gap:6px;color:#aaa49c;font-size:13px;cursor:pointer" title="添加图片">
+      <div class="moments-compose-toolbar">
+        <label title="添加图片">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 图片
-          <input class="hidden" type="file" id="momentsCompFileInput" multiple accept="image/*">
+          <input hidden type="file" id="momentsCompFileInput" multiple accept="image/*">
         </label>
       </div>
     </div>
   </div>
   <div class="moment-lightbox" id="momentLightbox">
-    <button style="position:absolute;top:16px;right:16px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:20px;display:grid;place-items:center;z-index:1" id="momentLightboxClose" type="button">×</button>
-    <img style="max-width:100%;max-height:100%;object-fit:contain;border-radius:6px" id="momentLightboxImg" alt="">
+    <button class="moment-lightbox-close" id="momentLightboxClose" type="button">×</button>
+    <img id="momentLightboxImg" alt="">
   </div>
 </section>
 
@@ -8184,6 +8231,7 @@ function _renderMCard(m){
   var isXY=m.author==='xiaoyan';
   var av=isXY?'<div class="moment-avatar xiaoyan">衍</div>':'<div class="moment-avatar xiaoyi">懿</div>';
   var name=isXY?'小衍':'小懿';
+  var nameUp=isXY?'XIAOYAN':'XIAOYI';
   var imgs='';
   if(m.images&&m.images.length){
     var cls=m.images.length===1?'single':m.images.length===2?'double':'multi';
@@ -8194,22 +8242,29 @@ function _renderMCard(m){
   var liked=m.liked?'liked':'';
   var likeN=m.likes||0;
   var cmtN=(m.comments||[]).length;
+  var likeText='';
+  if(likeN>0){
+    likeText='<div class="moment-like-text"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px;margin-right:4px;opacity:.4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>liked by <b>'+name+'</b></div>';
+  }
   var cmtHtml='';
   if(m.comments&&m.comments.length){
     cmtHtml=m.comments.map(function(c){
-      var cn=c.author==='xiaoyan'?'小衍':'小懿';
-      var re=c.reply_to?'<span style="opacity:.5;font-weight:400">回复 '+(c.reply_to==='xiaoyan'?'小衍':'小懿')+'</span> ':'';
-      return '<div class="moment-comment"><span class="moment-comment-author">'+(c.author==='xiaoyan'?'小衍':'小懿')+'</span><span class="moment-comment-text">'+re+_esc(c.text)+'</span><span class="moment-comment-time">'+_fmtMTime(c.created_at)+'</span></div>';
+      var cIsXY=c.author==='xiaoyan';
+      var cn=cIsXY?'小衍':'小懿';
+      var cCls=cIsXY?'xy':'xi';
+      var re=c.reply_to?'<span class="moment-comment-reply">回复 '+(c.reply_to==='xiaoyan'?'小衍':'小懿')+'</span> ':'';
+      return '<div class="moment-comment"><div class="moment-comment-author '+cCls+'">'+cn+'</div><div class="moment-comment-text">'+re+_esc(c.text)+'</div><div class="moment-comment-time">'+_fmtMTime(c.created_at)+'</div></div>';
     }).join('');
   }
   return '<div class="moment-card" data-mid="'+m.id+'">'
-    +'<div class="moment-header">'+av+'<div class="moment-meta"><div class="moment-author">'+name+'</div><div class="moment-time">'+_fmtMTime(m.created_at)+'</div></div>'
-    +(m.author!=='xiaoyan'?'<button class="moment-delete" onclick="_delMoment(\''+m.id+'\')" title="删除">×</button>':'')
+    +'<div class="moment-header">'+av+'<div class="moment-meta"><div class="moment-author">'+nameUp+'</div><div class="moment-time">'+_fmtMTime(m.created_at)+'</div></div>'
+    +(m.author!=='xiaoyan'?'<button class="moment-delete" onclick="_delMoment(\''+m.id+'\')" title="删除">delete</button>':'')
     +'</div>'
     +(m.text?'<div class="moment-content">'+_esc(m.text).replace(/\n/g,'<br>')+'</div>':'')
     +imgs
     +'<div class="moment-actions">'
-    +'<button class="moment-action-btn '+liked+'" onclick="_likeMoment(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="'+(m.liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'+(likeN?' <span>'+likeN+'</span>':'')+'</button>'
+    +likeText
+    +'<button class="moment-action-btn '+liked+'" onclick="_likeMoment(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="'+(m.liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>'
     +'<button class="moment-action-btn" onclick="_toggleMCmt(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(cmtN?' <span>'+cmtN+'</span>':'')+'</button>'
     +'</div>'
     +'<div class="moment-comments" id="mc-'+m.id+'" hidden>'
@@ -8288,10 +8343,10 @@ function _handleMCompImgs(files){
 function _postMoment(){
   var txt=$('momentsCompTxt').value.trim();
   if(!txt&&!_mCompImgs.length)return;
-  var btn=$('momentsPostBtn');btn.disabled=true;btn.textContent='发布中…';
+  var btn=$('momentsPostBtn');btn.disabled=true;btn.textContent='Posting...';
   api('/api/moments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,images:_mCompImgs})}).then(function(r){return r.json()}).then(function(){
     closeMomentsCompose();loadMoments();
-  }).catch(function(e){alert('发布失败：'+e.message)}).finally(function(){btn.disabled=false;btn.textContent='发布'});
+  }).catch(function(e){alert('发布失败：'+e.message)}).finally(function(){btn.disabled=false;btn.textContent='Post'});
 }
 function _setMFilter(author){
   if(_mFilter===author){_mFilter=null;$('momentsFilterXiaoyan').classList.remove('active');$('momentsFilterXiaoyi').classList.remove('active')}
@@ -8300,7 +8355,8 @@ function _setMFilter(author){
 }
 
 $('closeMoments').addEventListener('click',closeMomentsPanel);
-$('momentsFab').addEventListener('click',openMomentsCompose);
+$('momentsComposeBtn').addEventListener('click',openMomentsCompose);
+$('momentsComposeText').addEventListener('click',openMomentsCompose);
 $('closeMomentsCompose').addEventListener('click',closeMomentsCompose);
 $('momentsPostBtn').addEventListener('click',_postMoment);
 $('momentsFilterXiaoyan').addEventListener('click',function(){_setMFilter('xiaoyan')});
