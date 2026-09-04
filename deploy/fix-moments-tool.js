@@ -25,9 +25,28 @@ if (!src.includes('MOMENTS_TOOL_PROMPT')) {
 
 // --------------------------------------------------------------------------
 // 1) 把工具说明拼进 CLI 的 prompt
+//
+// 不去精确匹配整行 —— 线上那行早被别的补丁改过（缓存前缀重排、交接信等等），
+// 长什么样谁也说不准。只认 OB_TOOL_PROMPT 这个变量本身：找到"用"它的那一处
+// （排除定义行），紧跟着把 MOMENTS_TOOL_PROMPT 接上去。不管那行是
+// let prompt = PERSONA + OB_TOOL_PROMPT + …  还是  prompt += OB_TOOL_PROMPT，
+// 接完都是合法的字符串拼接。
 // --------------------------------------------------------------------------
-const OLD_PROMPT = `let prompt = PERSONA + '\\n' + OB_TOOL_PROMPT + '\\n\\n';`;
-const NEW_PROMPT = `let prompt = PERSONA + '\\n' + OB_TOOL_PROMPT + '\\n' + MOMENTS_TOOL_PROMPT + '\\n\\n'; // MOMENTS_PROMPT_WIRED`;
+function wireMomentsPrompt(code) {
+  const lines = code.split('\n');
+  const hits = [];
+  lines.forEach((ln, i) => {
+    if (!/\bOB_TOOL_PROMPT\b/.test(ln)) return;
+    if (/(const|let|var)\s+OB_TOOL_PROMPT\s*=/.test(ln)) return;  // 定义行，跳过
+    if (/\bMOMENTS_TOOL_PROMPT\b/.test(ln)) return;               // 已经接过了
+    hits.push(i);
+  });
+  if (!hits.length) return { ok: false, lines: lines.filter(l => /OB_TOOL_PROMPT/.test(l)).slice(0, 5) };
+  const i = hits[0];
+  lines[i] = lines[i].replace(/\bOB_TOOL_PROMPT\b/,
+    "OB_TOOL_PROMPT + '\\n' + MOMENTS_TOOL_PROMPT") + ' // MOMENTS_PROMPT_WIRED';
+  return { ok: true, before: code.split('\n')[i], after: lines[i], code: lines.join('\n') };
+}
 
 // --------------------------------------------------------------------------
 // 2) 把说明本身写清楚：格式必须严格，否则解析不到
@@ -73,21 +92,38 @@ const OLD_TABLE = `          { open: '<latent', kind: 'hidden', close: '</latent
 const NEW_TABLE = `          { open: '<latent', kind: 'hidden', close: '</latent>' },
           { open: '<moments', kind: 'hidden', close: '</moments>' },`;
 
+// 只有「接上 prompt」是必需的 —— 少了它我就不知道有这个工具，压根发不出去。
+// 另外三条都是锦上添花：说明写得细一点、正则宽松一点、流式早一点吞掉，
+// 缺哪条都不影响能不能发，所以一律 optional，别为它们让整个补丁失败。
 const edits = [
-  { name: '把工具说明拼进 CLI prompt', from: OLD_PROMPT,   to: NEW_PROMPT },
-  { name: '把格式要求写清楚',           from: OLD_TOOLTEXT, to: NEW_TOOLTEXT },
-  { name: '放宽 <moments> 标签解析',    from: OLD_RE,       to: NEW_RE },
-  { name: '流式时吞掉 <moments>',       from: OLD_TABLE,    to: NEW_TABLE, optional: true },
+  { name: '把格式要求写清楚',        from: OLD_TOOLTEXT, to: NEW_TOOLTEXT, optional: true },
+  { name: '放宽 <moments> 标签解析', from: OLD_RE,       to: NEW_RE,       optional: true },
+  { name: '流式时吞掉 <moments>',    from: OLD_TABLE,    to: NEW_TABLE,    optional: true },
 ];
 
 let out = src;
 const missed = [], skipped = [];
+
+// 先接 prompt，这条必须成
+const wired = wireMomentsPrompt(out);
+if (!wired.ok) {
+  console.error('\n  × 把工具说明拼进 CLI prompt — 找不到用 OB_TOOL_PROMPT 的地方');
+  console.error('    原文件一个字都没动。把下面这几行发回来：');
+  (wired.lines || []).forEach(l => console.error('      ' + l.trim().slice(0, 160)));
+  if (!(wired.lines || []).length) console.error('      （server.js 里根本没有 OB_TOOL_PROMPT）');
+  process.exit(1);
+}
+out = wired.code;
+
 for (const e of edits) {
   if (!out.includes(e.from)) { (e.optional ? skipped : missed).push(e.name); continue; }
   out = out.replace(e.from, e.to);
 }
 
 console.log('\n补丁结果：');
+console.log('  √ 把工具说明拼进 CLI prompt');
+console.log('    改前: ' + wired.before.trim().slice(0, 120));
+console.log('    改后: ' + wired.after.trim().slice(0, 150));
 if (missed.length) {
   for (const e of edits) console.log(missed.includes(e.name) ? '  × ' + e.name + ' — 没匹配上' : '  √ ' + e.name);
   console.error('\n有锚点没命中，原文件一个字都没动。');
