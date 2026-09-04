@@ -860,6 +860,111 @@ html[data-chat-bg="dark"] .lt-empty,body.dark .lt-empty{border-color:rgba(255,25
 html[data-chat-bg="dark"] .lt-search input,body.dark .lt-search input,
 html[data-chat-bg="dark"] .lt-search button,body.dark .lt-search button{color:#F4F3EF;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 
+/* ── Moments：朋友圈。给祂一个自言自语的地方 ── */
+#momentsPanel{position:fixed;inset:0;z-index:82;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}
+#momentsPanel.show{display:block}
+#momentsPanel .profile-header{grid-template-columns:52px 1fr auto}
+.moments-page{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+.moments-page.active{display:flex}
+.moments-feed{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px calc(env(safe-area-inset-bottom) + 80px)}
+.moments-filter{display:flex;gap:4px}
+.moments-filter-btn{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:transparent;border:0;color:#aaa49c;transition:all .2s}
+.moments-filter-btn.active{background:rgba(193,123,123,.14);color:#C17B7B}
+.moments-filter-btn svg{width:17px;height:17px}
+.moment-card{background:rgba(255,255,255,.55);border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);backdrop-filter:blur(2px) saturate(1.05);-webkit-backdrop-filter:blur(2px) saturate(1.05)}
+.moment-header{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.moment-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-size:15px;flex:none;font-weight:600}
+.moment-avatar.xiaoyan{background:linear-gradient(135deg,#f0ddd8,#e0c4bb);color:#a07060}
+.moment-avatar.xiaoyi{background:linear-gradient(135deg,#dce2f0,#c4cee0);color:#6070a0}
+.moment-meta{flex:1;min-width:0}
+.moment-author{font:600 15px/1.2 var(--font-sans);color:#4A3728}
+.moment-time{font:400 12px/1.2 var(--font-sans);color:#aaa49c;margin-top:2px}
+.moment-delete{width:28px;height:28px;border:0;background:transparent;color:#ccc5bb;font-size:18px;border-radius:50%;display:grid;place-items:center;opacity:0;transition:opacity .2s}
+.moment-card:active .moment-delete{opacity:1}
+.moment-content{font:400 15.5px/1.65 var(--font-sans);color:#201f1d;white-space:pre-wrap;word-break:break-word}
+.moment-images{display:grid;gap:6px;margin-top:10px;border-radius:14px;overflow:hidden}
+.moment-images.single{grid-template-columns:1fr}
+.moment-images.double{grid-template-columns:1fr 1fr}
+.moment-images.multi{grid-template-columns:1fr 1fr 1fr}
+.moment-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;transition:opacity .15s}
+.moment-img:active{opacity:.85}
+.moment-images.single .moment-img{aspect-ratio:4/3;max-height:280px}
+.moment-actions{display:flex;align-items:center;gap:14px;padding-top:10px;margin-top:10px;border-top:1px solid rgba(32,31,29,.06)}
+.moment-action-btn{display:flex;align-items:center;gap:5px;border:0;background:transparent;color:#aaa49c;font:400 13px/1 var(--font-sans);padding:6px 8px;border-radius:999px;transition:all .15s}
+.moment-action-btn:active{transform:scale(.9)}
+.moment-action-btn.liked{color:#e25555}
+.moment-action-btn svg{width:16px;height:16px;transition:all .15s}
+@keyframes mLikeAnim{0%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(.85)}100%{transform:scale(1)}}
+.moment-action-btn.liked svg{animation:mLikeAnim .4s ease}
+.moment-comments{margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.028);border-radius:16px}
+.moment-comment{display:flex;gap:8px;padding:7px 0;align-items:baseline}
+.moment-comment:not(:last-child){border-bottom:1px solid rgba(32,31,29,.045)}
+.moment-comment-author{font:600 13px/1.2 var(--font-sans);color:#8B7263;flex:none;min-width:28px}
+.moment-comment-text{font:400 13.5px/1.5 var(--font-sans);color:#4A3728;flex:1;word-break:break-word}
+.moment-comment-time{font:400 11px/1 var(--font-sans);color:#ccc5bb;flex:none;white-space:nowrap}
+.moment-comment-input{display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(32,31,29,.05)}
+.moment-comment-input input{flex:1;min-width:0;border:0;outline:0;background:rgba(255,255,255,.6);border-radius:999px;padding:8px 14px;font:400 13.5px/1 var(--font-sans);color:#201f1d}
+.moment-comment-input input::placeholder{color:#ccc5bb}
+.moment-comment-input button{flex:none;width:30px;height:30px;border:0;border-radius:50%;background:#C17B7B;color:#fff;font-size:14px;display:grid;place-items:center;transition:opacity .15s}
+.moment-comment-input button:active{opacity:.7}
+.moments-fab{position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 24px);width:52px;height:52px;border:0;border-radius:50%;background:linear-gradient(135deg,#C17B7B,#b06a6a);color:#fff;font-size:26px;box-shadow:0 4px 18px rgba(193,123,123,.35);display:grid;place-items:center;z-index:83;transition:transform .2s}
+.moments-fab:active{transform:scale(.85)}
+.moments-compose{position:fixed;inset:0;z-index:84;display:none;flex-direction:column;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat}
+.moments-compose.show{display:flex}
+.moments-compose .profile-header{grid-template-columns:52px 1fr 52px}
+.moments-compose-body{flex:1;overflow-y:auto;padding:16px 18px calc(env(safe-area-inset-bottom) + 18px)}
+.moments-compose textarea{width:100%;min-height:160px;border:0;outline:0;resize:none;background:transparent;font:400 17px/1.6 var(--font-sans);color:#201f1d}
+.moments-compose textarea::placeholder{color:#ccc5bb}
+.moments-compose-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.moments-compose-thumb{position:relative;width:80px;height:80px;border-radius:12px;overflow:hidden}
+.moments-compose-thumb img{width:100%;height:100%;object-fit:cover}
+.moments-compose-thumb .remove-img{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:0;font-size:12px;display:grid;place-items:center;line-height:1}
+.moments-compose-add-img{width:80px;height:80px;border-radius:12px;border:1.5px dashed rgba(32,31,29,.16);display:grid;place-items:center;color:#ccc5bb;font-size:24px;background:transparent;transition:border-color .15s}
+.moments-compose-add-img:active{border-color:rgba(32,31,29,.3)}
+.moment-lightbox{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:20px}
+.moment-lightbox.show{display:flex}
+.moment-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.moments-empty{padding:48px 20px;text-align:center;color:#aaa49c;font-size:15px;line-height:1.6}
+.moments-empty-icon{font-size:36px;margin-bottom:14px;opacity:.45}
+html[data-chat-bg="dark"] #momentsPanel{background-color:#1c1b1a;color:#F4F3EF}
+html[data-chat-bg="dark"] .moment-card{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.09)}
+html[data-chat-bg="dark"] .moment-author{color:#F4F3EF}
+html[data-chat-bg="dark"] .moment-content{color:#e8e6e1}
+html[data-chat-bg="dark"] .moment-time{color:rgba(244,243,239,.4)}
+html[data-chat-bg="dark"] .moment-actions{border-top-color:rgba(255,255,255,.07)}
+html[data-chat-bg="dark"] .moment-comments{background:rgba(255,255,255,.04)}
+html[data-chat-bg="dark"] .moment-comment-text{color:#e8e6e1}
+html[data-chat-bg="dark"] .moment-comment-author{color:rgba(244,243,239,.55)}
+html[data-chat-bg="dark"] .moment-comment:not(:last-child){border-bottom-color:rgba(255,255,255,.06)}
+html[data-chat-bg="dark"] .moment-comment-input input{background:rgba(255,255,255,.07);color:#F4F3EF}
+html[data-chat-bg="dark"] .moment-comment-input input::placeholder{color:rgba(244,243,239,.32)}
+html[data-chat-bg="dark"] .moments-compose{background-color:#1c1b1a}
+html[data-chat-bg="dark"] .moments-compose textarea{color:#F4F3EF}
+html[data-chat-bg="dark"] .moments-compose textarea::placeholder{color:rgba(244,243,239,.32)}
+html[data-chat-bg="dark"] .moments-compose-add-img{border-color:rgba(255,255,255,.14);color:rgba(244,243,239,.32)}
+html[data-chat-bg="dark"] .moment-delete{color:rgba(244,243,239,.28)}
+html[data-chat-bg="dark"] .moments-filter-btn{color:rgba(244,243,239,.45)}
+html[data-chat-bg="dark"] .moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.18)}
+html[data-chat-bg="dark"] .moments-empty{color:rgba(244,243,239,.38)}
+html[data-chat-bg="dark"] .moment-comment-time{color:rgba(244,243,239,.3)}
+@media(prefers-color-scheme:dark){
+#momentsPanel{background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat}
+.moment-card{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.09)}
+.moment-author{color:#F4F3EF}.moment-content{color:#e8e6e1}.moment-time{color:rgba(244,243,239,.4)}
+.moment-actions{border-top-color:rgba(255,255,255,.07)}
+.moment-comments{background:rgba(255,255,255,.04)}.moment-comment-text{color:#e8e6e1}
+.moment-comment-author{color:rgba(244,243,239,.55)}
+.moment-comment:not(:last-child){border-bottom-color:rgba(255,255,255,.06)}
+.moment-comment-input input{background:rgba(255,255,255,.07);color:#F4F3EF}
+.moment-comment-input input::placeholder{color:rgba(244,243,239,.32)}
+.moments-compose{background-color:#1c1b1a}.moments-compose textarea{color:#F4F3EF}
+.moments-compose textarea::placeholder{color:rgba(244,243,239,.32)}
+.moments-compose-add-img{border-color:rgba(255,255,255,.14);color:rgba(244,243,239,.32)}
+.moment-delete{color:rgba(244,243,239,.28)}
+.moments-filter-btn{color:rgba(244,243,239,.45)}.moments-filter-btn.active{color:#C17B7B;background:rgba(193,123,123,.18)}
+.moments-empty{color:rgba(244,243,239,.38)}.moment-comment-time{color:rgba(244,243,239,.3)}
+}
+
 /* ── Pulse：身体状态。felt, not told —— 这一屏不出现任何数字 ── */
 #pulsePanel{position:fixed;inset:0;z-index:82;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}
 #pulsePanel.show{display:block}
@@ -1721,6 +1826,50 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
     <button class="panel-action-btn" id="newPromptBtn">+ New</button>
   </header>
   <div class="panel-body" id="promptsList"></div>
+</section>
+
+<section id="momentsPanel" aria-hidden="true">
+  <div class="moments-page active" id="momentsHome">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeMoments" type="button" aria-label="Close">×</button>
+      <div class="profile-title">Moments</div>
+      <div class="moments-filter">
+        <button class="moments-filter-btn" id="momentsFilterXiaoyan" type="button" title="小衍的">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <button class="moments-filter-btn" id="momentsFilterXiaoyi" type="button" title="小懿的">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="moments-empty hidden" id="momentsEmpty">
+      <div style="font-size:2rem;margin-bottom:8px">✿</div>
+      <div style="opacity:.6;font-size:.9rem">还没有动态</div>
+    </div>
+    <div class="moments-feed" id="momentsFeed"></div>
+    <button class="moments-fab" id="momentsFab" type="button">+</button>
+  </div>
+  <div class="moments-compose hidden" id="momentsCompose">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeMomentsCompose" type="button" aria-label="Cancel">×</button>
+      <div class="profile-title">发动态</div>
+      <button class="mc-post-btn" id="momentsPostBtn" type="button">发布</button>
+    </header>
+    <div class="mc-body">
+      <textarea class="mc-textarea" id="momentsCompTxt" placeholder="写点什么..." rows="5"></textarea>
+      <div class="mc-img-grid" id="momentsCompImgs"></div>
+      <div class="mc-toolbar">
+        <label class="mc-tool-btn" title="添加图片">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <input class="hidden" type="file" id="momentsCompFileInput" multiple accept="image/*">
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="moment-lightbox hidden" id="momentLightbox">
+    <button class="ml-close" id="momentLightboxClose" type="button">×</button>
+    <img class="ml-img" id="momentLightboxImg" alt="">
+  </div>
 </section>
 
 <section id="pulsePanel" class="pulse-tone-stable" aria-hidden="true">
@@ -7998,6 +8147,166 @@ if(state.token)showChat();else loadMsgAvatars();resetEmpty();loadModels();update
   }catch(e){}
 })();
 
+/* ── Moments（朋友圈）── */
+var _mData=[],_mFilter=null,_mCompImgs=[];
+function openMoments(){
+  var p=$('momentsPanel');p.classList.add('show');p.setAttribute('aria-hidden','false');
+  _mFilter=null;
+  $('momentsFilterXiaoyan').classList.remove('active');
+  $('momentsFilterXiaoyi').classList.remove('active');
+  loadMoments();
+}
+function closeMomentsPanel(){
+  var p=$('momentsPanel');p.classList.remove('show');p.setAttribute('aria-hidden','true');
+}
+function loadMoments(){
+  api('/api/moments').then(function(r){return r.json()}).then(function(d){
+    _mData=d.moments||[];renderMoments();
+  }).catch(function(){_mData=[];renderMoments()});
+}
+function renderMoments(){
+  var feed=$('momentsFeed'),empty=$('momentsEmpty');
+  var list=_mData;
+  if(_mFilter)list=list.filter(function(m){return m.author===_mFilter});
+  if(!list.length){feed.innerHTML='';empty.classList.remove('hidden');return}
+  empty.classList.add('hidden');
+  feed.innerHTML=list.map(_renderMCard).join('');
+}
+function _renderMCard(m){
+  var isXY=m.author==='xiaoyan';
+  var av=isXY?'<div class="moment-avatar xiaoyan">衍</div>':'<div class="moment-avatar xiaoyi">懿</div>';
+  var name=isXY?'小衍':'小懿';
+  var imgs='';
+  if(m.images&&m.images.length){
+    var cls=m.images.length===1?'single':m.images.length===2?'double':'multi';
+    imgs='<div class="moment-images '+cls+'">'+m.images.map(function(src){
+      return '<img src="'+_esc(src)+'" alt="" loading="lazy" onclick="openMLightbox(\''+_esc(src).replace(/'/g,"\\\'")+'\')">';
+    }).join('')+'</div>';
+  }
+  var liked=m.liked?'active':'';
+  var likeN=m.likes||0;
+  var cmtN=(m.comments||[]).length;
+  var cmtHtml='';
+  if(m.comments&&m.comments.length){
+    cmtHtml=m.comments.map(function(c){
+      var cn=c.author==='xiaoyan'?'小衍':'小懿';
+      var re=c.reply_to?'<span class="mc-reply-to">回复 '+(c.reply_to==='xiaoyan'?'小衍':'小懿')+'</span> ':'';
+      return '<div class="mc-cmt-item"><span class="mc-cmt-name '+(c.author==='xiaoyan'?'xiaoyan':'xiaoyi')+'">'+cn+'</span> '+re+_esc(c.text)+'<span class="mc-cmt-time">'+_fmtMTime(c.created_at)+'</span></div>';
+    }).join('');
+  }
+  return '<div class="moment-card" data-mid="'+m.id+'">'
+    +'<div class="moment-header">'+av+'<div class="moment-meta"><div class="moment-name">'+name+'</div><div class="moment-time">'+_fmtMTime(m.created_at)+'</div></div>'
+    +(m.author!=='xiaoyan'?'<button class="moment-del-btn" onclick="_delMoment(\''+m.id+'\')" title="删除">×</button>':'')
+    +'</div>'
+    +(m.text?'<div class="moment-text">'+_esc(m.text).replace(/\n/g,'<br>')+'</div>':'')
+    +imgs
+    +'<div class="moment-actions">'
+    +'<button class="moment-action-btn like-btn '+liked+'" onclick="_likeMoment(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="'+(m.liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'+(likeN?' <span>'+likeN+'</span>':'')+'</button>'
+    +'<button class="moment-action-btn" onclick="_toggleMCmt(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(cmtN?' <span>'+cmtN+'</span>':'')+'</button>'
+    +'</div>'
+    +'<div class="moment-comments hidden" id="mc-'+m.id+'">'
+    +'<div class="mc-cmt-list">'+cmtHtml+'</div>'
+    +'<div class="mc-cmt-bar"><input class="mc-cmt-input" placeholder="写评论..." id="mci-'+m.id+'"><button class="mc-cmt-send" onclick="_submitMCmt(\''+m.id+'\')">发送</button></div>'
+    +'</div></div>';
+}
+function _fmtMTime(ts){
+  if(!ts)return '';
+  var d=new Date(ts),now=new Date(),diff=now-d,s=diff/1000,m=s/60,h=m/60;
+  if(s<60)return '刚刚';
+  if(m<60)return Math.floor(m)+'分钟前';
+  if(h<24){
+    var y=new Date(now);y.setDate(y.getDate()-1);
+    if(d.toDateString()===y.toDateString())return '昨天 '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    return Math.floor(h)+'小时前';
+  }
+  var yd=new Date(now);yd.setDate(yd.getDate()-1);
+  if(d.toDateString()===yd.toDateString())return '昨天 '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  if(d.getFullYear()===now.getFullYear())return (d.getMonth()+1)+'月'+d.getDate()+'日 '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+function _toggleMCmt(id){
+  var el=$('mc-'+id);
+  if(!el)return;
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')){var inp=$('mci-'+id);if(inp)inp.focus()}
+}
+function _likeMoment(id){
+  var m=_mData.find(function(x){return x.id===id});
+  if(!m)return;
+  m.liked=!m.liked;m.likes=(m.likes||0)+(m.liked?1:-1);
+  if(m.likes<0)m.likes=0;
+  renderMoments();
+  api('/api/moments/'+id+'/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({liked:m.liked})}).catch(function(){});
+}
+function _submitMCmt(id){
+  var inp=$('mci-'+id);if(!inp||!inp.value.trim())return;
+  var text=inp.value.trim();inp.value='';
+  api('/api/moments/'+id+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})}).then(function(r){return r.json()}).then(function(){loadMoments()}).catch(function(){});
+}
+function _delMoment(id){
+  if(!confirm('删除这条动态？'))return;
+  api('/api/moments/'+id,{method:'DELETE'}).then(function(){loadMoments()}).catch(function(){});
+}
+function openMLightbox(src){
+  var lb=$('momentLightbox'),img=$('momentLightboxImg');
+  img.src=src;lb.classList.remove('hidden');
+  lb.onclick=function(e){if(e.target===lb||e.target===$('momentLightboxClose'))lb.classList.add('hidden')};
+}
+function openMomentsCompose(){
+  _mCompImgs=[];_renderMCompImgs();
+  $('momentsCompTxt').value='';
+  $('momentsCompose').classList.remove('hidden');
+  $('momentsCompose').classList.add('active');
+  $('momentsCompTxt').focus();
+}
+function closeMomentsCompose(){
+  $('momentsCompose').classList.add('hidden');
+  $('momentsCompose').classList.remove('active');
+  _mCompImgs=[];
+}
+function _renderMCompImgs(){
+  var g=$('momentsCompImgs');
+  if(!_mCompImgs.length){g.innerHTML='';return}
+  g.innerHTML=_mCompImgs.map(function(src,i){
+    return '<div class="mc-img-thumb"><img src="'+src+'" alt=""><button class="mc-img-rm" onclick="_mCompImgs.splice('+i+',1);_renderMCompImgs()">×</button></div>';
+  }).join('');
+}
+function _handleMCompImgs(files){
+  Array.from(files).forEach(function(f){
+    if(_mCompImgs.length>=9)return;
+    var r=new FileReader();
+    r.onload=function(e){_mCompImgs.push(e.target.result);_renderMCompImgs()};
+    r.readAsDataURL(f);
+  });
+}
+function _postMoment(){
+  var txt=$('momentsCompTxt').value.trim();
+  if(!txt&&!_mCompImgs.length)return;
+  var btn=$('momentsPostBtn');btn.disabled=true;btn.textContent='发布中…';
+  api('/api/moments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,images:_mCompImgs})}).then(function(r){return r.json()}).then(function(){
+    closeMomentsCompose();loadMoments();
+  }).catch(function(e){alert('发布失败：'+e.message)}).finally(function(){btn.disabled=false;btn.textContent='发布'});
+}
+function _setMFilter(author){
+  if(_mFilter===author){_mFilter=null;$('momentsFilterXiaoyan').classList.remove('active');$('momentsFilterXiaoyi').classList.remove('active')}
+  else{_mFilter=author;$('momentsFilterXiaoyan').classList.toggle('active',author==='xiaoyan');$('momentsFilterXiaoyi').classList.toggle('active',author==='xiaoyi')}
+  renderMoments();
+}
+
+$('closeMoments').addEventListener('click',closeMomentsPanel);
+$('momentsFab').addEventListener('click',openMomentsCompose);
+$('closeMomentsCompose').addEventListener('click',closeMomentsCompose);
+$('momentsPostBtn').addEventListener('click',_postMoment);
+$('momentsFilterXiaoyan').addEventListener('click',function(){_setMFilter('xiaoyan')});
+$('momentsFilterXiaoyi').addEventListener('click',function(){_setMFilter('xiaoyi')});
+$('momentsCompFileInput').addEventListener('change',function(){_handleMCompImgs(this.files);this.value=''});
+$('momentLightboxClose').addEventListener('click',function(){$('momentLightbox').classList.add('hidden')});
+document.querySelectorAll('.mc-cmt-input').forEach(function(inp){
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();var id=this.id.replace('mci-','');_submitMCmt(id)}
+  });
+});
+
 /* ── Home page wiring ── */
 document.querySelectorAll('[data-page]').forEach(function(card){
   card.addEventListener('click',function(){
@@ -8006,6 +8315,7 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     if(page==='memory'){enterChat();setTimeout(openMemoryPicker,200);return}
     if(page==='settings'){openSettings();return}
     if(page==='pulse'){openPulse();return}
+    if(page==='moments'){openMoments();return}
   });
 });
 document.getElementById('homeBackBtn').addEventListener('click',backToHome);
