@@ -2509,7 +2509,7 @@ $('fileInput').onchange=e=>addSelectedFiles([...e.target.files]);
 (()=>{const cb=document.querySelector('.composer-box');if(!cb)return;cb.addEventListener('dragover',e=>{if(!e.dataTransfer?.types?.includes('Files'))return;e.preventDefault();cb.classList.add('drag-over')});cb.addEventListener('dragleave',e=>{if(e.target===cb)cb.classList.remove('drag-over')});cb.addEventListener('drop',e=>{e.preventDefault();cb.classList.remove('drag-over');const files=[...(e.dataTransfer?.files||[])];if(files.length)addSelectedFiles(files)})})();
 $('input').addEventListener('paste',e=>{const items=e.clipboardData?.items;const files=e.clipboardData?.files;const collected=[];if(items){for(const it of items){if(it.kind==='file'){const f=it.getAsFile();if(!f)continue;if(it.type.startsWith('image/')){const ext=(it.type.split('/')[1]||'png').replace(/^jpeg$/,'jpg');collected.push(new File([f],`paste-${Date.now()}.${ext}`,{type:it.type}))}else{collected.push(f)}}}}if(!collected.length&&files?.length){for(const f of files)collected.push(f)}if(collected.length){e.preventDefault();addSelectedFiles(collected)}});
 
-function showChat(){document.body.classList.add('chat-ready');$('gate').classList.add('hidden');showHome();loadMsgAvatars()}
+function showChat(){document.body.classList.add('chat-ready');$('gate').classList.add('hidden');showHome();loadMsgAvatars();try{loadModels()}catch(e){}}
 function showGate(reason){document.body.classList.remove('chat-ready');closeDrawer();$('chat').classList.add('hidden');$('home').classList.add('hidden');$('homeBackBtn').classList.add('hidden');$('gate').classList.remove('hidden');var _n=$('gateNote'),_s=$('gateSub');if(_n)_n.hidden=(reason!=='expired');if(_s)_s.hidden=(reason==='expired');}
 function showHome(){
   $('chat').classList.add('hidden');$('homeBackBtn').classList.add('hidden');$('home').classList.remove('hidden');
@@ -2524,9 +2524,40 @@ function showHome(){
 }
 function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden');scrollBottomSticky()}
 function backToHome(){$('chat').classList.add('hidden');closeDrawer();showHome()}
+// 页面里有二十多处直接用 fetch 调 /api 的地方（pulse、latent、models、splash、手表…），
+// 都没带凭据 —— 后端不查的时候没事，门一关就全被 401 拦在外面。
+// 逐个去改容易漏，也管不住以后新写的，所以在源头包一层：同源 /api 请求自动补上钥匙。
+(function(){
+  if(window.__apiFetchWrapped)return; window.__apiFetchWrapped=1;
+  var _f=window.fetch.bind(window);
+  window.fetch=function(input,init){
+    var url='',isApi=false;
+    try{
+      url=(typeof input==='string')?input:((input&&input.url)||'');
+      isApi=/^\/api\//.test(url)||url.indexOf(location.origin+'/api/')===0;
+      if(isApi&&typeof state!=='undefined'&&state&&state.token){
+        init=init||{};
+        var h=new Headers(init.headers||((typeof input!=='string'&&input&&input.headers)||{}));
+        if(!h.has('Authorization'))h.set('Authorization','Bearer '+state.token);  // 已经自己带了就别覆盖
+        init.headers=h;
+      }
+    }catch(e){}
+    var pr=_f(input,init);
+    if(!isApi)return pr;
+    // 裸 fetch 不走 api() 那套，401 也得统一引到重新登录，别让页面卡成"点不动"
+    return pr.then(function(res){
+      try{
+        if(res&&res.status===401&&!/\/api\/auth$/.test(url)){
+          state.token=null;localStorage.removeItem('chat_token');showGate('expired');
+        }
+      }catch(e){}
+      return res;
+    });
+  };
+})();
 async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){state.token=null;localStorage.removeItem('chat_token');showGate('expired');throw Error('unauthorized')}return res}
 function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringify(state.settings))}
-function currentModel(){return state.models.find(x=>x.id===state.model)||state.models[0]}
+function currentModel(){const ms=Array.isArray(state.models)?state.models:[];return ms.find(x=>x.id===state.model)||ms[0]||{id:'claude-sonnet-5',label:'Sonnet 5',thinking:'adaptive'}}
 function modelSetting(model=currentModel()){const s=state.settings[model?.id];if(model?.thinking==='adaptive'||model?.thinking==='extended')return{effort:s?.effort||'medium',extended:s?.extended!==false};return{}}
 function updateSessionHeader(){if(!state.menuSession){$('sessionMenuTitle').textContent=state.currentTitle;$('starSession').firstChild.textContent=state.starred?'★ ':'☆ '}}
 // 输入框实际多高，底部留白和「跳到最新」的位置就跟着走。
@@ -2622,7 +2653,7 @@ async function greeting(){try{const r=await fetch('/api/splash');if(r.ok)return(
 async function resetEmpty(){state.convId=null;state.legacySessionId=null;state.currentTitle='新对话';state.starred=false;localStorage.removeItem('chat_conversation');localStorage.removeItem('chat_session');streamInner.innerHTML=`<div class="empty" id="empty"><div class="empty-line"></div></div>`;$('empty').querySelector('.empty-line').textContent=await greeting()||'say something to 小衍...';input.placeholder='say something to 小衍...';updateSessionHeader()}
 async function dismissEmpty(){input.placeholder='say something to 小衍...';const el=$('empty');if(!el)return;el.classList.add('leaving');await new Promise(r=>setTimeout(r,300));el.remove()}
 
-async function loadModels(){try{const r=await fetch('/api/models');state.models=(await r.json()).models}catch{state.models=[{id:'claude-sonnet-5',label:'Sonnet 5',desc:'Fast and intelligent',thinking:'adaptive',primary:true}]}
+async function loadModels(){try{const r=await fetch('/api/models');if(!r.ok)throw Error('http '+r.status);const d=await r.json();if(!d||!Array.isArray(d.models)||!d.models.length)throw Error('empty');state.models=d.models}catch{state.models=[{id:'claude-sonnet-5',label:'Sonnet 5',desc:'Fast and intelligent',thinking:'adaptive',primary:true}]}
   if(!state.models.some(x=>x.id===state.model))state.model=state.models[0].id;renderModelSheet();updateModelHeader()}
 function modelSettingText(model=currentModel(),s=modelSetting(model)){if(!model||model.thinking==='none')return'';return(s.effort||'medium').replace(/^./,c=>c.toUpperCase())}
 function updateModelHeader(){const m=currentModel(),setting=modelSettingText(m);$('topbarModelText').textContent=m?.label||state.model;$('topbarModelSetting').textContent=setting;if($('modelCapsuleText'))$('modelCapsuleText').textContent=`${m?.label||state.model}${setting?' '+setting:''}`}
