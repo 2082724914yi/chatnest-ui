@@ -75,7 +75,9 @@ echo "$PATCHES" | while IFS='|' read -r file mark name; do
     continue
   fi
   TMP=$(mktemp /tmp/patch.XXXXXX.js)
-  if ! curl -fsSL -m 60 "$RAW/$file" -o "$TMP" || [ ! -s "$TMP" ]; then
+  # 带上时间戳 + no-cache：GitHub raw 的边缘节点会缓存几分钟，
+  # 刚推的补丁常常拉到旧版，白跑一趟还看不出来（这坑踩过）。
+  if ! curl -fsSL -m 60 -H 'Cache-Control: no-cache' "$RAW/$file?cb=$(date +%s)" -o "$TMP" || [ ! -s "$TMP" ]; then
     no "$name — 下载失败"; rm -f "$TMP"; continue
   fi
   OUT=$(node "$TMP" "$SRV" 2>&1)

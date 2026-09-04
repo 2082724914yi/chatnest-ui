@@ -17,7 +17,7 @@ say(){ printf '\n\033[1m%s\033[0m\n' "$*"; }
 
 say "1/5 下载最新前端"
 NEW=$(mktemp /tmp/index.XXXXXX.html)
-curl -fsSL -m 120 "$RAW_URL" -o "$NEW" || { no "下载失败（网络？）"; exit 1; }
+curl -fsSL -m 120 -H 'Cache-Control: no-cache' "$RAW_URL?cb=$(date +%s)" -o "$NEW" || { no "下载失败（网络？）"; exit 1; }
 NEWSIZE=$(wc -c < "$NEW")
 [ "$NEWSIZE" -gt 100000 ] || { no "下下来只有 $NEWSIZE 字节，不对劲，不敢用"; rm -f "$NEW"; exit 1; }
 grep -qi '</html>' "$NEW" || { no "文件不完整（没有 </html>），不敢用"; rm -f "$NEW"; exit 1; }
