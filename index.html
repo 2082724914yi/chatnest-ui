@@ -967,6 +967,12 @@ html[data-chat-bg="dark"] .wm-box{background:rgba(255,255,255,.06)}
 .wm-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
 .wm-refresh{margin-left:auto;flex:none;width:28px;height:28px;border:0;border-radius:50%;background:rgba(74,55,40,.07);color:var(--text-secondary);font-size:15px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
 html[data-chat-bg="dark"] .wm-refresh{background:rgba(255,255,255,.09)}
+.wm-sc{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid rgba(120,120,128,.14)}
+.wm-sc label{flex:none;font-size:12.5px;color:var(--text-secondary)}
+.wm-sc input{flex:1;min-width:0;border:1px solid rgba(120,120,128,.22);border-radius:8px;background:transparent;color:var(--text-primary);font:inherit;font-size:13px;padding:6px 9px;outline:none}
+.wm-sc input:focus{border-color:var(--accent)}
+.wm-sc-tip{width:100%;margin-top:6px;font-size:11.5px;color:var(--text-faint);line-height:1.5}
+html[data-chat-bg="dark"] .wm-sc input{border-color:rgba(255,255,255,.18)}
 .wm-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);flex:none}
 .wm-dot.on{background:#7FA88C;box-shadow:0 0 0 3px rgba(127,168,140,.18)}
 .wm-dot.old{background:#C9A227}
@@ -2061,6 +2067,11 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
           <div class="pulse-card-head"><span class="pulse-card-title">身体</span><span class="pulse-card-en">from your wrist</span></div>
           <div class="wm-head"><i class="wm-dot" id="watchDot"></i><span class="wm-when" id="watchWhen">读取中…</span><button class="wm-refresh" id="watchRefresh" type="button" aria-label="刷新">↻</button></div>
           <div class="wm-grid" id="watchMetrics"></div>
+          <div class="wm-sc">
+            <label for="watchScName">捷径名称</label>
+            <input id="watchScName" type="text" placeholder="捷径在你手机上叫什么" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <div class="wm-sc-tip" id="watchScTip">要跟「快捷指令」App 里的名字一模一样，↻ 才叫得动它。改完自动记住。</div>
+          </div>
         </div>
         <div class="pulse-card">
           <div class="pulse-card-head"><span class="pulse-card-title">怎么接上</span><span class="pulse-card-en">one shortcut</span></div>
@@ -2505,7 +2516,7 @@ function showHome(){
   $('homeQuote').textContent='"'+quotes[Math.floor(Math.random()*quotes.length)]+'"';
   var pd=$('homePeriod');pd.style.display='flex';$('homePeriodText').textContent='cycle day 2 · menstrual · next Sep 3';
 }
-function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden');requestAnimationFrame(scrollBottom);setTimeout(scrollBottom,120);setTimeout(scrollBottom,400)}
+function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden');scrollBottomSticky()}
 function backToHome(){$('chat').classList.add('hidden');closeDrawer();showHome()}
 async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){state.token=null;localStorage.removeItem('chat_token');showGate();throw Error('unauthorized')}return res}
 function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringify(state.settings))}
@@ -2513,6 +2524,35 @@ function currentModel(){return state.models.find(x=>x.id===state.model)||state.m
 function modelSetting(model=currentModel()){const s=state.settings[model?.id];if(model?.thinking==='adaptive'||model?.thinking==='extended')return{effort:s?.effort||'medium',extended:s?.extended!==false};return{}}
 function updateSessionHeader(){if(!state.menuSession){$('sessionMenuTitle').textContent=state.currentTitle;$('starSession').firstChild.textContent=state.starred?'★ ':'☆ '}}
 function scrollBottom(){const root=document.scrollingElement||document.documentElement;window.scrollTo(0,root.scrollHeight)}
+// 进会话时"滚到底"只滚一次是不够的：那一刻图片、头像、字体、代码块都还没撑开，
+// scrollHeight 偏小，滚到的是"当时的底"，内容长出来之后就变成停在上面甚至第一条。
+// 所以在一小段时间里跟着内容持续贴底 —— 但她手一碰就立刻放手，不跟她抢滚动条。
+let _stickStop=null;
+function scrollBottomSticky(ms=2000){
+  if(_stickStop)_stickStop();
+  let done=false;
+  const go=()=>{if(!done)scrollBottom()};
+  go();
+  requestAnimationFrame(go);
+  let ro=null;
+  try{if('ResizeObserver'in window){ro=new ResizeObserver(go);ro.observe(streamInner)}}catch(_){}
+  // 图片是最常见的"事后撑高"，每张加载完再对一次位
+  try{streamInner.querySelectorAll('img').forEach(im=>{if(!im.complete)im.addEventListener('load',go,{once:true})})}catch(_){}
+  const stop=()=>{
+    if(done)return;done=true;
+    try{if(ro)ro.disconnect()}catch(_){}
+    window.removeEventListener('wheel',stop);
+    window.removeEventListener('touchstart',stop);
+    window.removeEventListener('keydown',stop);
+    clearTimeout(timer);
+    if(_stickStop===stop)_stickStop=null;
+  };
+  const timer=setTimeout(stop,ms);
+  window.addEventListener('wheel',stop,{passive:true});
+  window.addEventListener('touchstart',stop,{passive:true});
+  window.addEventListener('keydown',stop);
+  _stickStop=stop;
+}
 function appendDisclaimer(){return}
 async function greeting(){try{const r=await fetch('/api/splash');if(r.ok)return(await r.json()).line}catch{}return''}
 async function resetEmpty(){state.convId=null;state.legacySessionId=null;state.currentTitle='新对话';state.starred=false;localStorage.removeItem('chat_conversation');localStorage.removeItem('chat_session');streamInner.innerHTML=`<div class="empty" id="empty"><div class="empty-line"></div></div>`;$('empty').querySelector('.empty-line').textContent=await greeting()||'say something to 小衍...';input.placeholder='say something to 小衍...';updateSessionHeader()}
@@ -6778,7 +6818,7 @@ function _paintHistory(messages,{scroll=true,hasMore=false,hasNewer=false,focusI
   if(state._historyHasMore)_attachLoadMore();
   if(state._historyHasNewer)_attachLoadNewer();
   if(focusId!=null)focusMessageRow(focusId);
-  else if(scroll)scrollBottom();
+  else if(scroll)scrollBottomSticky();
 }
 /** 把某条消息滚到屏幕中间并亮一下 */
 function focusMessageRow(messageId,{flash=true}={}){
@@ -8658,9 +8698,34 @@ function watchValueText(k,m){
 }
 
 let _watchRefreshing=false;
+// 捷径名字放在界面上、随时能改 —— 以前是 prompt 只问一次就写死 localStorage，
+// 名字填错了（或者当时捷径还没命名）就永远叫不动它，还没地方改。
+function watchScName(){
+  const el=$('watchScName');
+  const v=el?el.value.trim():'';
+  return v||(localStorage.getItem('watch_shortcut_name')||'').trim();
+}
+function watchScInit(){
+  const el=$('watchScName');if(!el)return;
+  el.value=(localStorage.getItem('watch_shortcut_name')||'').trim();
+  if(el._bound)return;el._bound=1;
+  const save=()=>{
+    const v=el.value.trim();
+    if(v)localStorage.setItem('watch_shortcut_name',v);
+    else localStorage.removeItem('watch_shortcut_name');
+  };
+  el.addEventListener('input',save);
+  el.addEventListener('change',save);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();watchRefresh()}});
+}
 function watchRefresh(){
-  let name=localStorage.getItem('watch_shortcut_name')||'';
-  if(!name){name=(prompt('你那个上传健康的捷径叫什么名字？（填一次就记住）')||'').trim();if(!name)return;localStorage.setItem('watch_shortcut_name',name)}
+  const name=watchScName();
+  if(!name){
+    const el=$('watchScName'),tip=$('watchScTip');
+    if(tip)tip.textContent='先把捷径名字填在这儿 —— 要跟「快捷指令」App 里显示的一模一样。';
+    if(el){el.focus();try{el.scrollIntoView({block:'center'})}catch(_){}}
+    return;
+  }
   _watchRefreshing=true;
   const w=$('watchWhen');if(w)w.textContent='让手机跑一下捷径…';
   // 打开 Shortcuts 跑捷径；跑完 iOS 会切回来，靠 visibilitychange 重读
@@ -8709,7 +8774,7 @@ function pulseSwitchTab(name){
   const sc=document.querySelector('#pulseHome .pulse-scroll'); if(sc)sc.scrollTop=0;
   if(name==='log')loadPulseJournal();
   if(name==='dream')loadPulseDreams();
-  if(name==='mine'){loadWatch();const _rb=$('watchRefresh');if(_rb&&!_rb._bound){_rb._bound=1;_rb.addEventListener('click',watchRefresh)}}
+  if(name==='mine'){loadWatch();watchScInit();const _rb=$('watchRefresh');if(_rb&&!_rb._bound){_rb._bound=1;_rb.addEventListener('click',watchRefresh)}}
 }
 
 /* 每小时往哪走：(目标 - 现在) * 系数，跟引擎里的公式同一条 */
