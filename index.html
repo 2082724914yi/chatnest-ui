@@ -480,6 +480,7 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 #jumpLatest.show{opacity:1;transform:none;pointer-events:auto}
 #jumpLatest:active{opacity:.6}
 html[data-chat-bg="dark"] #jumpLatest{background:rgba(40,38,36,.78);color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.14)}
+.gate-note{max-width:300px;margin:6px auto 2px;font-size:12.5px;line-height:1.6;color:var(--text-secondary);text-align:center}
 .composer-input-row{display:flex;align-items:flex-end;gap:8px}
 #input{flex:1}
 #send{width:30px;height:30px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:var(--accent);color:#fff;-webkit-tap-highlight-color:transparent;transition:opacity .15s,background .15s}
@@ -1797,7 +1798,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
 
 <section id="gate">
   <svg class="brand-mark mark-36"><use href="#claude-mark"/></svg>
-  <h1 class="gate-title">私人会话</h1><p class="gate-sub">输入访问密码以继续</p>
+  <h1 class="gate-title">私人会话</h1><p class="gate-sub" id="gateSub">输入访问密码以继续</p><p class="gate-note" id="gateNote" hidden>登录过期了，重新输一次密码就好 —— 聊天记录一条都没少，都在服务器上。<br>（浏览器和主屏幕那个是各自独立的，要各登录一次。）</p>
   <form class="gate-form" id="gateForm"><input class="gate-input" id="gateInput" type="password" placeholder="访问密码" autocomplete="current-password"><button class="gate-btn" id="gateBtn">进入</button><div class="gate-error" id="gateError">密码不正确</div></form>
 </section>
 
@@ -2509,7 +2510,7 @@ $('fileInput').onchange=e=>addSelectedFiles([...e.target.files]);
 $('input').addEventListener('paste',e=>{const items=e.clipboardData?.items;const files=e.clipboardData?.files;const collected=[];if(items){for(const it of items){if(it.kind==='file'){const f=it.getAsFile();if(!f)continue;if(it.type.startsWith('image/')){const ext=(it.type.split('/')[1]||'png').replace(/^jpeg$/,'jpg');collected.push(new File([f],`paste-${Date.now()}.${ext}`,{type:it.type}))}else{collected.push(f)}}}}if(!collected.length&&files?.length){for(const f of files)collected.push(f)}if(collected.length){e.preventDefault();addSelectedFiles(collected)}});
 
 function showChat(){document.body.classList.add('chat-ready');$('gate').classList.add('hidden');showHome();loadMsgAvatars()}
-function showGate(){document.body.classList.remove('chat-ready');closeDrawer();$('chat').classList.add('hidden');$('home').classList.add('hidden');$('homeBackBtn').classList.add('hidden');$('gate').classList.remove('hidden')}
+function showGate(reason){document.body.classList.remove('chat-ready');closeDrawer();$('chat').classList.add('hidden');$('home').classList.add('hidden');$('homeBackBtn').classList.add('hidden');$('gate').classList.remove('hidden');var _n=$('gateNote'),_s=$('gateSub');if(_n)_n.hidden=(reason!=='expired');if(_s)_s.hidden=(reason==='expired');}
 function showHome(){
   $('chat').classList.add('hidden');$('homeBackBtn').classList.add('hidden');$('home').classList.remove('hidden');
   var start=new Date(2026,6,1),now=new Date(),days=Math.floor((now-start)/(864e5))+1;
@@ -2523,7 +2524,7 @@ function showHome(){
 }
 function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden');scrollBottomSticky()}
 function backToHome(){$('chat').classList.add('hidden');closeDrawer();showHome()}
-async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){state.token=null;localStorage.removeItem('chat_token');showGate();throw Error('unauthorized')}return res}
+async function api(path,options={}){const headers={...(options.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;const res=await fetch(path,{...options,headers});if(res.status===401){state.token=null;localStorage.removeItem('chat_token');showGate('expired');throw Error('unauthorized')}return res}
 function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringify(state.settings))}
 function currentModel(){return state.models.find(x=>x.id===state.model)||state.models[0]}
 function modelSetting(model=currentModel()){const s=state.settings[model?.id];if(model?.thinking==='adaptive'||model?.thinking==='extended')return{effort:s?.effort||'medium',extended:s?.extended!==false};return{}}
