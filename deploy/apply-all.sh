@@ -55,6 +55,7 @@ add-pulse-dreams.js|PULSE_DREAM_VERSION = 1|梦（梦种 + 织梦 + 余波结算
 add-compaction.js|COMPACTION_VERSION = 1|交接信（长聊不再从中间断掉）
 add-watch.js|WATCH_PATCH_VERSION = 2|手表（她的心率进我上下文）
 fix-watch-sleep.js|WATCH_SLEEP_UNITS|睡眠时长自动认小时/分钟/秒（不然按秒给的被当超范围丢了）
+fix-watch-sleep2.js|WATCH_SLEEP_PARSE|睡眠再宽容：认「6小时14分钟」/「6:14」/ 多片段求和
 fix-tool-leak.js|thinkState === 'hidden'|工具标签不再漏进气泡
 cut-native-thinking.js|MAX_THINKING_TOKENS|砍原生思考链（省额度，留 <think>）
 add-cache-prefix.js|SYSTEM_PREFIX|稳定前缀进缓存 + done带命中量

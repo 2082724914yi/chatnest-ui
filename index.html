@@ -7013,6 +7013,9 @@ window.addEventListener('pageshow',()=>reconcileNow('pageshow'));
 async function openSession(s,{focusMessageId=null}={}){
   if(state.busy)stopActiveResponseNow();
   closeDrawer();clearPendingFiles();input.placeholder='say something to 小衍...';
+  // 从侧栏/搜索点进来时 chat 页可能还藏着 —— 隐藏的元素高度是 0，那会儿滚到底是白滚，
+  // 等它显示出来就停在最上面（她看到的"停在第一条"）。先把页面亮出来再画。
+  if($('chat').classList.contains('hidden'))enterChat();
   const convId=s.conv_id,token=++_openSessionToken;
   state.convId=convId;state.legacySessionId=null;state.currentTitle=s.title||state.currentTitle||'对话';state.starred=!!s.starred;
   state._historyHasNewer=false;
@@ -8432,7 +8435,16 @@ if(state.token)showChat();else loadMsgAvatars();resetEmpty();loadModels();update
 document.querySelectorAll('[data-page]').forEach(function(card){
   card.addEventListener('click',function(){
     var page=this.getAttribute('data-page');
-    if(page==='chat'){enterChat();return}
+    if(page==='chat'){
+      enterChat();
+      // 从主页进来是"接着上次聊"，不该甩一张白纸给她再逼她去侧边栏翻。
+      // 已经在某个对话里（画着消息）就别动它。
+      var _last=state.convId||localStorage.getItem('chat_conversation');
+      if(_last&&!streamInner.querySelector('[data-msg-id]')){
+        openSession({conv_id:_last,title:state.currentTitle,starred:state.starred});
+      }
+      return;
+    }
     if(page==='memory'){openMemoryPicker();return}
     if(page==='settings'){openSettings();return}
     if(page==='pulse'){openPulse();return}
