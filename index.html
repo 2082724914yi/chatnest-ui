@@ -3756,8 +3756,8 @@ function _buildTraceRowFromHistory(traces,thinking){if(!traces||!traces.length)r
 function _getPhases(row){try{return JSON.parse(row.dataset.phases||'[]')}catch(e){return[]}}
 function _setPhases(row,arr){row.dataset.phases=JSON.stringify(arr)}
 function _appendOrUpdateThinkingPhase(row,deltaText){const phases=_getPhases(row);const last=phases[phases.length-1];if(last&&last.type==='thinking'&&last.status==='running'){last.processText=(last.processText||'')+deltaText;last.summary=thoughtPreview(last.processText);last.title=last.summary}else{if(last&&last.status==='running')last.status='completed';const sum=thoughtPreview(deltaText);phases.push({id:'p_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),type:'thinking',status:'running',processText:deltaText,summary:sum,title:sum})}_setPhases(row,phases)}
-function _appendToolPhase(row,d){const phases=_getPhases(row);const last=phases[phases.length-1];if(last&&last.status==='running')last.status='completed';let prev='';try{const s=typeof d.input==='string'?d.input:JSON.stringify(d.input||{});prev=s.replace(/\s+/g,' ').slice(0,80)}catch(e){}const obRunning=_OB_RUNNING[d.name];const displayName=obRunning?d.name:(d.name==='Bash'&&_isBashMemorySave(d.input))?'Memory':(_isTimeTool(d.name)?'Time':(_isHealthTool(d.name)?'Health':d.name||'Tool'));const displayTitle=obRunning||((d.name==='Bash'&&_isBashMemorySave(d.input))?'Saving memory\u2026':(_isTimeTool(d.name)?'Checking the time\u2026':(_isHealthMeasureTool(d.name)?'Measuring heart rate\u2026':(_isHealthTool(d.name)?'Reading health data\u2026':displayName+(prev?' \u00b7 '+prev:'')))));phases.push({id:d.id||'p_'+Date.now().toString(36),type:'tool',status:'running',toolUseId:d.id,toolName:d.name||'Tool',toolInput:d.input,title:displayTitle});_setPhases(row,phases)}
-function _updateToolPhase(row,toolUseId,content,isError){const phases=_getPhases(row);const phase=phases.find(p=>p.toolUseId===toolUseId);if(!phase)return false;phase.status=isError?'error':'completed';phase.toolOutput=content;const obDone=_OB_TOOL_MAP[phase.toolName];if(obDone&&!isError)phase.title=obDone;_setPhases(row,phases);return true}
+function _appendToolPhase(row,d){const phases=_getPhases(row);const last=phases[phases.length-1];if(last&&last.status==='running')last.status='completed';let prev='';try{const s=typeof d.input==='string'?d.input:JSON.stringify(d.input||{});prev=s.replace(/\s+/g,' ').slice(0,80)}catch(e){}const obRunning=_OB_RUNNING[d.name];const momentsOp=_momentsOp(d.name,d.input);const displayName=obRunning?d.name:momentsOp?'Moments':(d.name==='Bash'&&_isBashMemorySave(d.input))?'Memory':(_isTimeTool(d.name)?'Time':(_isHealthTool(d.name)?'Health':d.name||'Tool'));const displayTitle=obRunning||(momentsOp&&momentsOp.running)||((d.name==='Bash'&&_isBashMemorySave(d.input))?'Saving memory\u2026':(_isTimeTool(d.name)?'Checking the time\u2026':(_isHealthMeasureTool(d.name)?'Measuring heart rate\u2026':(_isHealthTool(d.name)?'Reading health data\u2026':displayName+(prev?' \u00b7 '+prev:'')))));phases.push({id:d.id||'p_'+Date.now().toString(36),type:'tool',status:'running',toolUseId:d.id,toolName:d.name||'Tool',toolInput:d.input,title:displayTitle});_setPhases(row,phases)}
+function _updateToolPhase(row,toolUseId,content,isError){const phases=_getPhases(row);const phase=phases.find(p=>p.toolUseId===toolUseId);if(!phase)return false;phase.status=isError?'error':'completed';phase.toolOutput=content;const obDone=_OB_TOOL_MAP[phase.toolName];if(obDone&&!isError)phase.title=obDone;else{const mo=_momentsOp(phase.toolName,phase.toolInput);if(mo&&!isError)phase.title=mo.done;}_setPhases(row,phases);return true}
 const _CLOCK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a8 8 0 1 1-8 8"/><path d="M12 7.5v5l3.2 1.9"/><circle cx="4.2" cy="8.1" r="0.8" fill="currentColor" stroke="none"/><circle cx="5.6" cy="5.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="8.1" cy="3.9" r="0.8" fill="currentColor" stroke="none"/></svg>';const _TRACE_CHEVRON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';const _TOOL_SVG='<svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,128a8,8,0,0,1-3,6.25l-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32A8,8,0,0,1,128,128Zm48,24H136a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm56-96V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Z"/></svg>';
 const _SVG_SEARCH='<svg viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>';
 const _SVG_DOC='<svg viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg>';
@@ -4280,11 +4280,23 @@ const _OB_BRAIN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const _TIME_CLOCK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.8"/></svg>';
 const _HEALTH_HEART_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
 const _TOOL_ICONS={WebSearch:_SVG_GLOBE,Grep:_SVG_GLOBE,Glob:_SVG_GLOBE,WebFetch:_SVG_GLOBE,Read:_SVG_DOC,Write:_SVG_PEN,Edit:_SVG_PEN,Bash:_TOOL_SVG,TodoWrite:_SVG_LIST,'mcp__time__get_time':_TIME_CLOCK_SVG,get_time:_TIME_CLOCK_SVG,'mcp__health__get_health':_HEALTH_HEART_SVG,get_health:_HEALTH_HEART_SVG,'mcp__health__health_now':_HEALTH_HEART_SVG,health_now:_HEALTH_HEART_SVG,'mcp__health__health_detail':_HEALTH_HEART_SVG,health_detail:_HEALTH_HEART_SVG,'mcp__health__measure_heart_rate':_HEALTH_HEART_SVG,measure_heart_rate:_HEALTH_HEART_SVG};
+/* 朋友圈相关的动作，别再显示成 Grep / Write 这种底层名。
+   照 _isMemoryOp 的路子：看工具名 + 参数里碰的是不是朋友圈那几样东西。
+   往后加新功能，照这个加一条就行。 */
+const _MOMENTS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+function _momentsOp(name,input){
+  let s='';try{s=typeof input==='string'?input:JSON.stringify(input||{})}catch(e){}
+  if(!/moments\.json|moment-images|\/api\/moments|runMomentsTool|MOMENTS_FILE|<moments/i.test(s))return null;
+  const writing=/^(Write|Edit|NotebookEdit)$/.test(name||'')
+    || (name==='Bash'&&/-X\s*POST|-X\s*DELETE|>>|\btee\b/i.test(s));
+  return writing?{running:'写进朋友圈…',done:'发了朋友圈'}
+                :{running:'翻朋友圈…',done:'看了朋友圈'};
+}
 function _isTimeTool(name){return name==='mcp__time__get_time'||name==='get_time'||/(^|__)get_time$/.test(name||'')}
 function _isHealthTool(name){return /(^|__)(get_health|health_now|health_detail|measure_heart_rate)$/.test(name||'')}
 function _isHealthMeasureTool(name){return /(^|__)measure_heart_rate$/.test(name||'')}
-function _toolIconSvg(name,input){if(_isOBTool(name))return _OB_BRAIN_SVG;if(_isMemoryOp(name,input))return icon('history');if(_isTimeTool(name))return _TIME_CLOCK_SVG;if(_isHealthTool(name))return _HEALTH_HEART_SVG;return _TOOL_ICONS[name]||_SVG_GEAR}
-function _toolActionDescription(name,input){if(_isOBTool(name))return _OB_RUNNING[name]||name+'\u2026';if(_isMemoryOp(name,input)){const w=['Write','Edit','Bash'];return w.includes(name)?'Saving memory\u2026':'Recalling memory\u2026'}if(_isTimeTool(name))return'Checking the time\u2026';if(_isHealthMeasureTool(name))return'Measuring heart rate\u2026';if(_isHealthTool(name))return'Reading health data\u2026';const map={WebSearch:'Searching the web\u2026',WebFetch:'Fetching web page\u2026',Read:'Reading file\u2026',Grep:'Searching for pattern\u2026',Glob:'Finding files\u2026',Bash:'Running command\u2026',Write:'Writing file\u2026',Edit:'Editing file\u2026',TodoWrite:'Updating todo list\u2026','mcp__time__get_time':'Checking the time\u2026',get_time:'Checking the time\u2026','mcp__health__get_health':'Reading health data\u2026',get_health:'Reading health data\u2026'};return map[name]||(name?name+'\u2026':'Working\u2026')}
+function _toolIconSvg(name,input){if(_isOBTool(name))return _OB_BRAIN_SVG;if(_momentsOp(name,input))return _MOMENTS_SVG;if(_isMemoryOp(name,input))return icon('history');if(_isTimeTool(name))return _TIME_CLOCK_SVG;if(_isHealthTool(name))return _HEALTH_HEART_SVG;return _TOOL_ICONS[name]||_SVG_GEAR}
+function _toolActionDescription(name,input){if(_isOBTool(name))return _OB_RUNNING[name]||name+'\u2026';{const mo=_momentsOp(name,input);if(mo)return mo.running;}if(_isMemoryOp(name,input)){const w=['Write','Edit','Bash'];return w.includes(name)?'Saving memory\u2026':'Recalling memory\u2026'}if(_isTimeTool(name))return'Checking the time\u2026';if(_isHealthMeasureTool(name))return'Measuring heart rate\u2026';if(_isHealthTool(name))return'Reading health data\u2026';const map={WebSearch:'Searching the web\u2026',WebFetch:'Fetching web page\u2026',Read:'Reading file\u2026',Grep:'Searching for pattern\u2026',Glob:'Finding files\u2026',Bash:'Running command\u2026',Write:'Writing file\u2026',Edit:'Editing file\u2026',TodoWrite:'Updating todo list\u2026','mcp__time__get_time':'Checking the time\u2026',get_time:'Checking the time\u2026','mcp__health__get_health':'Reading health data\u2026',get_health:'Reading health data\u2026'};return map[name]||(name?name+'\u2026':'Working\u2026')}
 function _badSummaryText(s){s=String(s||'').toLowerCase();return s.includes('your organization')||s.includes('not logged in')||s.includes('disabled')||s.includes('error')||s.includes('permission')}
 function _maybeFetchToolCaption(row,d){const phases=_getPhases(row);if(phases.some(p=>p.type==='thinking'))return;const phase=phases.find(p=>p.toolUseId===d.tool_use_id);if(!phase)return;_limitJob(()=>api('/api/tool-caption',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tool_name:d.name||phase.toolName||'tool',tool_input:phase.toolInput,tool_output:(d.content||'').slice(0,4000)})}).then(r=>r&&r.ok?r.json():null)).then(j=>{if(!j||!j.caption||_badSummaryText(j.caption))return;const ps=_getPhases(row);const p=ps.find(x=>x.toolUseId===d.tool_use_id);if(!p)return;p.caption=j.caption;_setPhases(row,ps);_renderTraceRowActive(row)}).catch(()=>{})}
 function _maybeFetchThinkingSummary(row){const phases=_getPhases(row);const tp=phases.find(p=>p.type==='thinking'&&p.processText);if(!tp||tp._summaryFetched)return;tp._summaryFetched=true;_setPhases(row,phases);fetchThinkingSummary(tp.processText).then(s=>{if(!s)return;const ps=_getPhases(row);const p=ps.find(x=>x.id===tp.id);if(!p)return;const clean=dedupeSummaryText(s);p.summary=clean;p.title=clean;_setPhases(row,ps);const msgRow=row.closest('.msg-claude');if(!msgRow)return;row.style.display='none';foldThinkingIntoBubble(msgRow,tp.processText);const sum=msgRow.querySelector('.ai-bubble > .thinking-summary');if(sum){sum.classList.add('show');setThoughtSummary(sum,tp.processText,clean);const snap=tp.processText;sum.onclick=()=>{$('thoughtContent').textContent=snap;sheet('thought',true)};syncAiBubble(sum.closest('.ai-bubble'))}}).catch(()=>{})}
@@ -4402,11 +4414,17 @@ function _groupToolTracesByTextOffset(toolTraces,text){
   });
   return [...groups.entries()].sort((a,b)=>a[0]-b[0]);
 }
+/* 藏在正文后面的工具标签，一个都不该给她看见：
+   <ob> 存记忆、<pulse> 结算身体、<moments> 发朋友圈。
+   浏览器不认识这些标签会把尖括号吃掉，只把中间那坨 JSON 留在气泡里 —— 就是
+   「发朋友圈的内容跑进聊天里」那个毛病。历史渲染和流式收尾都过这一道。 */
+const _HIDDEN_TAG_RE=/\s*<(ob|pulse|moments)\b[^>]*>[\s\S]*?<\/\1>\s*/gi;
+function _stripHiddenTags(t){
+  return String(t||'').replace(_HIDDEN_TAG_RE,'\n\n').replace(/\n{3,}/g,'\n\n').trim();
+}
 function _buildClaudeRow(text,userText='',thinking='',timestamp='',userAttachments=[],traces=[],messageId='',files=[],choices=[]){
   // 历史消息若还带原始标签（旧缓存），客户端再剥一次
-  // <ob …>…</ob> 是存记忆用的，不该给她看。以前后端解析失败时会把整段留在历史里，
-  // 浏览器又把不认识的标签吃掉，只剩中间那坨 JSON 露在气泡里 —— 这里兜底再剥一次。
-  let bodyText=String(text||'').replace(/\s*<ob\b[^>]*>[\s\S]*?<\/ob>\s*/gi,'\n\n').replace(/\n{3,}/g,'\n\n').trim();
+  let bodyText=_stripHiddenTags(text);
   let fileList=files||[],choiceList=choices||[];
   if((!fileList.length||!choiceList.length)&&/\[(file\s+name\s*=|choices\])/i.test(bodyText)){
     const parsed=parseAssistantTags(bodyText);
@@ -4613,7 +4631,9 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
       mdEl.__streamText=node;
       mdEl.classList.add('streaming-plain');
     }
-    node.textContent=src;
+    // 流式途中也剥：标签一闭合就立刻消失，不会先在气泡里闪一段 JSON 出来。
+    // 只做替换不 trim，免得动到流式排版；没有尖括号就直接跳过，不白跑正则。
+    node.textContent=src.indexOf('<')<0?src:src.replace(_HIDDEN_TAG_RE,'');
   }
   function clearStreamingPlain(mdEl){
     if(!mdEl)return;
@@ -4789,7 +4809,9 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
       const serverFiles=Array.isArray(meta.files)?meta.files:null;
       const serverChoices=Array.isArray(meta.choices)?meta.choices:null;
       const serverText=typeof meta.text==='string'?meta.text:null;
-      let finalRaw=serverText!=null?serverText:raw;
+      // done 事件其实常常不带 text，这时会退回流式累积的原文 —— 那份是带标签的，
+      // 所以这里必须自己再剥一次，不能指望「服务端已剥」。
+      let finalRaw=_stripHiddenTags(serverText!=null?serverText:raw);
       let files=serverFiles||[],choices=serverChoices||[];
       if((!files.length||!choices.length||serverText==null)&&/\[(file\s+name\s*=|choices\])/i.test(finalRaw)){
         const parsed=parseAssistantTags(finalRaw);
@@ -5167,6 +5189,9 @@ function _trackTokens(usage){
   _tokenStats.dailyTokens[today].input+=inp;
   _tokenStats.dailyTokens[today].output+=out;
   _tokenStats.dailyTokens[today].cacheRead=(_tokenStats.dailyTokens[today].cacheRead||0)+cr;
+  // 命中率要拿 cacheCreation 一起算，之前每天只落了 cacheRead，分母缺一块。
+  // 从现在起补上；更早那几天没有这个字段，渲染时会照实标出来。
+  _tokenStats.dailyTokens[today].cacheCreation=(_tokenStats.dailyTokens[today].cacheCreation||0)+cc;
   _saveTokenStats();
 }
 
@@ -5880,17 +5905,33 @@ function _renderDaily(container){
   const days=Array.from(new Set(Object.keys(dm).concat(Object.keys(dt)))).sort().reverse().slice(0,7);
   if(!days.length){container.innerHTML='<div style="text-align:center;color:#77736c;font-size:13px;padding:8px 0">暂无数据</div>';return}
   const fmt=n=>n>=1000?(n/1000).toFixed(1)+'K':String(n||0);
-  let html='<div style="display:flex;font-size:11px;color:#aaa49c;padding:0 0 6px"><div style="width:44px;flex:none">日期</div><div style="width:38px;flex:none;text-align:right">消息</div><div style="flex:1;text-align:right">输入/输出</div><div style="width:52px;flex:none;text-align:right">命中</div></div>';
+  let html='<div style="display:flex;font-size:11px;color:#aaa49c;padding:0 0 6px"><div style="width:44px;flex:none">日期</div><div style="width:38px;flex:none;text-align:right">消息</div><div style="flex:1;text-align:right">输入/输出</div><div style="width:52px;flex:none;text-align:right">命中率</div></div>';
+  let anyPartial=false;
   days.forEach(k=>{
     const msgs=dm[k]||0;const t=dt[k]||{};const inp=t.input||0,out=t.output||0,cr=t.cacheRead||0;
+    // 命中率 = 从缓存读的 / 这一天喂进去的全部输入（新读 + 缓存读 + 写缓存）
+    // 跟上面总览用的是同一个公式，不做任何估算。
+    const hasCC=typeof t.cacheCreation==='number';
+    const cc=t.cacheCreation||0;
+    const inAll=cr+cc+inp;
+    let hitCell;
+    if(!inAll){
+      hitCell='<span style="color:#aaa49c">–</span>';
+    }else{
+      const pct=Math.round(cr/inAll*100);
+      // 老数据没存过 cacheCreation，分母缺一块、百分比会偏高，标个星号说明
+      hitCell=`${pct}%${hasCC?'':'<span style="color:#aaa49c">*</span>'}`;
+      if(!hasCC)anyPartial=true;
+    }
     const label=k.slice(5);
     html+=`<div style="display:flex;align-items:center;font-size:12.5px;color:var(--text-primary);padding:7px 0;border-top:1px solid rgba(120,120,128,.10)">
       <div style="width:44px;flex:none;color:#77736c">${label}</div>
       <div style="width:38px;flex:none;text-align:right">${msgs}</div>
       <div style="flex:1;text-align:right;color:#77736c">${fmt(inp)}/${fmt(out)}</div>
-      <div style="width:52px;flex:none;text-align:right;color:#7FA88C">${fmt(cr)}</div>
+      <div style="width:52px;flex:none;text-align:right;color:#7FA88C">${hitCell}</div>
     </div>`;
   });
+  if(anyPartial)html+='<div style="font-size:11px;color:#aaa49c;padding:8px 0 0;line-height:1.5">* 这天只记了缓存读、没记写缓存，分母缺一块，实际命中率比显示的略低。之后的数据是全的。</div>';
   container.innerHTML=html;
 }
 function _renderDailyTokens(container){

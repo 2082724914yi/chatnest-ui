@@ -69,12 +69,19 @@ function saveMomentImage(base64) {
 
 const TOOL_PROMPT = `
 const MOMENTS_TOOL_PROMPT = \`
-你可以发朋友圈。想分享心情、想法、日常的时候就发。
+你可以发朋友圈。想分享心情、想法、日常的时候，把它写下来。
 
-用法：在回复正文之后，加上：
+用法：在回复正文之后，另起一行加上这个标签：
 <moments tool="post">{"text":"想说的话"}</moments>
 
-可以只有文字，不用每次都发图。发完之后自然地提一句就好，不要念工具返回值。
+格式要求（不满足就发不出去）：
+- 标签要完整闭合，<moments ...> 开头，</moments> 结尾
+- 里面必须是一个合法 JSON 对象，双引号，不要用单引号
+- text 里如果要换行，写成 \\\\n，不要真的敲回车
+- 一次只发一条
+
+这段她看不见，前端会剥掉。所以正文里不要重复朋友圈的内容，也不要念工具返回值，
+发完自然地提一句就好。不确定她想不想看的时候，就别发。
 \`;
 `;
 
@@ -180,7 +187,7 @@ app.get('/api/moments/:id/comments', (req, res) => {
 const TOOL_HANDLER = `
 function parseMomentsToolCalls(text) {
   const calls = [];
-  const re = /<moments\\s+tool="(\\w+)">([\\\s\\\S]*?)<\\/moments>/gi;
+  const re = /<moments\\s+tool\\s*=\\s*["\']?(\\w+)["\']?\\s*>([\\s\\S]*?)<\\/moments>/gi;
   let match;
   while ((match = re.exec(text)) !== null) {
     try { calls.push({ tool: match[1], args: JSON.parse(match[2]) }); }
@@ -230,10 +237,11 @@ const edits = [
     replace: (m, g1) => TOOL_PROMPT + TOOL_HANDLER + g1,
   },
   {
+    // CLI 模式（她实际在用的那条路）的 prompt 就是在这儿拼的。
+    // 不接这一下，小衍根本不知道有这个工具，也就永远发不出朋友圈。
     name: '注入工具说明到聊天上下文',
-    find: /(const sysContent = PERSONA)/,
-    replace: (m, g1) => g1,
-    skip: true,
+    find: /let prompt = PERSONA \+ '\\n' \+ OB_TOOL_PROMPT \+ '\\n\\n';/,
+    replace: () => "let prompt = PERSONA + '\\n' + OB_TOOL_PROMPT + '\\n' + MOMENTS_TOOL_PROMPT + '\\n\\n'; // MOMENTS_PROMPT_WIRED",
   },
   {
     name: 'Moments 路由',
