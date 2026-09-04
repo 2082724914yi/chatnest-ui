@@ -64,6 +64,7 @@ add-daemon.js|DAEMON_PATCH_VERSION|常驻会话（-p persistent，灰度，前�
 add-auth.js|AUTH_PATCH_VERSION|把门关上（/api 默认全拦 + 随机会过期的 token + 登录限流 + CORS 收紧）
 add-moments.js|MOMENTS_FILE|朋友圈
 fix-moments-tool.js|MOMENTS_PROMPT_WIRED|朋友圈工具真的接上（不然我不知道怎么发）
+fix-moments-say.js|MOMENTS_SAY_V2|把朋友圈用法说清楚（这不是工具，别去工具列表找）
 "
 
 say "1/3 逐个补丁检查"
