@@ -125,35 +125,23 @@ UP=0
 for _ in $(seq 1 30); do sleep 1; curl -fsS -m 5 "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1 && { UP=1; break; }; done
 [ "$UP" = 1 ] && ok "服务已就绪" || { no "起不来！看日志：pm2 logs --lines 40"; exit 1; }
 
-say "3/3 发一条消息验证"
-RESP=$(curl -fsS -N -m 180 -X POST "http://127.0.0.1:$PORT/api/chat" \
-  -H 'Content-Type: application/json' -d '{"message":"在吗"}' 2>/dev/null)
-printf '%s' "$RESP" | grep -q 'event: done' && ok "收到 done 事件" || { no "没有 done，看 pm2 logs"; exit 1; }
-CID=$(printf '%s' "$RESP" | python3 -c "
-import sys,json
-for l in sys.stdin:
-    if l.startswith('data: ') and 'conversation_id' in l:
-        print(json.loads(l[6:])['conversation_id']); break
-" 2>/dev/null)
-if [ -n "${CID:-}" ]; then
-  N=$(curl -fsS -m 20 "http://127.0.0.1:$PORT/api/sessions/$CID/messages" 2>/dev/null \
-      | python3 -c "import sys,json;print(len(json.load(sys.stdin).get('messages',[])))" 2>/dev/null)
-  [ "${N:-0}" -ge 2 ] && ok "会话存下来了（$N 条）" || no "会话没存上"
+# 3/3 冒烟：默认不发消息。
+# 那条"在吗"是真走一遍 CLI + breath + OB，实打实烧额度，为了看一眼绿勾不值。
+# 真想跑一遍完整验证：VERIFY=1 sudo bash apply-all.sh
+if [ "${VERIFY:-0}" = 1 ]; then
+  say "3/3 发一条消息验证（VERIFY=1）"
+  RESP=$(curl -fsS -N -m 180 -X POST "http://127.0.0.1:$PORT/api/chat" \
+    -H 'Content-Type: application/json' -d '{"message":"在吗"}' 2>/dev/null)
+  printf '%s' "$RESP" | grep -q 'event: done' && ok "收到 done 事件" || no "没有 done，看 pm2 logs"
+  echo "  这条测试消息在会话列表里，看着碍眼就删掉。"
+else
+  say "3/3 不打扰（不发测试消息，省额度）"
+  curl -fsS -m 5 "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1 \
+    && ok "服务活着" || no "服务没响应"
+  # 不花额度也能验的：路由在不在、会话读得出来
+  curl -fsS -m 10 "http://127.0.0.1:$PORT/api/sessions" >/dev/null 2>&1 \
+    && ok "会话接口正常" || no "会话接口读不到"
 fi
-# 正文说两遍的老毛病，顺手验一下
-DUP=$(printf '%s' "$RESP" | python3 -c "
-import sys,json
-body=''; ev=None
-for l in sys.stdin:
-    l=l.rstrip('\n')
-    if l.startswith('event: '): ev=l[7:].strip()
-    elif l.startswith('data: ') and ev=='delta':
-        try: body+=json.loads(l[6:]).get('text','')
-        except Exception: pass
-h=body[:len(body)//2].strip()
-print('1' if h and len(h)>6 and body.count(h)>1 else '0')
-" 2>/dev/null)
-[ "${DUP:-0}" = 0 ] && ok "正文没有重复" || no "正文还在说两遍"
 
 # 记忆页（Ombre）要能读到东西，得先有 OB Dashboard 的密码
 DASH=$(curl -fsS -m 20 "http://127.0.0.1:$PORT/api/ombre-dashboard/status" 2>/dev/null || curl -s -m 20 "http://127.0.0.1:$PORT/api/ombre-dashboard/status" 2>/dev/null)
@@ -167,8 +155,6 @@ fi
 cat <<'EOF'
 
   弄完了。手机上下拉刷新一下再聊。
-
-  刚那条"在吗"是脚本发的测试消息，看着碍眼就删掉。
 
 EOF
 

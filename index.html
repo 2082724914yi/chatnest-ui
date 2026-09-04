@@ -476,6 +476,10 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 .msg-user .bubble,.msg-claude .ai-bubble{position:relative}
 .composer-wrap{position:fixed;left:0;right:0;bottom:0;z-index:26;flex:none;padding:var(--space-2) var(--page-pad) max(calc(env(safe-area-inset-bottom,0px) + var(--space-3)),calc(20px + var(--space-3)));background:transparent;pointer-events:none}.composer-wrap *{pointer-events:auto}
 .composer-box{max-width:580px;margin:0 auto var(--space-2);padding:8px 14px 6px;background:rgba(255,255,255,.18);border:0;border-radius:22px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 4px 16px rgba(74,55,40,.06);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4)}.composer-box.drag-over{box-shadow:var(--shadow-composer),inset 0 0 0 1.5px #D97757;background:rgba(217,119,87,.06)}.edit-banner{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) 0;margin-bottom:var(--space-2)}.edit-banner-text{flex:1;font-size:var(--text-sm);color:var(--text-secondary);line-height:1.4}.edit-banner-close{flex:none;width:24px;height:24px;display:grid;place-items:center;border-radius:var(--radius-full);color:var(--text-secondary);font-size:18px;line-height:1}.edit-banner-close:active{background:var(--bg-primary)}.composer{display:flex;flex-direction:column;gap:6px}.composer-input-row{width:100%;display:flex}.composer-actions{width:100%;display:flex;align-items:center;gap:var(--space-2)}.composer-spacer{flex:1}#input{width:100%;min-width:0;max-height:120px;padding:2px 0 2px 1px;border:0;outline:0;background:none;resize:none;font-size:14px;line-height:1.35;white-space:pre-wrap}#input::placeholder{color:rgba(74,55,40,.3);opacity:1;font-size:13px}#input::-webkit-input-placeholder{color:rgba(74,55,40,.3);opacity:1;font-size:13px}html[data-chat-bg="dark"] #input::placeholder,html[data-chat-bg="dark"] #input::-webkit-input-placeholder{color:rgba(255,255,255,.3)}html[data-chat-bg="light"] #input::placeholder,html[data-chat-bg="light"] #input::-webkit-input-placeholder{color:rgba(74,55,40,.3)}@media(prefers-color-scheme:dark){:root:not([data-chat-bg]) #input::placeholder,html:not([data-chat-bg]) #input::placeholder,:root:not([data-chat-bg]) #input::-webkit-input-placeholder,html:not([data-chat-bg]) #input::-webkit-input-placeholder{color:rgba(255,255,255,.3)}}@media(prefers-color-scheme:light){:root:not([data-chat-bg]) #input::placeholder,html:not([data-chat-bg]) #input::placeholder,:root:not([data-chat-bg]) #input::-webkit-input-placeholder,html:not([data-chat-bg]) #input::-webkit-input-placeholder{color:rgba(0,0,0,.25)}}.composer-icon{width:var(--input-btn-size);height:var(--input-btn-size);flex:none;display:grid;place-items:center;border-radius:var(--radius-full);color:var(--text-primary)}.composer-icon:active{background:var(--bg-sunken)}.model-capsule{max-width:210px;display:flex;align-items:center;gap:var(--space-2);padding:6px 12px;background:transparent;border:0;border-radius:16px;color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);font-size:14px;line-height:1.2;white-space:nowrap}.model-capsule:active{background:transparent;opacity:.62}html[data-chat-bg="dark"] .model-capsule{color:#fff}html[data-chat-bg="light"] .model-capsule{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}#modelCapsuleText{overflow:hidden;text-overflow:ellipsis}.model-capsule-arrow{color:var(--text-secondary)}.composer-outline-btn{width:var(--input-btn-size);height:var(--input-btn-size);flex:none;display:grid;place-items:center;border:0;border-radius:var(--radius-full);background:transparent;color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);-webkit-tap-highlight-color:transparent}.composer-outline-btn:active{opacity:.62}.composer-outline-btn svg{width:18px;height:18px}html[data-chat-bg="dark"] .composer-outline-btn{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20)}html[data-chat-bg="light"] .composer-outline-btn{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}@media(prefers-color-scheme:dark){html:not([data-chat-bg]) .composer-outline-btn{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}}@media(prefers-color-scheme:light){html:not([data-chat-bg]) .composer-outline-btn{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}}#send{width:var(--input-btn-size);height:var(--input-btn-size);flex:none;display:grid;place-items:center;border:0;border-radius:var(--radius-full);background:transparent;color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);-webkit-tap-highlight-color:transparent;transition:background var(--transition),box-shadow var(--transition),opacity var(--transition)}#send svg{width:20px;height:20px}#send.ready{color:var(--accent);box-shadow:none;background:transparent}#send.ready svg{fill:var(--accent);stroke:var(--accent)}#send:active{opacity:.62}#send:disabled{opacity:.35}html[data-chat-bg="dark"] #send{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20)}html[data-chat-bg="light"] #send{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}@media(prefers-color-scheme:dark){html:not([data-chat-bg]) #send{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}}@media(prefers-color-scheme:light){html:not([data-chat-bg]) #send{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}}#send.stop-mode{background:rgba(31,30,29,.72);color:#fff;opacity:1;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}html[data-chat-bg="light"] #send.stop-mode{background:rgba(31,30,29,.68);color:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}html[data-chat-bg="dark"] #send.stop-mode{background:rgba(255,255,255,.88);color:#1a1a1a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}.attachment-preview{display:flex;gap:var(--space-2);overflow-x:auto;padding:0 0 var(--space-2)}.attachment-chip{position:relative;flex:none;max-width:180px;display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2);background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-md)}.attachment-chip img{width:48px;height:48px;object-fit:cover;border-radius:var(--space-1)}.attachment-chip svg{width:22px;height:22px;color:var(--text-secondary)}.attachment-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--text-sm)}.attachment-remove{position:absolute;top:var(--space-1);right:var(--space-1);width:20px;height:20px;display:grid;place-items:center;background:var(--bg-sunken);border-radius:var(--radius-full)}.attachment-remove svg{width:12px;height:12px}.user-images{width:100%;display:flex;align-items:flex-end;justify-content:flex-end;gap:6px;margin-bottom:6px}.user-image{display:block;max-height:140px;min-width:0;border-radius:14px;object-fit:cover;flex:0 1 auto}.message-attachments{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-2)}.message-attachment{max-width:220px;display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2);background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-md)}.message-attachment img{display:block;max-width:180px;max-height:180px;object-fit:cover;border-radius:var(--space-1)}.message-attachment img:not([src]){min-width:120px;min-height:80px;background:var(--bg-sunken)}.message-attachment svg{width:20px;height:20px;flex:none;color:var(--text-secondary)}
+#jumpLatest{position:fixed;right:16px;z-index:27;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(255,255,255,.72);color:#1F1E1D;box-shadow:0 4px 14px rgba(74,55,40,.18),inset 0 0 0 1px rgba(255,255,255,.5);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);bottom:calc(96px + max(env(safe-area-inset-bottom,0px),20px));opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .18s,transform .18s;-webkit-tap-highlight-color:transparent}
+#jumpLatest.show{opacity:1;transform:none;pointer-events:auto}
+#jumpLatest:active{opacity:.6}
+html[data-chat-bg="dark"] #jumpLatest{background:rgba(40,38,36,.78);color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.14)}
 .composer-input-row{display:flex;align-items:flex-end;gap:8px}
 #input{flex:1}
 #send{width:30px;height:30px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:var(--accent);color:#fff;-webkit-tap-highlight-color:transparent;transition:opacity .15s,background .15s}
@@ -1865,6 +1869,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
     </div>
   </header>
   <div id="stream"><div class="stream-inner" id="streamInner"></div></div>
+  <button id="jumpLatest" type="button" aria-label="跳到最新"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
   <div class="composer-wrap">
     <div class="composer-box">
       <div class="edit-banner hidden" id="editBanner"><span class="edit-banner-text">Editing this message will restart the conversation from this point.</span><button class="edit-banner-close" id="editBannerClose" aria-label="取消编辑">×</button></div>
@@ -2523,7 +2528,21 @@ function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringif
 function currentModel(){return state.models.find(x=>x.id===state.model)||state.models[0]}
 function modelSetting(model=currentModel()){const s=state.settings[model?.id];if(model?.thinking==='adaptive'||model?.thinking==='extended')return{effort:s?.effort||'medium',extended:s?.extended!==false};return{}}
 function updateSessionHeader(){if(!state.menuSession){$('sessionMenuTitle').textContent=state.currentTitle;$('starSession').firstChild.textContent=state.starred?'★ ':'☆ '}}
-function scrollBottom(){const root=document.scrollingElement||document.documentElement;window.scrollTo(0,root.scrollHeight)}
+function scrollBottom(){
+  // 别改成 lastChild.scrollIntoView({block:'end'})：#stream 底部留了 120px 给输入框，
+  // 那样会稳定差这一截（实测 140px）。滚到 scrollHeight 才是真的底。
+  const root=document.scrollingElement||document.documentElement;
+  window.scrollTo(0,root.scrollHeight);_syncJumpBtn();
+}
+// 「跳到最新」：自动滚底万一还是没成，她点一下就到底 —— 不赌我一定猜对根因
+function _syncJumpBtn(){
+  const b=document.getElementById('jumpLatest');if(!b)return;
+  const root=document.scrollingElement||document.documentElement;
+  const gap=root.scrollHeight-window.scrollY-window.innerHeight;
+  const hasMsg=!!(streamInner&&streamInner.querySelector('[data-msg-id]'));
+  const show=hasMsg&&gap>240&&!document.getElementById('chat').classList.contains('hidden');
+  b.classList.toggle('show',show);
+}
 // 进会话时"滚到底"只滚一次是不够的：那一刻图片、头像、字体、代码块都还没撑开，
 // scrollHeight 偏小，滚到的是"当时的底"，内容长出来之后就变成停在上面甚至第一条。
 // 所以在一小段时间里跟着内容持续贴底 —— 但她手一碰就立刻放手，不跟她抢滚动条。
@@ -8451,6 +8470,29 @@ document.querySelectorAll('[data-page]').forEach(function(card){
   });
 });
 document.getElementById('homeBackBtn').addEventListener('click',backToHome);
+// 「跳到最新」：点了就贴底；滚动时自己决定露不露脸
+(function(){
+  var b=document.getElementById('jumpLatest');
+  if(b)b.addEventListener('click',function(){scrollBottomSticky(1200)});
+  // 长按 1 秒：把当前滚动状态摆出来，截图发我就知道卡在哪了
+  if(b){var _t=null;
+    var _diag=function(){
+      var root=document.scrollingElement||document.documentElement;
+      var rows=streamInner.querySelectorAll('[data-msg-id]');
+      alert('滚动诊断\n消息 '+rows.length+' 条\nscrollY '+Math.round(window.scrollY)
+        +'\n可滚到 '+Math.round(root.scrollHeight-window.innerHeight)
+        +'\n离底 '+Math.round(root.scrollHeight-window.scrollY-window.innerHeight)+'px'
+        +'\nchat隐藏 '+document.getElementById('chat').classList.contains('hidden')
+        +'\n还有更早的 '+!!state._historyHasMore
+        +'\n停在历史中间 '+!!state._historyHasNewer);
+    };
+    b.addEventListener('touchstart',function(){_t=setTimeout(_diag,1000)},{passive:true});
+    ['touchend','touchmove','touchcancel'].forEach(function(e){
+      b.addEventListener(e,function(){clearTimeout(_t)},{passive:true})});
+  }
+  window.addEventListener('scroll',function(){_syncJumpBtn()},{passive:true});
+  window.addEventListener('resize',function(){_syncJumpBtn()},{passive:true});
+})();
 
 
 /* ── 记忆两道门：OB / Latent ── */
