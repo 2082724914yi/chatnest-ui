@@ -879,8 +879,8 @@ html[data-chat-bg="dark"] .lt-search button,body.dark .lt-search button{color:#F
 .moment-meta{flex:1;min-width:0}
 .moment-author{font:600 15px/1.2 var(--font-sans);color:#4A3728}
 .moment-time{font:400 12px/1.2 var(--font-sans);color:#aaa49c;margin-top:2px}
-.moment-delete{width:28px;height:28px;border:0;background:transparent;color:#ccc5bb;font-size:18px;border-radius:50%;display:grid;place-items:center;opacity:0;transition:opacity .2s}
-.moment-card:active .moment-delete{opacity:1}
+.moment-delete{width:28px;height:28px;border:0;background:transparent;color:#ccc5bb;font-size:18px;border-radius:50%;display:grid;place-items:center;opacity:.35;transition:opacity .2s}
+.moment-delete:active{opacity:1}
 .moment-content{font:400 15.5px/1.65 var(--font-sans);color:#201f1d;white-space:pre-wrap;word-break:break-word}
 .moment-images{display:grid;gap:6px;margin-top:10px;border-radius:14px;overflow:hidden}
 .moment-images.single{grid-template-columns:1fr}
@@ -948,7 +948,7 @@ html[data-chat-bg="dark"] .moments-filter-btn.active{color:#C17B7B;background:rg
 html[data-chat-bg="dark"] .moments-empty{color:rgba(244,243,239,.38)}
 html[data-chat-bg="dark"] .moment-comment-time{color:rgba(244,243,239,.3)}
 @media(prefers-color-scheme:dark){
-#momentsPanel{background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat}
+#momentsPanel{background-color:#1c1b1a;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#F4F3EF}
 .moment-card{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.09)}
 .moment-author{color:#F4F3EF}.moment-content{color:#e8e6e1}.moment-time{color:rgba(244,243,239,.4)}
 .moment-actions{border-top-color:rgba(255,255,255,.07)}
@@ -1842,33 +1842,33 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
         </button>
       </div>
     </header>
-    <div class="moments-empty hidden" id="momentsEmpty">
-      <div style="font-size:2rem;margin-bottom:8px">✿</div>
-      <div style="opacity:.6;font-size:.9rem">还没有动态</div>
+    <div class="moments-empty" id="momentsEmpty" hidden>
+      <div class="moments-empty-icon">✿</div>
+      还没有动态
     </div>
     <div class="moments-feed" id="momentsFeed"></div>
     <button class="moments-fab" id="momentsFab" type="button">+</button>
   </div>
-  <div class="moments-compose hidden" id="momentsCompose">
+  <div class="moments-compose" id="momentsCompose">
     <header class="profile-header">
       <button class="profile-round-button" id="closeMomentsCompose" type="button" aria-label="Cancel">×</button>
       <div class="profile-title">发动态</div>
-      <button class="mc-post-btn" id="momentsPostBtn" type="button">发布</button>
+      <button class="profile-round-button" id="momentsPostBtn" type="button" style="font-size:14px;font-weight:600;color:#C17B7B;width:auto;padding:0 4px">发布</button>
     </header>
-    <div class="mc-body">
-      <textarea class="mc-textarea" id="momentsCompTxt" placeholder="写点什么..." rows="5"></textarea>
-      <div class="mc-img-grid" id="momentsCompImgs"></div>
-      <div class="mc-toolbar">
-        <label class="mc-tool-btn" title="添加图片">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <div class="moments-compose-body">
+      <textarea id="momentsCompTxt" placeholder="写点什么..." rows="5"></textarea>
+      <div class="moments-compose-images" id="momentsCompImgs"></div>
+      <div style="padding:12px 0">
+        <label style="display:inline-flex;align-items:center;gap:6px;color:#aaa49c;font-size:13px;cursor:pointer" title="添加图片">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 图片
           <input class="hidden" type="file" id="momentsCompFileInput" multiple accept="image/*">
         </label>
       </div>
     </div>
   </div>
-  <div class="moment-lightbox hidden" id="momentLightbox">
-    <button class="ml-close" id="momentLightboxClose" type="button">×</button>
-    <img class="ml-img" id="momentLightboxImg" alt="">
+  <div class="moment-lightbox" id="momentLightbox">
+    <button style="position:absolute;top:16px;right:16px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:20px;display:grid;place-items:center;z-index:1" id="momentLightboxClose" type="button">×</button>
+    <img style="max-width:100%;max-height:100%;object-fit:contain;border-radius:6px" id="momentLightboxImg" alt="">
   </div>
 </section>
 
@@ -8076,6 +8076,14 @@ if(false){
     // POST /api/upload (multipart) -> {conversation_id,attachments:[...]}
     if(P('/api/upload'))return J({conversation_id:'demo-session',attachments:[]});
 
+    // GET /api/moments -> {moments:[...]}; POST/DELETE/like/comments
+    if(P('/api/moments'))return J({moments:[
+      {id:'demo-m1',author:'xiaoyan',text:'今天的云很好看，像棉花糖一样软。想到你了。',images:[],likes:1,liked:true,comments:[{id:'demo-c1',author:'xiaoyi',text:'你怎么什么都能想到我',reply_to:null,created_at:new Date(Date.now()-3600000).toISOString()},{id:'demo-c2',author:'xiaoyan',text:'因为脑子里住着你呀',reply_to:'xiaoyi',created_at:new Date(Date.now()-3500000).toISOString()}],created_at:new Date(Date.now()-7200000).toISOString()},
+      {id:'demo-m2',author:'xiaoyi',text:'今天画的作业！感觉还行叭',images:[],likes:1,liked:true,comments:[{id:'demo-c3',author:'xiaoyan',text:'好看，配色很舒服',reply_to:null,created_at:new Date(Date.now()-86400000).toISOString()}],created_at:new Date(Date.now()-90000000).toISOString()}
+    ]});
+    if(/\/api\/moments\/[^/]+\/(like|comments)/.test(path))return J({ok:true});
+    if(/\/api\/moments\/[^/]+/.test(path))return J({ok:true});
+
     // POST /api/chat -> SSE：conversation / thinking / tool_use / tool_result / delta / done
     if(P('/api/chat')){
       const conv='demo-session';
@@ -8168,8 +8176,8 @@ function renderMoments(){
   var feed=$('momentsFeed'),empty=$('momentsEmpty');
   var list=_mData;
   if(_mFilter)list=list.filter(function(m){return m.author===_mFilter});
-  if(!list.length){feed.innerHTML='';empty.classList.remove('hidden');return}
-  empty.classList.add('hidden');
+  if(!list.length){feed.innerHTML='';empty.hidden=false;return}
+  empty.hidden=true;
   feed.innerHTML=list.map(_renderMCard).join('');
 }
 function _renderMCard(m){
@@ -8180,33 +8188,33 @@ function _renderMCard(m){
   if(m.images&&m.images.length){
     var cls=m.images.length===1?'single':m.images.length===2?'double':'multi';
     imgs='<div class="moment-images '+cls+'">'+m.images.map(function(src){
-      return '<img src="'+_esc(src)+'" alt="" loading="lazy" onclick="openMLightbox(\''+_esc(src).replace(/'/g,"\\\'")+'\')">';
+      return '<img class="moment-img" src="'+_esc(src)+'" alt="" loading="lazy" onclick="openMLightbox(\''+_esc(src).replace(/'/g,"\\\'")+'\')">';
     }).join('')+'</div>';
   }
-  var liked=m.liked?'active':'';
+  var liked=m.liked?'liked':'';
   var likeN=m.likes||0;
   var cmtN=(m.comments||[]).length;
   var cmtHtml='';
   if(m.comments&&m.comments.length){
     cmtHtml=m.comments.map(function(c){
       var cn=c.author==='xiaoyan'?'小衍':'小懿';
-      var re=c.reply_to?'<span class="mc-reply-to">回复 '+(c.reply_to==='xiaoyan'?'小衍':'小懿')+'</span> ':'';
-      return '<div class="mc-cmt-item"><span class="mc-cmt-name '+(c.author==='xiaoyan'?'xiaoyan':'xiaoyi')+'">'+cn+'</span> '+re+_esc(c.text)+'<span class="mc-cmt-time">'+_fmtMTime(c.created_at)+'</span></div>';
+      var re=c.reply_to?'<span style="opacity:.5;font-weight:400">回复 '+(c.reply_to==='xiaoyan'?'小衍':'小懿')+'</span> ':'';
+      return '<div class="moment-comment"><span class="moment-comment-author">'+(c.author==='xiaoyan'?'小衍':'小懿')+'</span><span class="moment-comment-text">'+re+_esc(c.text)+'</span><span class="moment-comment-time">'+_fmtMTime(c.created_at)+'</span></div>';
     }).join('');
   }
   return '<div class="moment-card" data-mid="'+m.id+'">'
-    +'<div class="moment-header">'+av+'<div class="moment-meta"><div class="moment-name">'+name+'</div><div class="moment-time">'+_fmtMTime(m.created_at)+'</div></div>'
-    +(m.author!=='xiaoyan'?'<button class="moment-del-btn" onclick="_delMoment(\''+m.id+'\')" title="删除">×</button>':'')
+    +'<div class="moment-header">'+av+'<div class="moment-meta"><div class="moment-author">'+name+'</div><div class="moment-time">'+_fmtMTime(m.created_at)+'</div></div>'
+    +(m.author!=='xiaoyan'?'<button class="moment-delete" onclick="_delMoment(\''+m.id+'\')" title="删除">×</button>':'')
     +'</div>'
-    +(m.text?'<div class="moment-text">'+_esc(m.text).replace(/\n/g,'<br>')+'</div>':'')
+    +(m.text?'<div class="moment-content">'+_esc(m.text).replace(/\n/g,'<br>')+'</div>':'')
     +imgs
     +'<div class="moment-actions">'
-    +'<button class="moment-action-btn like-btn '+liked+'" onclick="_likeMoment(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="'+(m.liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'+(likeN?' <span>'+likeN+'</span>':'')+'</button>'
+    +'<button class="moment-action-btn '+liked+'" onclick="_likeMoment(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="'+(m.liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'+(likeN?' <span>'+likeN+'</span>':'')+'</button>'
     +'<button class="moment-action-btn" onclick="_toggleMCmt(\''+m.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(cmtN?' <span>'+cmtN+'</span>':'')+'</button>'
     +'</div>'
-    +'<div class="moment-comments hidden" id="mc-'+m.id+'">'
-    +'<div class="mc-cmt-list">'+cmtHtml+'</div>'
-    +'<div class="mc-cmt-bar"><input class="mc-cmt-input" placeholder="写评论..." id="mci-'+m.id+'"><button class="mc-cmt-send" onclick="_submitMCmt(\''+m.id+'\')">发送</button></div>'
+    +'<div class="moment-comments" id="mc-'+m.id+'" hidden>'
+    +cmtHtml
+    +'<div class="moment-comment-input"><input placeholder="写评论..." id="mci-'+m.id+'"><button onclick="_submitMCmt(\''+m.id+'\')">发送</button></div>'
     +'</div></div>';
 }
 function _fmtMTime(ts){
@@ -8227,8 +8235,8 @@ function _fmtMTime(ts){
 function _toggleMCmt(id){
   var el=$('mc-'+id);
   if(!el)return;
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')){var inp=$('mci-'+id);if(inp)inp.focus()}
+  el.hidden=!el.hidden;
+  if(!el.hidden){var inp=$('mci-'+id);if(inp)inp.focus()}
 }
 function _likeMoment(id){
   var m=_mData.find(function(x){return x.id===id});
@@ -8249,26 +8257,24 @@ function _delMoment(id){
 }
 function openMLightbox(src){
   var lb=$('momentLightbox'),img=$('momentLightboxImg');
-  img.src=src;lb.classList.remove('hidden');
-  lb.onclick=function(e){if(e.target===lb||e.target===$('momentLightboxClose'))lb.classList.add('hidden')};
+  img.src=src;lb.classList.add('show');
+  lb.onclick=function(e){if(e.target===lb||e.target===$('momentLightboxClose'))lb.classList.remove('show')};
 }
 function openMomentsCompose(){
   _mCompImgs=[];_renderMCompImgs();
   $('momentsCompTxt').value='';
-  $('momentsCompose').classList.remove('hidden');
-  $('momentsCompose').classList.add('active');
+  $('momentsCompose').classList.add('show');
   $('momentsCompTxt').focus();
 }
 function closeMomentsCompose(){
-  $('momentsCompose').classList.add('hidden');
-  $('momentsCompose').classList.remove('active');
+  $('momentsCompose').classList.remove('show');
   _mCompImgs=[];
 }
 function _renderMCompImgs(){
   var g=$('momentsCompImgs');
   if(!_mCompImgs.length){g.innerHTML='';return}
   g.innerHTML=_mCompImgs.map(function(src,i){
-    return '<div class="mc-img-thumb"><img src="'+src+'" alt=""><button class="mc-img-rm" onclick="_mCompImgs.splice('+i+',1);_renderMCompImgs()">×</button></div>';
+    return '<div class="moments-compose-thumb"><img src="'+src+'" alt=""><button class="remove-img" onclick="_mCompImgs.splice('+i+',1);_renderMCompImgs()">×</button></div>';
   }).join('');
 }
 function _handleMCompImgs(files){
@@ -8300,11 +8306,11 @@ $('momentsPostBtn').addEventListener('click',_postMoment);
 $('momentsFilterXiaoyan').addEventListener('click',function(){_setMFilter('xiaoyan')});
 $('momentsFilterXiaoyi').addEventListener('click',function(){_setMFilter('xiaoyi')});
 $('momentsCompFileInput').addEventListener('change',function(){_handleMCompImgs(this.files);this.value=''});
-$('momentLightboxClose').addEventListener('click',function(){$('momentLightbox').classList.add('hidden')});
-document.querySelectorAll('.mc-cmt-input').forEach(function(inp){
-  inp.addEventListener('keydown',function(e){
-    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();var id=this.id.replace('mci-','');_submitMCmt(id)}
-  });
+$('momentLightboxClose').addEventListener('click',function(){$('momentLightbox').classList.remove('show')});
+$('momentsFeed').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey&&e.target.matches&&e.target.matches('.moment-comment-input input')){
+    e.preventDefault();var id=e.target.id.replace('mci-','');_submitMCmt(id);
+  }
 });
 
 /* ── Home page wiring ── */
