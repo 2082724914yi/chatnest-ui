@@ -4330,6 +4330,10 @@ function openTraceSheet(row){const phases=_getPhases(row);if(!phases.length)retu
 function _showThoughtProcess(phase){const s=$('thoughtSheet');const t=s.querySelector('.sheet-title');if(t)t.textContent='Thought process';const c=$('thoughtContent');c.style.whiteSpace='';c.textContent=phase.processText||phase.summary||'';if(phase.status==='running')s.dataset.live='1';else delete s.dataset.live;sheet('thought',true)}
 function _showToolDetail(phase){const t=$('thoughtSheet').querySelector('.sheet-title');if(t)t.textContent=phase.toolName||'Tool';const c=$('thoughtContent');c.innerHTML='';const lab='font-weight:600;font-size:13px;opacity:.6;margin:0 0 6px';const pre='font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;background:var(--bg-sunken);padding:8px 10px;border-radius:8px;color:var(--text-primary);margin:0';const inT=document.createElement('div');inT.style.cssText=lab;inT.textContent='Input';const inB=document.createElement('pre');inB.style.cssText=pre+';margin-bottom:14px;max-height:280px;overflow-y:auto;overflow-x:hidden';try{inB.textContent=typeof phase.toolInput==='string'?phase.toolInput:JSON.stringify(phase.toolInput,null,2)}catch(e){inB.textContent=String(phase.toolInput||'')}const outT=document.createElement('div');outT.style.cssText=lab;outT.textContent='Output';const outB=document.createElement('pre');outB.style.cssText=pre+';max-height:400px;overflow-y:auto;overflow-x:hidden';outB.textContent=phase.toolOutput||'(\u65e0\u8f93\u51fa)';c.append(inT,inB,outT,outB);sheet('thought',true)}
 function _showSummary(phases){
+ // 一轮里每次工具调用之间都会冒出一段 think，堆一长条太吵。
+ // 她要的是最后那一段 —— 把话说完/工具跑完之后的那个，中间的收起来。
+ const _lastThink=[...phases].reverse().find(p=>p.type==='thinking');
+ if(_lastThink)phases=phases.filter(p=>p.type!=='thinking'||p===_lastThink);
  const t=$('thoughtSheet').querySelector('.sheet-title');
  if(t)t.textContent='Summary';
  const c=$('thoughtContent');
