@@ -8851,10 +8851,12 @@ function _renderMCard(m){
   var likeN=m.likes||0;
   var cmtN=(m.comments||[]).length;
   var likeText='';
-  if(likeN>0){
-    // liked 是「当前这台设备上的人点没点」，而用这个界面的只有小懿；
-    // 小衍发帖走聊天工具，没有点赞的路子。所以点出来的赞只可能是小懿的。
-    var liker='小懿';
+  // 两个人的赞分开记：liked 是这台设备上的她点的，liked_xy 是小衍用工具点的
+  var likers=[];
+  if(m.liked)likers.push('小懿');
+  if(m.liked_xy)likers.push('小衍');
+  if(likers.length){
+    var liker=likers.join('、');
     likeText='<div class="moment-like-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>liked by <b>'+liker+'</b></div>';
   }
   var cmtHtml='';
