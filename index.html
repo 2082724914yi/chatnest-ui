@@ -476,7 +476,7 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 .msg-user .bubble,.msg-claude .ai-bubble{position:relative}
 .composer-wrap{position:fixed;left:0;right:0;bottom:0;z-index:26;flex:none;padding:var(--space-2) var(--page-pad) max(calc(env(safe-area-inset-bottom,0px) + var(--space-3)),calc(20px + var(--space-3)));background:transparent;pointer-events:none}.composer-wrap *{pointer-events:auto}
 .composer-box{max-width:580px;margin:0 auto var(--space-2);padding:8px 14px 6px;background:rgba(255,255,255,.18);border:0;border-radius:22px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 4px 16px rgba(74,55,40,.06);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4)}.composer-box.drag-over{box-shadow:var(--shadow-composer),inset 0 0 0 1.5px #D97757;background:rgba(217,119,87,.06)}.edit-banner{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) 0;margin-bottom:var(--space-2)}.edit-banner-text{flex:1;font-size:var(--text-sm);color:var(--text-secondary);line-height:1.4}.edit-banner-close{flex:none;width:24px;height:24px;display:grid;place-items:center;border-radius:var(--radius-full);color:var(--text-secondary);font-size:18px;line-height:1}.edit-banner-close:active{background:var(--bg-primary)}.composer{display:flex;flex-direction:column;gap:6px}.composer-input-row{width:100%;display:flex}.composer-actions{width:100%;display:flex;align-items:center;gap:var(--space-2)}.composer-spacer{flex:1}#input{width:100%;min-width:0;max-height:120px;padding:2px 0 2px 1px;border:0;outline:0;background:none;resize:none;font-size:14px;line-height:1.35;white-space:pre-wrap}#input::placeholder{color:rgba(74,55,40,.3);opacity:1;font-size:13px}#input::-webkit-input-placeholder{color:rgba(74,55,40,.3);opacity:1;font-size:13px}html[data-chat-bg="dark"] #input::placeholder,html[data-chat-bg="dark"] #input::-webkit-input-placeholder{color:rgba(255,255,255,.3)}html[data-chat-bg="light"] #input::placeholder,html[data-chat-bg="light"] #input::-webkit-input-placeholder{color:rgba(74,55,40,.3)}@media(prefers-color-scheme:dark){:root:not([data-chat-bg]) #input::placeholder,html:not([data-chat-bg]) #input::placeholder,:root:not([data-chat-bg]) #input::-webkit-input-placeholder,html:not([data-chat-bg]) #input::-webkit-input-placeholder{color:rgba(255,255,255,.3)}}@media(prefers-color-scheme:light){:root:not([data-chat-bg]) #input::placeholder,html:not([data-chat-bg]) #input::placeholder,:root:not([data-chat-bg]) #input::-webkit-input-placeholder,html:not([data-chat-bg]) #input::-webkit-input-placeholder{color:rgba(0,0,0,.25)}}.composer-icon{width:var(--input-btn-size);height:var(--input-btn-size);flex:none;display:grid;place-items:center;border-radius:var(--radius-full);color:var(--text-primary)}.composer-icon:active{background:var(--bg-sunken)}.model-capsule{max-width:210px;display:flex;align-items:center;gap:var(--space-2);padding:6px 12px;background:transparent;border:0;border-radius:16px;color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);font-size:14px;line-height:1.2;white-space:nowrap}.model-capsule:active{background:transparent;opacity:.62}html[data-chat-bg="dark"] .model-capsule{color:#fff}html[data-chat-bg="light"] .model-capsule{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}#modelCapsuleText{overflow:hidden;text-overflow:ellipsis}.model-capsule-arrow{color:var(--text-secondary)}.composer-outline-btn{width:var(--input-btn-size);height:var(--input-btn-size);flex:none;display:grid;place-items:center;border:0;border-radius:var(--radius-full);background:transparent;color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);-webkit-tap-highlight-color:transparent}.composer-outline-btn:active{opacity:.62}.composer-outline-btn svg{width:18px;height:18px}html[data-chat-bg="dark"] .composer-outline-btn{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20)}html[data-chat-bg="light"] .composer-outline-btn{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}@media(prefers-color-scheme:dark){html:not([data-chat-bg]) .composer-outline-btn{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}}@media(prefers-color-scheme:light){html:not([data-chat-bg]) .composer-outline-btn{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}}#send{width:var(--input-btn-size);height:var(--input-btn-size);flex:none;display:grid;place-items:center;border:0;border-radius:var(--radius-full);background:transparent;color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);-webkit-tap-highlight-color:transparent;transition:background var(--transition),box-shadow var(--transition),opacity var(--transition)}#send svg{width:20px;height:20px}#send.ready{color:var(--accent);box-shadow:none;background:transparent}#send.ready svg{fill:var(--accent);stroke:var(--accent)}#send:active{opacity:.62}#send:disabled{opacity:.35}html[data-chat-bg="dark"] #send{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20)}html[data-chat-bg="light"] #send{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}@media(prefers-color-scheme:dark){html:not([data-chat-bg]) #send{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}}@media(prefers-color-scheme:light){html:not([data-chat-bg]) #send{color:#1F1E1D;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}}#send.stop-mode{background:rgba(31,30,29,.72);color:#fff;opacity:1;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}html[data-chat-bg="light"] #send.stop-mode{background:rgba(31,30,29,.68);color:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}html[data-chat-bg="dark"] #send.stop-mode{background:rgba(255,255,255,.88);color:#1a1a1a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}.attachment-preview{display:flex;gap:var(--space-2);overflow-x:auto;padding:0 0 var(--space-2)}.attachment-chip{position:relative;flex:none;max-width:180px;display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2);background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-md)}.attachment-chip img{width:48px;height:48px;object-fit:cover;border-radius:var(--space-1)}.attachment-chip svg{width:22px;height:22px;color:var(--text-secondary)}.attachment-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--text-sm)}.attachment-remove{position:absolute;top:var(--space-1);right:var(--space-1);width:20px;height:20px;display:grid;place-items:center;background:var(--bg-sunken);border-radius:var(--radius-full)}.attachment-remove svg{width:12px;height:12px}.user-images{width:100%;display:flex;align-items:flex-end;justify-content:flex-end;gap:6px;margin-bottom:6px}.user-image{display:block;max-height:140px;min-width:0;border-radius:14px;object-fit:cover;flex:0 1 auto}.message-attachments{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-2)}.message-attachment{max-width:220px;display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2);background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-md)}.message-attachment img{display:block;max-width:180px;max-height:180px;object-fit:cover;border-radius:var(--space-1)}.message-attachment img:not([src]){min-width:120px;min-height:80px;background:var(--bg-sunken)}.message-attachment svg{width:20px;height:20px;flex:none;color:var(--text-secondary)}
-#jumpLatest{position:fixed;right:16px;z-index:27;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(255,255,255,.72);color:#1F1E1D;box-shadow:0 4px 14px rgba(74,55,40,.18),inset 0 0 0 1px rgba(255,255,255,.5);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);bottom:calc(96px + max(env(safe-area-inset-bottom,0px),20px));opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .18s,transform .18s;-webkit-tap-highlight-color:transparent}
+#jumpLatest{position:fixed;right:16px;z-index:27;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(255,255,255,.72);color:#1F1E1D;box-shadow:0 4px 14px rgba(74,55,40,.18),inset 0 0 0 1px rgba(255,255,255,.5);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);bottom:calc(var(--composer-h, 116px) + 12px);opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .18s,transform .18s;-webkit-tap-highlight-color:transparent}
 #jumpLatest.show{opacity:1;transform:none;pointer-events:auto}
 #jumpLatest:active{opacity:.6}
 html[data-chat-bg="dark"] #jumpLatest{background:rgba(40,38,36,.78);color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.14)}
@@ -2528,6 +2528,34 @@ function saveSettings(){localStorage.setItem('chat_model_settings',JSON.stringif
 function currentModel(){return state.models.find(x=>x.id===state.model)||state.models[0]}
 function modelSetting(model=currentModel()){const s=state.settings[model?.id];if(model?.thinking==='adaptive'||model?.thinking==='extended')return{effort:s?.effort||'medium',extended:s?.extended!==false};return{}}
 function updateSessionHeader(){if(!state.menuSession){$('sessionMenuTitle').textContent=state.currentTitle;$('starSession').firstChild.textContent=state.starred?'★ ':'☆ '}}
+// 输入框实际多高，底部留白和「跳到最新」的位置就跟着走。
+// 写死 120px 时，输入框一高（多行、带模型胶囊）就把最后一条消息的尾巴压住 ——
+// 她截图里那个「＞﹏＜」被切掉，就是这么来的。
+function syncStreamPad(){
+  try{
+    var c=document.querySelector('.composer-wrap'),st=document.getElementById('stream');
+    if(!c||!st)return;
+    var h=Math.ceil(c.getBoundingClientRect().height);
+    if(!h)return;
+    document.documentElement.style.setProperty('--composer-h',h+'px');
+    var want=(h+16)+'px';
+    if(st.style.paddingBottom!==want){
+      var root=document.scrollingElement||document.documentElement;
+      var wasBottom=(root.scrollHeight-window.scrollY-window.innerHeight)<=8;
+      st.style.paddingBottom=want;
+      if(wasBottom)scrollBottom();   // 留白变了别把她从底部挤走
+    }
+    _syncJumpBtn();
+  }catch(e){}
+}
+try{
+  if('ResizeObserver' in window){
+    var _cw=document.querySelector('.composer-wrap');
+    if(_cw)new ResizeObserver(syncStreamPad).observe(_cw);
+  }
+  window.addEventListener('resize',syncStreamPad,{passive:true});
+  syncStreamPad();
+}catch(e){}
 function scrollBottom(){
   // 别改成 lastChild.scrollIntoView({block:'end'})：#stream 底部留了 120px 给输入框，
   // 那样会稳定差这一截（实测 140px）。滚到 scrollHeight 才是真的底。
@@ -2546,32 +2574,38 @@ function _syncJumpBtn(){
 // 进会话时"滚到底"只滚一次是不够的：那一刻图片、头像、字体、代码块都还没撑开，
 // scrollHeight 偏小，滚到的是"当时的底"，内容长出来之后就变成停在上面甚至第一条。
 // 所以在一小段时间里跟着内容持续贴底 —— 但她手一碰就立刻放手，不跟她抢滚动条。
-let _stickStop=null;
-function scrollBottomSticky(ms=2000){
-  if(_stickStop)_stickStop();
-  let done=false;
-  const go=()=>{if(!done)scrollBottom()};
-  go();
-  requestAnimationFrame(go);
-  let ro=null;
-  try{if('ResizeObserver'in window){ro=new ResizeObserver(go);ro.observe(streamInner)}}catch(_){}
-  // 图片是最常见的"事后撑高"，每张加载完再对一次位
-  try{streamInner.querySelectorAll('img').forEach(im=>{if(!im.complete)im.addEventListener('load',go,{once:true})})}catch(_){}
-  const stop=()=>{
-    if(done)return;done=true;
-    try{if(ro)ro.disconnect()}catch(_){}
-    window.removeEventListener('wheel',stop);
-    window.removeEventListener('touchstart',stop);
-    window.removeEventListener('keydown',stop);
-    clearTimeout(timer);
-    if(_stickStop===stop)_stickStop=null;
-  };
-  const timer=setTimeout(stop,ms);
-  window.addEventListener('wheel',stop,{passive:true});
-  window.addEventListener('touchstart',stop,{passive:true});
-  window.addEventListener('keydown',stop);
-  _stickStop=stop;
+// 贴底是一个**状态**，不是一次动作。
+// 历史消息里 trace 卡片那行说明是异步 fetch 回来的（/api/tool-caption，逐个限流），
+// 回来一条卡片长高一次，能陆陆续续好几秒 —— 所以任何"限时贴底"都会在中途撒手，
+// 然后她就被甩在上面（她看到的"停在第一条"）。
+// 改成：只要她没往上滑，内容长多少我就跟多少；她一往上滑就撒手，滑回底部又接上。
+let _atBottom=true;
+function _gapToBottom(){
+  const root=document.scrollingElement||document.documentElement;
+  return root.scrollHeight-window.scrollY-window.innerHeight;
 }
+function scrollBottomSticky(){
+  _atBottom=true;
+  scrollBottom();
+  requestAnimationFrame(scrollBottom);
+  setTimeout(scrollBottom,60);
+}
+(function(){
+  // 她自己滚到哪儿，决定还跟不跟。程序滚到底后 gap≈0，状态照样是"贴底"。
+  window.addEventListener('scroll',function(){
+    _atBottom=_gapToBottom()<=40;
+    _syncJumpBtn();
+  },{passive:true});
+  // 内容一长高就跟上 —— 图片、trace 卡片、caption，来多晚都跟得住
+  try{
+    if('ResizeObserver' in window){
+      new ResizeObserver(function(){
+        if(_atBottom)scrollBottom();
+        else _syncJumpBtn();
+      }).observe(streamInner);
+    }
+  }catch(e){}
+})();
 function appendDisclaimer(){return}
 async function greeting(){try{const r=await fetch('/api/splash');if(r.ok)return(await r.json()).line}catch{}return''}
 async function resetEmpty(){state.convId=null;state.legacySessionId=null;state.currentTitle='新对话';state.starred=false;localStorage.removeItem('chat_conversation');localStorage.removeItem('chat_session');streamInner.innerHTML=`<div class="empty" id="empty"><div class="empty-line"></div></div>`;$('empty').querySelector('.empty-line').textContent=await greeting()||'say something to 小衍...';input.placeholder='say something to 小衍...';updateSessionHeader()}
