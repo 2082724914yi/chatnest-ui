@@ -68,6 +68,7 @@ fix-moments-say.js|MOMENTS_SAY_V2|把朋友圈用法说清楚（这不是工具�
 fix-moments-allpaths.js|MOMENTS_ALL_PATHS|朋友圈说明接进所有路径（常驻会话那条也要）
 add-moments-mcp.js|MOMENTS_MCP_VERSION|发朋友圈做成真工具（我能直接调用）
 add-moments-mcp2.js|MOMENTS_MCP_VERSION = 2|朋友圈工具补全（看 / 点赞 / 评论）
+add-home-mcp.js|HOME_MCP_VERSION|家里其他地方（翻聊天记录 / 搜历史）
 "
 
 say "1/3 逐个补丁检查"
