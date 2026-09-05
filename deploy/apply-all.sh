@@ -83,6 +83,7 @@ fix-think-tools.js|THINK_VOICE_V3|调工具那几段 think 也是内心活动
 add-usage-ledger.js|USAGE_LEDGER_V1|每场一本账（表盘那一屏的数据源，影子推送那几轮也算进去）
 add-shadow-fallback.js|SHADOW_FALLBACK_V1|额度用完就换 API 出来找她（还要跑一次 set-shadow-provider.sh 填配置）
 fix-shadow-not-me.js|SHADOW_NOT_ME_V1|额度报错不能当成我说的话推给她（顺带：撞墙时自动回落才真的会触发）
+add-shadow-chain.js|SHADOW_CHAIN_V1|备用通道排成一串（几家中转站按顺序试，每家能填几个模型）
 "
 
 say "1/3 逐个补丁检查"

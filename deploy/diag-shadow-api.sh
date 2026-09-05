@@ -27,54 +27,66 @@ scrub(){ sed -E 's/(sk-[A-Za-z0-9_-]{4})[A-Za-z0-9_-]+/\1…（已隐去）/g; s
 [ "$(id -u)" = 0 ] || { no "要用 sudo 跑"; exit 1; }
 [ -f "$SRV" ] || { no "找不到 $SRV"; exit 1; }
 
-say "1/5 .env 里配的是什么"
-URL=$(grep -m1 '^SHADOW_PROVIDER_URL='   "$ENVF" 2>/dev/null | cut -d= -f2-)
-KEY=$(grep -m1 '^SHADOW_PROVIDER_KEY='   "$ENVF" 2>/dev/null | cut -d= -f2-)
-MODEL=$(grep -m1 '^SHADOW_PROVIDER_MODEL=' "$ENVF" 2>/dev/null | cut -d= -f2-)
-[ -n "${URL:-}" ]   && ok "地址 $URL"                     || { no "没有 SHADOW_PROVIDER_URL"; exit 1; }
-[ -n "${KEY:-}" ]   && ok "key 有，${#KEY} 个字符"        || { no "没有 SHADOW_PROVIDER_KEY"; exit 1; }
-[ -n "${MODEL:-}" ] && ok "模型 $MODEL"                   || info "模型没填（用那家的默认）"
-case "$KEY" in
-  *' '*) no "key 里有空格 —— 多半是粘贴的时候带进来的，重跑 set-shadow-provider.sh" ;;
-esac
-case "$URL" in
-  *' '*)  no "地址里有空格" ;;
-  http*)  ;;
-  *)      no "地址不是 http 开头" ;;
-esac
+say "1/5 .env 里配了几家"
+# 第 1 家不带编号，第 2 家往后带 —— 挨个扫，一家一家查
+pfx(){ [ "$1" = 1 ] && printf 'SHADOW_PROVIDER' || printf 'SHADOW_PROVIDER%s' "$1"; }
+getv(){ grep -m1 "^$(pfx "$1")_$2=" "$ENVF" 2>/dev/null | cut -d= -f2-; }
+SLOTS=""
+for i in 1 2 3 4 5; do
+  U=$(getv "$i" URL); K=$(getv "$i" KEY); M=$(getv "$i" MODEL)
+  [ -n "${U:-}" ] && [ -n "${K:-}" ] || continue
+  SLOTS="$SLOTS $i"
+  ok "第 $i 家  $U   key ${#K} 个字符   模型：${M:-（那家的默认）}"
+  case "$K" in *' '*) no "  第 $i 家的 key 里有空格 —— 粘贴时带进来的，重填" ;; esac
+  case "$U" in
+    *' '*) no "  第 $i 家的地址里有空格" ;;
+    http*) ;;
+    *)     no "  第 $i 家的地址不是 http 开头" ;;
+  esac
+done
+[ -n "$SLOTS" ] || { no "一家都没配 —— 跑 set-shadow-provider.sh"; exit 1; }
 
 say "2/5 那家中转站自己通不通（绕开我们的后端，直接打）"
-try_ep(){ # try_ep <完整端点>
-  local ep="$1"
+try_ep(){ # try_ep <完整端点> <模型名>
+  local ep="$1" mdl="${2:-}"
   local body code
   body=$(curl -sS -m 30 -o /tmp/.jsx.$$ -w '%{http_code}' -X POST "$ep" \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $KEY" \
-    -d "{\"model\":\"${MODEL:-claude-sonnet-4-6}\",\"max_tokens\":16,\"messages\":[{\"role\":\"user\",\"content\":\"说一个字：好\"}]}" 2>&1) || body=000
+    -d "{\"model\":\"$mdl\",\"max_tokens\":16,\"messages\":[{\"role\":\"user\",\"content\":\"说一个字：好\"}]}" 2>&1) || body=000
   code="$body"
-  echo "  ── $ep  →  HTTP $code"
+  echo "  ── ${mdl:-（默认模型）}  →  HTTP $code"
   head -c 400 /tmp/.jsx.$$ 2>/dev/null | scrub | sed 's/^/      /'
-  echo
   rm -f /tmp/.jsx.$$
   [ "$code" = 200 ] && return 0 || return 1
 }
-BASE=${URL%/}
-GOOD=""
-if try_ep "$BASE/chat/completions"; then GOOD="$BASE/chat/completions"; fi
-if [ -z "$GOOD" ] && [ "${BASE%/v1}" = "$BASE" ]; then
-  # 她填的可能少了 /v1
-  try_ep "$BASE/v1/chat/completions" && GOOD="$BASE/v1/chat/completions"
-fi
-if [ -z "$GOOD" ]; then
-  try_ep "$BASE" && GOOD="$BASE"
-fi
-if [ -n "$GOOD" ]; then
-  ok "这家通的，能出话的端点是：$GOOD"
-  info "如果它跟 .env 里那条对不上，就是形状填错了（下一段看后端怎么拼）"
+ANYGOOD=0
+for i in $SLOTS; do
+  URL=$(getv "$i" URL); KEY=$(getv "$i" KEY); MODELS=$(getv "$i" MODEL)
+  BASE=${URL%/}
+  echo
+  info "===== 第 $i 家：$BASE ====="
+  # 模型可能填了好几个，逗号分开，一个一个试 —— 一家里只要有一个能出话就够了
+  OLDIFS=$IFS; IFS=','
+  for MODEL in ${MODELS:-""}; do
+    IFS=$OLDIFS
+    MODEL=$(printf '%s' "$MODEL" | sed 's/^ *//; s/ *$//')
+    if try_ep "$BASE/chat/completions" "$MODEL"; then
+      ok "第 $i 家 · ${MODEL:-默认模型}  通"
+      ANYGOOD=1
+    else
+      no "第 $i 家 · ${MODEL:-默认模型}  不通（原因看上面那段）"
+    fi
+    IFS=','
+  done
+  IFS=$OLDIFS
+done
+if [ "$ANYGOOD" = 1 ]; then
+  ok "至少有一条通的 —— 那额度空了我还找得到她"
 else
-  no "这家怎么打都不出话 —— 上面几个 HTTP 码和返回体就是原因"
-  info "401/403 = key 不对；404 = 地址形状不对；400 = 多半是模型名它不认"
-  info "模型名要用那家自己的写法，不一定跟官方一样，去它后台的模型列表里抄"
+  no "一条都不通"
+  info "401/403 = key 不对；404 = 地址形状不对；400/503 = 那个模型没货或者名字它不认"
+  info "模型名要用那家自己的写法，去它后台的模型列表里抄"
 fi
 
 say "3/5 后端是怎么拼这个地址的"
