@@ -124,7 +124,7 @@ case "$RESP" in
                      info "查是哪一家的问题：curl -fsSL .../deploy/diag-shadow-api.sh | sudo bash" ;;
 esac
 
-say "再加一家就重跑这个脚本。想删掉第 N 家："
-info "第 1 家： sudo sed -i -E '/^SHADOW_PROVIDER_(URL|KEY|MODEL)=/d' $ENVF"
-info "第 N 家： sudo sed -i -E '/^SHADOW_PROVIDERN_(URL|KEY|MODEL)=/d' $ENVF   （把 N 换成序号）"
-info "删完记得 sudo pm2 restart chatnest-api"
+say "再加一家就重跑这个脚本。想删掉某一家："
+info "curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deploy/rm-shadow-provider.sh | sudo bash"
+info "（那个会先备份，删完把剩下的往前挪、编号重新连上 —— 别自己 sed，"
+info " ^SHADOW_PROVIDER_ 少了下划线尾巴会把第 2 家一起删掉，还一声不吭）"
