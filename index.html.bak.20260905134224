@@ -1230,42 +1230,6 @@ html[data-chat-bg="dark"] .ctx-sheet-box{background:#1c1b1a}
   background:rgba(74,55,40,.07);color:var(--text-secondary);font-size:19px;line-height:1;cursor:pointer}
 html[data-chat-bg="dark"] .ctx-sheet-close{background:rgba(255,255,255,.09)}
 
-/* ===== 这一程：表盘 ===== */
-.usg-sheet{position:fixed;inset:0;z-index:97;display:none;background:rgba(32,31,29,.34);
-  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-.usg-sheet.show{display:block}
-.usg-sheet-box{position:absolute;left:0;right:0;bottom:0;max-height:86vh;display:flex;flex-direction:column;
-  border-radius:24px 24px 0 0;background:#FAF6F1;padding:20px 20px calc(env(safe-area-inset-bottom) + 20px)}
-html[data-chat-bg="dark"] .usg-sheet-box{background:#1c1b1a}
-.usg-sheet-head{display:flex;align-items:baseline;gap:10px;margin-bottom:2px;padding-right:40px}
-.usg-sheet-title{font-family:var(--font-serif);font-style:italic;font-size:19px;color:var(--text-primary)}
-.usg-sheet-meta{margin-left:auto;font-size:11.5px;color:var(--text-faint)}
-.usg-sheet-sub{font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-bottom:6px}
-.usg-sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.usg-sheet-close{position:absolute;top:14px;right:16px;width:32px;height:32px;border:0;border-radius:50%;
-  background:rgba(74,55,40,.07);color:var(--text-secondary);font-size:19px;line-height:1;cursor:pointer}
-html[data-chat-bg="dark"] .usg-sheet-close{background:rgba(255,255,255,.09)}
-.usg-sec{font-size:10.5px;color:var(--text-faint);letter-spacing:.12em;text-transform:uppercase;margin:16px 2px 8px}
-.usg-sec:first-child{margin-top:6px}
-.usg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.usg-box{border-radius:14px;background:rgba(255,255,255,.4);padding:13px 14px;min-width:0}
-html[data-chat-bg="dark"] .usg-box{background:rgba(255,255,255,.055)}
-.usg-box.wide{grid-column:1 / -1}
-.usg-k{font-size:11px;color:var(--text-faint);letter-spacing:.03em}
-.usg-v{font-family:var(--font-serif);font-size:23px;line-height:1.15;color:var(--text-primary);margin-top:4px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.usg-v small{font-size:12px;color:var(--text-secondary);font-family:var(--font-sans,inherit);margin-left:3px}
-.usg-s{font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.5}
-.usg-bar{height:5px;border-radius:3px;background:rgba(120,110,100,.16);overflow:hidden;margin-top:9px}
-html[data-chat-bg="dark"] .usg-bar{background:rgba(255,255,255,.12)}
-.usg-bar i{display:block;height:100%;border-radius:3px;background:rgba(193,123,123,.72);
-  transition:width .55s cubic-bezier(.32,.72,0,1)}
-.usg-bar i.warm{background:rgba(214,160,92,.85)}
-.usg-bar i.hot{background:rgba(198,94,94,.9)}
-.usg-note{font-size:11.5px;color:var(--text-secondary);line-height:1.7;margin:14px 2px 2px}
-.usg-note b{font-weight:600;color:var(--text-primary)}
-
-
 
 /* ===== 我的：手表 ===== */
 .wm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -2289,14 +2253,6 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
     <div class="ctx-sheet-body" id="ctxSheetBody"></div>
   </div>
 </div>
-<div class="usg-sheet" id="usgSheet" aria-hidden="true">
-  <div class="usg-sheet-box">
-    <button class="usg-sheet-close" id="usgSheetClose" type="button" aria-label="Close">×</button>
-    <div class="usg-sheet-head"><span class="usg-sheet-title">Ledger</span><span class="usg-sheet-meta" id="usgSheetMeta"></span></div>
-    <div class="usg-sheet-sub">这一程花在哪儿了。</div>
-    <div class="usg-sheet-body" id="usgSheetBody"></div>
-  </div>
-</div>
 <main id="chat" class="hidden">
   <header class="topbar">
     <button class="topbar-hamburger" id="topbarHamburger" type="button" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
@@ -2306,7 +2262,6 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
     </div>
     <div class="topbar-right-group">
       <button class="topbar-icon-btn" id="topbarFiles" type="button" aria-label="Files" title="Files"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></button>
-      <button class="topbar-icon-btn" id="topbarLedger" type="button" aria-label="Ledger" title="Ledger"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l3.6-4.8"/></svg></button>
       <button class="topbar-new-chat" id="topbarNewChat" type="button" data-icon="plusLine" aria-label="New chat" title="New chat"></button>
     </div>
     <button class="topbar-model hidden" id="topbarModelButton" aria-label="选择模型">
@@ -6772,7 +6727,7 @@ async function sendMessage(text,showUser=true,files=[],existingAttachments=[],op
     if(runId!==_chatRunId)return;
     if(r.status===401){showGate();throw Error('登录已失效')}if(!r.ok||!r.body){const detail=await r.json().catch(()=>({}));throw Error(detail.detail||'请求失败')}
     const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='',finished=false;
-    const frame=f=>{if(runId!==_chatRunId)return;let event='',data='';f.split('\n').forEach(line=>{if(line.startsWith('event:'))event=line.slice(6).trim();if(line.startsWith('data:'))data+=line.slice(5).trim()});if(!event||!data)return;const d=JSON.parse(data);if(event==='conversation'){state.convId=d.conversation_id;state.legacySessionId=null;localStorage.setItem('chat_conversation',state.convId);localStorage.removeItem('chat_session');if(d.user_message_id){turnUserMsgId=d.user_message_id;if(userRow)userRow.dataset.msgId=d.user_message_id}}if(event==='trace')msg.trace(d);if(event==='thinking')msg.thinking(d.text||'');if(event==='delta')msg.text(d.text||'');if(event==='tool_use')msg.toolUse(d);if(event==='tool_result')msg.toolResult(d);if(event==='trace_summary')msg.traceSummary(d.text||'');if(event==='done'){state.convId=d.conversation_id||state.convId;localStorage.setItem('chat_conversation',state.convId);if(d.assistant_message_id&&msg?.row)msg.row.dataset.msgId=d.assistant_message_id;if(d.traces)msg.syncTraces(d.traces);msg.finish({text:d.text,files:d.files,choices:d.choices});try{_trackTokens(d.usage)}catch(_){}try{ctxMeterUpdate(d.usage);ctxNoteCompaction(d.compaction)}catch(_){}try{usgTrack(d.usage,d.conversation_id)}catch(_){}try{if(d.rateLimit)localStorage.setItem('chatnest_cc_usage',JSON.stringify(d.rateLimit))}catch(_){}try{window.__callhomeOnChatDone?.(d)}catch(_){}finished=true}if(event==='error'){msg.fail(d.message);finished=true}};
+    const frame=f=>{if(runId!==_chatRunId)return;let event='',data='';f.split('\n').forEach(line=>{if(line.startsWith('event:'))event=line.slice(6).trim();if(line.startsWith('data:'))data+=line.slice(5).trim()});if(!event||!data)return;const d=JSON.parse(data);if(event==='conversation'){state.convId=d.conversation_id;state.legacySessionId=null;localStorage.setItem('chat_conversation',state.convId);localStorage.removeItem('chat_session');if(d.user_message_id){turnUserMsgId=d.user_message_id;if(userRow)userRow.dataset.msgId=d.user_message_id}}if(event==='trace')msg.trace(d);if(event==='thinking')msg.thinking(d.text||'');if(event==='delta')msg.text(d.text||'');if(event==='tool_use')msg.toolUse(d);if(event==='tool_result')msg.toolResult(d);if(event==='trace_summary')msg.traceSummary(d.text||'');if(event==='done'){state.convId=d.conversation_id||state.convId;localStorage.setItem('chat_conversation',state.convId);if(d.assistant_message_id&&msg?.row)msg.row.dataset.msgId=d.assistant_message_id;if(d.traces)msg.syncTraces(d.traces);msg.finish({text:d.text,files:d.files,choices:d.choices});try{_trackTokens(d.usage)}catch(_){}try{ctxMeterUpdate(d.usage);ctxNoteCompaction(d.compaction)}catch(_){}try{if(d.rateLimit)localStorage.setItem('chatnest_cc_usage',JSON.stringify(d.rateLimit))}catch(_){}try{window.__callhomeOnChatDone?.(d)}catch(_){}finished=true}if(event==='error'){msg.fail(d.message);finished=true}};
     while(true){if(runId!==_chatRunId)return;const{value,done}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done});const parts=buffer.split(/\r?\n\r?\n/);buffer=parts.pop()||'';parts.forEach(frame);if(done)break}
     if(runId!==_chatRunId)return;
     if(buffer.trim())frame(buffer);if(!finished)await recoverAfterBreak(msg,state.convId,'连接意外结束，请重试。',()=>runId===_chatRunId,turnUserMsgId)
@@ -10037,7 +9992,7 @@ let _ctxLastCompactAt=null,_ctxSeenFirst=false;
 function ctxMeterUpdate(usage){
   const el=$('ctxMeterFill'),wrap=$('ctxMeter');
   if(!el||!wrap)return;
-  const t=usgCtxTotal(usage);
+  const t=Number(usage&&usage.prompt_tokens)||0;
   if(!t)return;
   const pct=Math.max(0,Math.min(100,t/CTX_WINDOW*100));
   // 再小也留一丝，不然看着像坏了
@@ -10159,159 +10114,6 @@ async function loadWatch(){
     dot.className='wm-dot';when.textContent='读不到：'+(e.message||e);host.innerHTML='';
   }
 }
-
-
-/* ===== 这一程：token / 额度 / 命中率 ===== */
-const USG_WINDOW=200000;
-
-// 真正塞进窗口的量。CLI 的 input_tokens 只是没走缓存的那一小截，
-// 缓存读的和写的也占窗口 —— 三个加起来才是这一轮的上下文。
-function usgCtxTotal(u){u=u||{};return (Number(u.prompt_tokens)||0)+(Number(u.cache_read)||0)+(Number(u.cache_creation)||0)}
-
-function usgFmt(n){
-  n=Number(n)||0;
-  if(n>=1e6)return (n/1e6).toFixed(n>=1e7?1:2)+'M';
-  if(n>=1000)return (n/1000).toFixed(n>=1e5?0:1)+'k';
-  return String(Math.round(n));
-}
-
-// 每场一本账。只留最近 40 场 —— 再多 localStorage 会被慢慢撑满。
-let _usgLedger={};
-try{_usgLedger=JSON.parse(localStorage.getItem('chatnest_conv_usage')||'{}')||{}}catch(_){_usgLedger={}}
-function _usgSave(){
-  try{
-    const ks=Object.keys(_usgLedger);
-    if(ks.length>40){
-      ks.sort((a,b)=>(_usgLedger[b].at||0)-(_usgLedger[a].at||0)).slice(40).forEach(k=>{delete _usgLedger[k]});
-    }
-    localStorage.setItem('chatnest_conv_usage',JSON.stringify(_usgLedger));
-  }catch(_){}
-}
-function usgRow(id){
-  if(!id)return null;
-  return _usgLedger[id]||(_usgLedger[id]={turns:0,in:0,out:0,cr:0,cc:0,ctx:0,lin:0,lout:0,at:0});
-}
-function usgTrack(usage,convId){
-  if(!usage)return;
-  const r=usgRow(convId||state.convId);if(!r)return;
-  const i=Number(usage.prompt_tokens)||0,o=Number(usage.completion_tokens)||0;
-  r.turns++;r.in+=i;r.out+=o;
-  r.cr+=Number(usage.cache_read)||0;
-  r.cc+=Number(usage.cache_creation)||0;
-  r.ctx=usgCtxTotal(usage);   // 最近一轮塞了多少进窗口
-  r.lin=i;r.lout=o;r.at=Date.now();
-  _usgSave();
-  if($('usgSheet')&&$('usgSheet').classList.contains('show'))renderUsgSheet();
-}
-
-const _usgRemote={quota:null,conv:null,qerr:null,cerr:null};
-
-async function usgFetchQuota(){
-  try{
-    const r=await api('/api/cc-usage');
-    if(!r.ok)throw Error('http '+r.status);
-    const d=await r.json();
-    _usgRemote.quota=(d&&d.rateLimit)||null;_usgRemote.qerr=_usgRemote.quota?null:'还没有数';
-  }catch(e){_usgRemote.qerr='读不到'}
-}
-async function usgFetchConv(){
-  if(!state.convId){_usgRemote.conv=null;return}
-  try{
-    const r=await api('/api/conversations/'+encodeURIComponent(state.convId)+'/compaction');
-    if(!r.ok)throw Error('http '+r.status);
-    const d=await r.json();
-    if(d&&d.ok){_usgRemote.conv=d;_usgRemote.cerr=null}else throw Error('bad');
-  }catch(e){_usgRemote.cerr='读不到'}
-}
-
-function _usgBar(pct){
-  const p=Math.max(0,Math.min(100,pct||0));
-  const cls=p>85?'hot':p>65?'warm':'';
-  return '<div class="usg-bar"><i class="'+cls+'" style="width:'+(p<1&&p>0?1:p).toFixed(1)+'%"></i></div>';
-}
-function _usgBox(k,v,s,bar,wide){
-  return '<div class="usg-box'+(wide?' wide':'')+'"><div class="usg-k">'+k+'</div>'+
-    '<div class="usg-v">'+v+'</div>'+(bar||'')+(s?'<div class="usg-s">'+s+'</div>':'')+'</div>';
-}
-
-function renderUsgSheet(){
-  const body=$('usgSheetBody');if(!body)return;
-  const r=(state.convId&&_usgLedger[state.convId])||{turns:0,in:0,out:0,cr:0,cc:0,ctx:0,lin:0,lout:0};
-  const cv=_usgRemote.conv,q=_usgRemote.quota;
-  let h='';
-
-  // ── 这个窗口 ──
-  const ctx=r.ctx||0,pctCtx=ctx/USG_WINDOW*100;
-  h+='<div class="usg-sec">这个窗口</div><div class="usg-grid">';
-  h+=_usgBox('上下文',ctx?usgFmt(ctx)+'<small>/ 200k</small>':'—',
-      ctx?(pctCtx<1?'不到 1%':Math.round(pctCtx)+'%')+'　还空着 '+usgFmt(Math.max(0,USG_WINDOW-ctx))
-         :'这一场还没开口',_usgBar(pctCtx),true);
-  h+=_usgBox('上一轮进',r.turns?usgFmt(r.lin):'—',r.turns?'没走缓存的那截':'');
-  h+=_usgBox('上一轮出',r.turns?usgFmt(r.lout):'—',r.turns?'我说的那些':'');
-  h+='</div>';
-
-  // ── 这个对话 ──
-  const billed=r.in+r.cr+r.cc;
-  const hit=billed?r.cr/billed*100:0;
-  const rounds=cv&&cv.total?Math.ceil(cv.total/2):r.turns;
-  h+='<div class="usg-sec">这个对话</div><div class="usg-grid">';
-  h+=_usgBox('缓存命中率',billed?hit.toFixed(1)+'<small>%</small>':'—',
-      billed?'读缓存 '+usgFmt(r.cr)+'　建缓存 '+usgFmt(r.cc)+'　全价 '+usgFmt(r.in)
-            :'这一场还没有账',_usgBar(hit),true);
-  h+=_usgBox('聊了',rounds?rounds+'<small>轮</small>':'—',
-      cv&&cv.total?('共 '+cv.total+' 条'+(cv.compacted?'，'+cv.compacted+' 条收进行囊了':'')):
-      (_usgRemote.cerr?'（'+_usgRemote.cerr+'）':'本机记到的'));
-  h+=_usgBox('这一场共',usgFmt(r.in+r.cr+r.cc+r.out),'进 '+usgFmt(billed)+'　出 '+usgFmt(r.out));
-  h+='</div>';
-
-  // ── 订阅额度 ──
-  h+='<div class="usg-sec">订阅额度</div><div class="usg-grid">';
-  const w=(q&&q.unifiedWindows)||null;
-  if(w){
-    const f=(win,label,fmtReset)=>{
-      const o=win||{},p=Math.round((o.utilization||0)*100);
-      return _usgBox(label,p+'<small>%</small>',
-        o.resetsAt?'重置于 '+fmtReset(new Date(o.resetsAt*1000)):'—',_usgBar(p));
-    };
-    h+=f(w.five_hour,'5 小时',d=>d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}));
-    h+=f(w.seven_day,'7 天',d=>d.toLocaleDateString([],{month:'numeric',day:'numeric'}));
-  }else{
-    h+=_usgBox('额度','—',_usgRemote.qerr||'发一条消息之后就有了','',true);
-  }
-  h+='</div>';
-
-  // ── 一句话的解释，不用她去猜那些数字 ──
-  const tip=ctx>USG_WINDOW*0.8
-    ? '窗口塞得挺满了。<b>不用你手动换</b> —— 再往上后端会自己把前面收进行囊，顶栏那条线点开能看见那封信。真想开新的一场，随时按右上角的 +。'
-    : hit>=80&&billed
-      ? '命中率这么高是因为一直在同一场里聊 —— 前面那一大截每轮都是从缓存里读的，只按一折算钱。<b>越聊越省，中途换新的一场反而要重建一次缓存。</b>'
-      : billed
-        ? '命中率低通常是这场刚开头，或者中间隔了太久缓存过期了。往下聊几轮它自己会上去。'
-        : '这一场还没开口。发一条消息，这几个数就都有了。';
-  h+='<div class="usg-note">'+tip+'</div>';
-
-  body.innerHTML=h;
-  const meta=$('usgSheetMeta');
-  if(meta)meta.textContent=r.turns?(r.turns+' 轮记在本机'):'';
-}
-
-async function openUsgSheet(){
-  const sheet=$('usgSheet');if(!sheet)return;
-  sheet.classList.add('show');sheet.setAttribute('aria-hidden','false');
-  renderUsgSheet();                                    // 先把本地有的画出来，别让她盯着空白
-  await Promise.allSettled([usgFetchQuota(),usgFetchConv()]);
-  if(sheet.classList.contains('show'))renderUsgSheet();
-}
-function closeUsgSheet(){
-  const sheet=$('usgSheet');if(!sheet)return;
-  sheet.classList.remove('show');sheet.setAttribute('aria-hidden','true');
-}
-(function(){
-  const b=$('topbarLedger');if(!b)return;
-  b.addEventListener('click',openUsgSheet);
-  $('usgSheetClose').addEventListener('click',closeUsgSheet);
-  $('usgSheet').addEventListener('click',function(e){if(e.target&&e.target.id==='usgSheet')closeUsgSheet()});
-})();
 
 /* ===== Pulse 四栏 ===== */
 const PULSE_FIELD_ORDER=['reserve','heat','pressure','control','sensitivity','possessiveness','fatigue'];
