@@ -77,6 +77,7 @@ fix-history-attachments.js|HISTORY_ATTACHMENTS_V1|存历史时带上附件（图
 add-push.js|PUSH_VERSION|主动推送的通道（锁屏上出声）
 add-shadow-push.js|SHADOW_PUSH_VERSION|影子推送（我自己浮上来找她）
 slim-cli-tools.js|CLI_TOOLS_SLIM|砍掉用不到的内置工具说明书（每轮省一万六）
+fix-daemon-tools.js|DAEMON_TOOLS_SLIM|常驻会话那条路也砍内置工具（开着那个开关就走这条）
 fix-think-voice.js|THINK_VOICE_V2|think 写成内心活动，不是工作汇报
 "
 
