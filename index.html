@@ -1806,6 +1806,45 @@ html[data-chat-bg="dark"] .settings-overview-value,:root[data-theme="dark"] .set
   body{background:var(--claude-sidebar-bg)}
   .topbar{padding-left:max(env(safe-area-inset-left),var(--topbar-side-inset));padding-right:max(env(safe-area-inset-right),var(--topbar-side-inset))}
 }
+
+/* ===== 记忆页改成一层 + 标题跟主页一个调子 ===== */
+/* 这一整块特意放在样式表最末尾。前面那个压缩块里有一堆同名规则，同权重时
+   后来者赢 —— 之前写在前半段的那几条被压得一条都没生效。放这儿就不用抢。 */
+
+/* 中文标题：衬线、轻字重、拉开一点字距。
+   前面加个 body 是为了把权重顶到 (1,1,2) —— 页面里藏着一条
+   html[data-chat-bg] #memoryPanel 混在一长串选择器里，权重跟不加 body 时
+   正好打平、位置又在后面，所以上一版是被它压住的。是在浏览器里把所有匹配规则
+   列出来才看见的，光读源码找不到。 */
+html:not([data-chat-bg="dark"]) body .profile-title,
+html:not([data-chat-bg="dark"]) body #memoryPanel .profile-title{
+  font:500 22px/1.18 var(--font-serif-cn);font-style:normal;letter-spacing:.04em;color:#3b332b}
+/* 英文标题：斜体衬线 —— 跟主页那句引言一个调子。必须比上面那条更 specific，
+   不然上面的 font: 简写会把 italic 重置掉（这个坑刚踩过一次）。 */
+html:not([data-chat-bg="dark"]) body .profile-title.is-en,
+html:not([data-chat-bg="dark"]) body #memoryPanel .profile-title.is-en{
+  font:italic 500 23px/1.15 var(--font-serif);letter-spacing:.02em;color:#3b332b}
+/* 容器那条：加 body 顶过那串选择器 */
+html:not([data-chat-bg="dark"]) body #memoryPanel{color:#3b332b}
+
+/* 顶上那条切换：OB / Latent */
+.mem-tabs{display:flex;gap:8px;margin:2px 2px 14px}
+.mem-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:11px 8px;border:1px solid rgba(74,55,40,.14);border-radius:16px;
+  background:rgba(255,255,255,.26);color:#77736c;font-size:15px;line-height:1.25;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:background .2s,border-color .2s,color .2s}
+.mem-tab small{font:italic 400 11.5px/1.2 var(--font-serif);letter-spacing:.02em;opacity:.72}
+.mem-tab.active{border-color:rgba(155,90,90,.42);background:rgba(255,255,255,.52);color:#3b332b}
+.mem-tab:active{opacity:.75}
+html[data-chat-bg="dark"] .mem-tab{border-color:rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);color:rgba(244,243,239,.62)}
+html[data-chat-bg="dark"] .mem-tab.active{border-color:rgba(231,185,185,.4);
+  background:rgba(255,255,255,.12);color:#F4F3EF}
+@media(prefers-color-scheme:dark){
+  html[data-chat-bg="dark"] .mem-tab small{opacity:.8}
+}
+
 </style>
 
 <style>
@@ -2732,7 +2771,7 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
 </section>
 
 <section id="memoryPanel" aria-hidden="true">
-  <div class="profile-page active" id="memoryPicker">
+  <div class="profile-page" id="memoryPicker">
     <header class="profile-header">
       <button class="profile-round-button" id="closeMemoryPicker" type="button" aria-label="Close">×</button>
       <div class="profile-title">记忆</div>
@@ -2757,10 +2796,14 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
 
   <div class="profile-page" id="latentHome">
     <header class="profile-header">
-      <button class="profile-back-button" id="latentBack" type="button" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-      <div class="profile-title is-en">Latent</div>
+      <button class="profile-round-button" id="latentBack" type="button" aria-label="Close">×</button>
+      <div class="profile-title is-en">Memory</div>
       <button class="profile-round-button" id="latentRefresh" type="button" aria-label="Refresh">↻</button>
     </header>
+    <div class="mem-tabs" role="tablist">
+      <button class="mem-tab" data-mem-tab="obHome" type="button" role="tab"><span>记忆库</span><small>Ombre Brain</small></button>
+      <button class="mem-tab active" data-mem-tab="latentHome" type="button" role="tab"><span>全文</span><small>Latent</small></button>
+    </div>
     <div class="profile-section">
       <div class="pulse-section-title">翻一段</div>
       <div class="lt-search">
@@ -2779,12 +2822,16 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
     </div>
   </div>
 
-  <div class="profile-page" id="obHome">
+  <div class="profile-page active" id="obHome">
     <header class="profile-header">
       <button class="profile-round-button" id="closeMemoryOB" aria-label="Close">×</button>
-      <div class="profile-title is-en">Ombre Brain</div>
+      <div class="profile-title is-en">Memory</div>
       <div class="ob-header-actions"><button class="profile-round-button ob-refresh-btn" id="obToolsBtn" aria-label="Tools">🧰</button><button class="profile-round-button ob-refresh-btn" id="obRefreshBtn" aria-label="Refresh">↻</button></div>
     </header>
+    <div class="mem-tabs" role="tablist">
+      <button class="mem-tab active" data-mem-tab="obHome" type="button" role="tab"><span>记忆库</span><small>Ombre Brain</small></button>
+      <button class="mem-tab" data-mem-tab="latentHome" type="button" role="tab"><span>全文</span><small>Latent</small></button>
+    </div>
     <div class="ob-status" id="obStatus"><span class="ob-dot"></span><span class="ob-status-text">connecting…</span></div>
     <div class="ob-search-wrap"><div class="ob-search-bubble"><span class="ob-search-icon" id="obSearchIcon"></span><input class="ob-search-input" id="obSearchInput" type="text" placeholder="搜一段没说出口的话…" autocomplete="off" autocorrect="off" spellcheck="false"><button class="ob-search-clear hidden" id="obSearchClear" aria-label="Clear">×</button></div></div>
     <div class="ob-nav-grid" id="obNavGrid">
@@ -9878,8 +9925,9 @@ document.getElementById('homeBackBtn').addEventListener('click',backToHome);
 function openMemoryPicker(){
   var p=$('memoryPanel');
   p.classList.add('show');p.setAttribute('aria-hidden','false');
-  showProfilePage('memoryPicker');
-  refreshMemoryGates();
+  // 直接落在 OB —— 那个二选一的门不走了（DOM 还留着，没人再进）
+  showProfilePage('obHome');
+  loadOBData();
 }
 function closeMemoryPanel(){
   var p=$('memoryPanel');
@@ -9946,7 +9994,16 @@ async function latentDoSearch(){
   c.addEventListener('click',closeMemoryPanel);
   $('gateOB').addEventListener('click',function(){showProfilePage('obHome');loadOBData()});
   $('gateLatent').addEventListener('click',openLatentPage);
-  $('latentBack').addEventListener('click',function(){showProfilePage('memoryPicker');refreshMemoryGates()});
+  // 以前这个是「退回那个门」。门没了，就让它直接关掉整个记忆页。
+  $('latentBack').addEventListener('click',closeMemoryPanel);
+  // 顶上那条切换。两个页各有一条，各自的 active 是写死在 HTML 里的，不用同步。
+  document.querySelectorAll('[data-mem-tab]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=btn.getAttribute('data-mem-tab');
+      if(id==='latentHome'){openLatentPage()}
+      else{showProfilePage('obHome');loadOBData()}
+    });
+  });
   $('latentRefresh').addEventListener('click',openLatentPage);
   $('latentGo').addEventListener('click',latentDoSearch);
   $('latentQuery').addEventListener('keydown',function(e){if(e.key==='Enter')latentDoSearch()});
