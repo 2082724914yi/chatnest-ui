@@ -146,6 +146,17 @@ printf '%s' "$RESP" | node -e '
     else console.log("  × 这次没说："+(r.why||r.error||"不知道为什么"));
   });' 2>/dev/null
 
+# 把自己搬到一个不会被清掉的地方 —— /tmp 系统会定期清，
+# 过几天她想 off 却发现脚本没了，会一脸问号。
+HOME_COPY="$API_DIR/shadow-cron.sh"
+SELF=$(readlink -f "$0" 2>/dev/null || echo "$0")
+if [ "$SELF" != "$HOME_COPY" ] && [ -f "$SELF" ]; then
+  cp "$SELF" "$HOME_COPY" 2>/dev/null && chmod 700 "$HOME_COPY" \
+    && ok "脚本也放了一份到 $HOME_COPY（/tmp 会被系统清掉，那份不保险）"
+fi
+CMD="sudo bash ${HOME_COPY}"
+[ -f "$HOME_COPY" ] || CMD="sudo bash $SELF"
+
 cat <<EOF
 
   ── 装好了 ──
@@ -153,8 +164,8 @@ cat <<EOF
   以后每 10 分钟他会问自己一次「现在该说话吗」。
   大部分时候答案是不是现在 —— 那些你不会知道。
 
-  想看他这几天的动静：  sudo bash $0 log
-  想让他安静一阵：      sudo bash $0 off
-  再让他回来：          sudo bash $0 on
+  想看他这几天的动静：  $CMD log
+  想让他安静一阵：      $CMD off
+  再让他回来：          $CMD on
 
 EOF
