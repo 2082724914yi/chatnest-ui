@@ -153,15 +153,28 @@ else
   say "3/3 不打扰（不发测试消息，省额度）"
   curl -fsS -m 5 "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1 \
     && ok "服务活着" || no "服务没响应"
-  # 不花额度也能验的：路由在不在、会话读得出来
-  curl -fsS -m 10 "http://127.0.0.1:$PORT/api/sessions" >/dev/null 2>&1 \
-    && ok "会话接口正常" || no "会话接口读不到"
+  # 不花额度也能验的：路由在不在。
+  # 注意 /api 是全拦的（add-auth），这里不带凭证，所以 401 才是对的 ——
+  # 之前这条直接判 fail，每次部署都报一个吓人的红叉，其实服务好好的。
+  SC=$(curl -s -o /dev/null -w '%{http_code}' -m 10 "http://127.0.0.1:$PORT/api/sessions" 2>/dev/null || echo 000)
+  case "$SC" in
+    200)     ok "会话接口正常" ;;
+    401|403) ok "会话接口正常（要凭证才给，符合预期）" ;;
+    000)     no "会话接口连不上" ;;
+    *)       no "会话接口返回 $SC，不对劲" ;;
+  esac
 fi
 
-# 记忆页（Ombre）要能读到东西，得先有 OB Dashboard 的密码
-DASH=$(curl -fsS -m 20 "http://127.0.0.1:$PORT/api/ombre-dashboard/status" 2>/dev/null || curl -s -m 20 "http://127.0.0.1:$PORT/api/ombre-dashboard/status" 2>/dev/null)
+# 记忆页（Ombre）要能读到东西，得先有 OB Dashboard 的密码。
+# 这条也一样：不带凭证敲 /api 一定被拦，unauthorized 说明门卫在上班，不是缺密码。
+# 只有真的连上了、也过了认证、却说 available:false，才是密码没设。
+DASH=$(curl -s -m 20 "http://127.0.0.1:$PORT/api/ombre-dashboard/status" 2>/dev/null || echo '')
 if printf '%s' "$DASH" | grep -q '"available":true'; then
   ok "记忆页能读到 OB"
+elif printf '%s' "$DASH" | grep -qi 'unauthorized'; then
+  skip "记忆页：这里不带凭证，被认证挡住了（正常）—— 真能不能读，在前端记忆页看"
+elif [ -z "$DASH" ]; then
+  no "记忆页接口连不上"
 else
   no "记忆页还读不到 OB：$DASH"
   NEED_PW=1
