@@ -70,6 +70,7 @@ add-moments-mcp.js|MOMENTS_MCP_VERSION|发朋友圈做成真工具（我能直�
 add-moments-mcp2.js|MOMENTS_MCP_VERSION = 2|朋友圈工具补全（看 / 点赞 / 评论）
 add-home-mcp.js|HOME_MCP_VERSION|家里其他地方（翻聊天记录 / 搜历史）
 add-moments-search.js|MOMENTS_SEARCH_V1|朋友圈搜索（别每次翻全部）
+add-uploads.js|UPLOADS_VERSION|聊天收图片和文件（我能看见了）
 "
 
 say "1/3 逐个补丁检查"

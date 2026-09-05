@@ -2739,10 +2739,46 @@ function addSelectedFiles(files){
   }
   renderPendingFiles();
 }
+/* 图片上传前先缩小：小衍那边按 宽×高÷750 算 token，手机原图一张能吃掉一万多，
+   而且会一直躺在历史里每轮重算。缩到 1568 边长以内，一张一千多就够看清了。
+   存到服务器的就是这份缩过的 —— 她自己在气泡里看也是这张，够清楚。 */
+function _shrinkImage(file,maxSide=1568,quality=.85){
+  return new Promise(resolve=>{
+    const done=()=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>resolve(null);r.readAsDataURL(file)};
+    if(!/^image\//.test(file.type)||/svg/.test(file.type))return done();
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const w=img.naturalWidth,h=img.naturalHeight,long=Math.max(w,h);
+      if(!long)return done();
+      const k=long>maxSide?maxSide/long:1;
+      const cw=Math.round(w*k),ch=Math.round(h*k);
+      try{
+        const c=document.createElement('canvas');c.width=cw;c.height=ch;
+        c.getContext('2d').drawImage(img,0,0,cw,ch);
+        const out=c.toDataURL(/png/i.test(file.type)&&k===1?'image/png':'image/jpeg',quality);
+        resolve(out||null);
+      }catch(e){done()}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);done()};
+    img.src=url;
+  });
+}
+function _fileToDataURL(file){
+  return new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>resolve(null);r.readAsDataURL(file)});
+}
 async function uploadPendingFiles(items){
   if(!items.length)return[];
-  const form=new FormData();items.forEach(item=>form.append('files',item.file,item.name));if(state.convId)form.append('conversation_id',state.convId);
-  const r=await api('/api/upload',{method:'POST',body:form});const data=await r.json();if(!r.ok)throw Error(data.detail||'文件上传失败');
+  // 改走 base64 JSON：服务器上没有 multer，朋友圈的图也是这么传的，一致
+  const files=[];
+  for(const item of items){
+    const data=item.is_image?await _shrinkImage(item.file):await _fileToDataURL(item.file);
+    if(data)files.push({name:item.name,mime:item.mime||'',data});
+  }
+  if(!files.length)throw Error('文件读不出来');
+  const r=await api('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({conversation_id:state.convId||'',files})});
+  const data=await r.json();if(!r.ok)throw Error(data.detail||'文件上传失败');
   state.convId=data.conversation_id;state.legacySessionId=null;localStorage.setItem('chat_conversation',state.convId);localStorage.removeItem('chat_session');return data.attachments||[];
 }
 $('attachButton').onclick=()=>{$('fileInput').accept='image/*';$('fileInput').click()};
