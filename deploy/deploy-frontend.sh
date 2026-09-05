@@ -7,7 +7,9 @@ set -uo pipefail
 # 默认 main。补丁还在分支上没合过去时用 BRANCH=分支名 覆盖。
 BRANCH=${BRANCH:-main}
 RAW_URL=https://raw.githubusercontent.com/2082724914yi/chatnest-ui/$BRANCH/index.html
+RAW_SW=https://raw.githubusercontent.com/2082724914yi/chatnest-ui/$BRANCH/sw.js
 SITE=${SITE:-https://xiaoyixiaoyan.top/index.html}
+SITE_SW=${SITE_SW:-https://xiaoyixiaoyan.top/sw.js}
 
 ok(){ printf '  \033[32m√\033[0m %s\n' "$*"; }
 no(){ printf '  \033[31m×\033[0m %s\n' "$*"; }
@@ -24,13 +26,25 @@ grep -qi '</html>' "$NEW" || { no "文件不完整（没有 </html>），不敢�
 grep -q 'obToolsBtn' "$NEW" || { no "这份里没有工具台，可能拉到了旧版本"; rm -f "$NEW"; exit 1; }
 ok "拿到 $NEWSIZE 字节（含工具台，完整）"
 
+# sw.js 也要传 —— 推送全靠它接。拿不到不算致命（老站点可能还没有这个文件）
+NEWSW=$(mktemp /tmp/sw.XXXXXX.js)
+if curl -fsSL -m 60 -H 'Cache-Control: no-cache' "$RAW_SW?cb=$(date +%s)" -o "$NEWSW" && [ -s "$NEWSW" ]; then
+  SWSIZE=$(wc -c < "$NEWSW"); ok "sw.js 拿到 $SWSIZE 字节"
+else
+  rm -f "$NEWSW"; NEWSW=""; SWSIZE=0
+  no "sw.js 没拉到，这次只更新 index.html"
+fi
+
 say "2/5 线上现在是哪一版"
 LIVE_SIZE=$(curl -fsS -m 25 "$SITE" 2>/dev/null | wc -c)
-echo "  外网拿到：$LIVE_SIZE 字节"
-if [ "$LIVE_SIZE" = "$NEWSIZE" ]; then
+LIVE_SW=$(curl -fsS -m 25 "$SITE_SW" 2>/dev/null | wc -c || echo 0)
+echo "  外网拿到：index.html $LIVE_SIZE 字节，sw.js $LIVE_SW 字节"
+# 两个都一样才算没事干 —— 之前只看 index.html，sw.js 就永远更新不上
+if [ "$LIVE_SIZE" = "$NEWSIZE" ] && { [ -z "$NEWSW" ] || [ "$LIVE_SW" = "$SWSIZE" ]; }; then
   ok "线上已经是最新的了，那就是手机缓存 —— 把页面彻底关掉重开，或者换个浏览器试试"
-  rm -f "$NEW"; exit 0
+  rm -f "$NEW" "$NEWSW"; exit 0
 fi
+[ "$LIVE_SIZE" = "$NEWSIZE" ] && echo "  index.html 已是最新，但 sw.js 要更新（$LIVE_SW → $SWSIZE）"
 
 say "3/5 找 nginx 真正在读的目录"
 # nginx 不一定叫 nginx、也不一定在 PATH 里（宝塔装在 /www/server、openresty 装在自己目录）。
@@ -103,13 +117,24 @@ say "4/5 覆盖"
 for f in $TARGETS; do
   cp "$f" "$f.bak-$(date +%s)" 2>/dev/null
   cp "$NEW" "$f" && ok "已写入 $f（$(wc -c < "$f") 字节，旧的已备份）"
+  # sw.js 必须和 index.html 同级（放子目录 scope 会受限，push 事件根本不触发）
+  if [ -n "$NEWSW" ]; then
+    d=$(dirname "$f")
+    [ -f "$d/sw.js" ] && cp "$d/sw.js" "$d/sw.js.bak-$(date +%s)" 2>/dev/null
+    cp "$NEWSW" "$d/sw.js" && ok "已写入 $d/sw.js（$(wc -c < "$d/sw.js") 字节）"
+  fi
 done
-rm -f "$NEW"
+rm -f "$NEW" "$NEWSW"
 "${NGINX_BIN:-nginx}" -s reload 2>/dev/null && ok "nginx 已 reload" || true
 
 say "5/5 从外网再验一次"
 sleep 2
 AFTER=$(curl -fsS -m 25 -H 'Cache-Control: no-cache' "$SITE" 2>/dev/null | wc -c)
+AFTER_SW=$(curl -fsS -m 25 -H 'Cache-Control: no-cache' "$SITE_SW" 2>/dev/null | wc -c || echo 0)
+if [ -n "$NEWSW" ]; then
+  [ "$AFTER_SW" = "$SWSIZE" ] && ok "sw.js 也是新版（$AFTER_SW 字节）" \
+    || no "sw.js 外网还是 $AFTER_SW 字节（新版 $SWSIZE）"
+fi
 if [ "$AFTER" = "$NEWSIZE" ]; then
   ok "外网拿到的就是新版（$AFTER 字节）"
   cat <<'EOF'

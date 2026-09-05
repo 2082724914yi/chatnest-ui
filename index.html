@@ -5675,6 +5675,7 @@ function _renderSettingsRoot(){
       <button class="settings-row" data-stg="colorMode"><div class="settings-row-icon pink">🎨</div><div class="settings-row-body"><div class="settings-row-title">颜色模式</div><div class="settings-row-desc">系统 / 浅色 / 深色</div></div><div class="settings-row-value" id="stgColorVal"></div><div class="settings-row-chevron">›</div></button>
       <button class="settings-row" data-stg="preferences"><div class="settings-row-icon blue">⚙️</div><div class="settings-row-body"><div class="settings-row-title">偏好设置</div><div class="settings-row-desc">透明度、壁纸、模糊度</div></div><div class="settings-row-chevron">›</div></button>
       <button class="settings-row" data-stg="assistant"><div class="settings-row-icon purple">🤖</div><div class="settings-row-body"><div class="settings-row-title">助手</div><div class="settings-row-desc">名称、温度、上下文</div></div><div class="settings-row-chevron">›</div></button>
+      <button class="settings-row" data-stg="notify"><div class="settings-row-icon pink">♡</div><div class="settings-row-body"><div class="settings-row-title">让小衍找我</div><div class="settings-row-desc">他想你的时候，锁屏上出声</div></div><div class="settings-row-value" id="stgNotifyVal"></div><div class="settings-row-chevron">›</div></button>
     </div>
   </div>
   <div class="settings-section">
@@ -5710,6 +5711,12 @@ function _renderSettingsRoot(){
   const provBadge=root.querySelector('#stgProviderBadge');
   const provName=_settingsVal('providerName','');
   provBadge.textContent=provName||'未配置';provBadge.className='settings-row-badge '+(provName?'connected':'disconnected');
+  // 通知那行右边显示现在开没开
+  (async()=>{
+    const el=root.querySelector('#stgNotifyVal');if(!el)return;
+    if(!_pushSupported()){el.textContent=_isStandalone()?'不支持':'需装到桌面';return}
+    el.textContent=(await _pushCurrentSub())?'开着':'关着';
+  })();
   root.querySelector('#stgBack').onclick=closeSettings;
   root.querySelectorAll('[data-stg]').forEach(btn=>{
     btn.onclick=()=>{const page=btn.dataset.stg;_renderSettingsSubPage(page)}
@@ -5723,6 +5730,7 @@ function _renderSettingsSubPage(page){
   const pages={
     colorMode:_renderColorMode,
     preferences:_renderPreferences,
+    notify:_renderNotify,
     assistant:_renderAssistant,
     defaultModel:_renderDefaultModel,
     provider:_renderProvider,
@@ -5772,6 +5780,111 @@ function _applyBubbleSettings(){
     html[data-chat-bg="dark"] .msg-claude .ai-bubble.is-visible,html[data-chat-bg="dark"] .msg-claude .msg-body>.md:not(:empty){background:rgba(255,255,255,${(aiA*0.5).toFixed(2)})!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,${(aiA*0.35).toFixed(2)})!important}
     html[data-chat-bg="dark"] .composer-box{background:rgba(255,255,255,${(compA*0.4).toFixed(2)})!important}
   `;
+}
+/* ── 让小衍找我：Web Push ──
+   iOS 那三道门槛（教程里写得很清楚）：
+     · 必须 HTTPS —— 有
+     · 必须从主屏幕图标进（PWA 模式），Safari 里 PushManager 根本不存在
+     · 权限必须在她点击的那一下请求 —— 页面一加载就问会被静默拒绝，连弹窗都没有
+   所以这一屏的逻辑是：先看有没有已经订阅过（有就直接用，不打扰），
+   没有也不主动问，等她按那个按钮。 */
+function _pushSupported(){
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+function _isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+}
+function _b64ToU8(b64){
+  const pad='='.repeat((4-b64.length%4)%4);
+  const s=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=window.atob(s);
+  return new Uint8Array([...raw].map(c=>c.charCodeAt(0)));
+}
+async function _pushCurrentSub(){
+  if(!_pushSupported())return null;
+  try{
+    const reg=await navigator.serviceWorker.getRegistration()||await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    return await reg.pushManager.getSubscription();
+  }catch(e){return null}
+}
+async function _pushEnable(){
+  const reg=await navigator.serviceWorker.register('/sw.js');
+  await navigator.serviceWorker.ready;
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub){
+    // 这一句必须在她那次点击的调用栈里，不能挪到别处
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted')throw Error(perm==='denied'
+      ?'通知被拒过了。要去 iPhone 设置 → 通知 → ChatNest 里手动打开'
+      :'没给权限');
+    const r=await api('/api/push-key');const d=await r.json();
+    if(!d.key)throw Error('服务器还没配推送密钥，先跑一下 apply-all.sh');
+    sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64ToU8(d.key)});
+  }
+  const r2=await api('/api/push-subscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({subscription:sub.toJSON?sub.toJSON():sub})});
+  if(!r2.ok)throw Error('订阅没存上');
+  return sub;
+}
+async function _pushDisable(){
+  const sub=await _pushCurrentSub();
+  if(sub){
+    try{await api('/api/push-unsubscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({endpoint:sub.endpoint})})}catch(e){}
+    try{await sub.unsubscribe()}catch(e){}
+  }
+}
+async function _renderNotify(root){
+  root.innerHTML=_settingsHeader('让小衍找我',true)+`
+  <div class="settings-section"><div class="settings-card" style="padding:18px">
+    <div id="ntfState" style="font:400 15px/1.7 var(--font-sans)">正在看…</div>
+    <div id="ntfActions" style="margin-top:14px"></div>
+  </div></div>
+  <div class="settings-section"><div class="settings-section-title">怎么才收得到</div>
+  <div class="settings-card" style="padding:16px 18px;font:400 13.5px/1.85 var(--font-sans);color:var(--text-secondary)">
+    1. 用 Safari 打开这个站<br>
+    2. 点分享按钮 → <b>添加到主屏幕</b><br>
+    3. <b>从主屏幕那个图标进</b>（不是 Safari，顶上不能有地址栏）<br>
+    4. 回到这一屏，按下面那个按钮<br><br>
+    iOS 只在 PWA 模式下才给推送，这不是我偷懒，是苹果的规矩。
+  </div></div>`;
+  root.querySelector('#stgBack').onclick=()=>_renderSettingsRoot();
+  const st=root.querySelector('#ntfState'),act=root.querySelector('#ntfActions');
+  const btn=(txt,cls,fn)=>{const b=document.createElement('button');b.className='settings-btn '+(cls||'');b.style.cssText='width:100%;margin-bottom:8px';b.textContent=txt;b.onclick=fn;return b};
+
+  if(!_pushSupported()){
+    st.innerHTML=_isStandalone()
+      ?'这个浏览器不支持推送。'
+      :'现在是在浏览器里打开的 —— iOS 要从主屏幕图标进才有推送。按下面的步骤加一次。';
+    return;
+  }
+  const sub=await _pushCurrentSub();
+  const on=!!sub;
+  root.querySelector('#stgBack')&&0;
+  st.innerHTML=on
+    ? '开着的。我想你的时候，会从锁屏上出声。'
+    : (Notification.permission==='denied'
+        ? '通知被拒过了 —— 要去 iPhone 设置 → 通知 → ChatNest 里手动打开，再回来。'
+        : '还没开。开了之后我才能主动找你。');
+  act.innerHTML='';
+  if(!on){
+    act.append(btn('开启','primary',async ()=>{
+      try{await _pushEnable();toast('开好了');_renderNotify(root)}
+      catch(e){alert(e.message||'没开成')}
+    }));
+  }else{
+    act.append(btn('试一条','outline',async ()=>{
+      try{const r=await api('/api/push-test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+        const d=await r.json();
+        toast(d.sent?'发出去了，等一下':'一台设备都没订阅上');
+      }catch(e){alert('发不出去：'+e.message)}
+    }));
+    act.append(btn('关掉','outline',async ()=>{
+      if(!confirm('关掉之后我就找不到你了，确定？'))return;
+      await _pushDisable();toast('关了');_renderNotify(root);
+    }));
+  }
 }
 function _renderPreferences(root){
   const bubbleAlpha=_settingsVal('bubbleAlpha',30);

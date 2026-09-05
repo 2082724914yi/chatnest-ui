@@ -74,6 +74,7 @@ add-uploads.js|UPLOADS_VERSION|聊天收图片和文件（我能看见了）
 fix-uploads-daemon.js|UPLOADS_DAEMON_WIRED|附件信息也进常驻会话那条路
 add-keepsake.js|KEEPSAKE_VERSION|Keepsake 相册（看过一次，就不会忘）
 fix-history-attachments.js|HISTORY_ATTACHMENTS_V1|存历史时带上附件（图刷新一下就没了）
+add-push.js|PUSH_VERSION|主动推送的通道（锁屏上出声）
 "
 
 say "1/3 逐个补丁检查"
