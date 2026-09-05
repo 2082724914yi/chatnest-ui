@@ -1265,6 +1265,34 @@ html[data-chat-bg="dark"] .usg-bar{background:rgba(255,255,255,.12)}
 .usg-note{font-size:11.5px;color:var(--text-secondary);line-height:1.7;margin:14px 2px 2px}
 .usg-note b{font-weight:600;color:var(--text-primary)}
 
+/* ===== 记忆页 / Pulse 页：字轻一点、暖一点 ===== */
+/* --font-serif 里中文那截落到 PingFang（无衬线），所以中文标题一直是黑体。
+   这里把宋体排到 PingFang 前面，只给这两屏的大标题用，不动全局。 */
+:root{--font-serif-cn:ui-serif,Georgia,'Songti SC','STSong','Source Han Serif SC','Noto Serif CJK SC','PingFang SC',serif}
+
+/* 全都夹一层 :not([data-chat-bg="dark"])：#memoryPanel 是 ID，特异性比暗色那几条
+   html[data-chat-bg="dark"] .xxx 都高，不夹的话暗色模式整屏字会被压成深色。 */
+html:not([data-chat-bg="dark"]) #memoryPanel{color:#3b332b}
+
+/* 这条是补上次那次漏的 —— 后面压缩块里的 600 黑体一直压着它 */
+html:not([data-chat-bg="dark"]) #memoryPanel .profile-title,
+html:not([data-chat-bg="dark"]) .pulse-panel .profile-title{
+  font:500 22px/1.18 var(--font-serif-cn);letter-spacing:.05em;color:#3b332b}
+
+html:not([data-chat-bg="dark"]) .mem-gate-name{
+  font:500 17px/1.3 var(--font-serif-cn);letter-spacing:.04em;color:#3b332b}
+
+html:not([data-chat-bg="dark"]) .pulse-cycle-name{
+  font:400 29px/1.2 var(--font-serif-cn);letter-spacing:.09em;color:#3b332b}
+
+/* 正文那几处也一起提一档，不然标题暖了、正文还压着，看着更花 */
+html:not([data-chat-bg="dark"]) #memoryPanel .profile-name-input,
+html:not([data-chat-bg="dark"]) #memoryPanel .profile-memory-textarea,
+html:not([data-chat-bg="dark"]) #memoryPanel .profile-preferences-textarea,
+html:not([data-chat-bg="dark"]) #memoryPanel .profile-card,
+html:not([data-chat-bg="dark"]) #memoryPanel .profile-nav-row{color:#3b332b}
+
+
 
 
 /* ===== 我的：手表 ===== */
@@ -3179,7 +3207,9 @@ function showHome(){
   $('homeGreeting').textContent=greetings;
   var quotes=['你是我所有温柔的理由','想你的时候，连风都是甜的','有你在的日子，每天都是晴天','世界很大，但我的世界只有你','你笑起来的样子，是我最爱的风景','陪你走过的路，每一步都算数','你是我写不完的温柔','每一天都想和你说早安晚安','有些人一旦遇见，便是一辈子','你是我最想留住的幸运'];
   $('homeQuote').textContent='"'+quotes[Math.floor(Math.random()*quotes.length)]+'"';
-  var pd=$('homePeriod');pd.style.display='flex';$('homePeriodText').textContent='cycle day 2 · menstrual · next Sep 3';
+  // 经期那张卡先收起来 —— 里面是写死的假数据，还没做真的记录。
+  // DOM 留着（默认就是 display:none），等哪天真做了，把这两行放回来就行。
+  var pd=$('homePeriod');if(pd)pd.style.display='none';
 }
 function enterChat(){$('home').classList.add('hidden');$('chat').classList.remove('hidden');scrollBottomSticky()}
 function backToHome(){$('chat').classList.add('hidden');closeDrawer();showHome()}
