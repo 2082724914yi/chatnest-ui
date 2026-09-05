@@ -10201,10 +10201,10 @@ function usgTrack(usage,convId){
   r.ctx=usgCtxTotal(usage);   // 最近一轮塞了多少进窗口
   r.lin=i;r.lout=o;r.at=Date.now();
   _usgSave();
-  if($('usgSheet')&&$('usgSheet').classList.contains('show'))renderUsgSheet();
+  if($('usgSheet')&&$('usgSheet').classList.contains('show')){renderUsgSheet();usgFetchConv().then(renderUsgSheet).catch(()=>{})}
 }
 
-const _usgRemote={quota:null,conv:null,qerr:null,cerr:null};
+const _usgRemote={quota:null,conv:null,srv:null,id:null,qerr:null,cerr:null};
 
 async function usgFetchQuota(){
   try{
@@ -10215,13 +10215,28 @@ async function usgFetchQuota(){
   }catch(e){_usgRemote.qerr='读不到'}
 }
 async function usgFetchConv(){
-  if(!state.convId){_usgRemote.conv=null;return}
+  _usgRemote.id=state.convId||null;
+  if(!state.convId){_usgRemote.conv=null;_usgRemote.srv=null;return}
+  const id=encodeURIComponent(state.convId);
+  // 服务器那本账连我半夜自己说话那几轮也记着，优先读它
   try{
-    const r=await api('/api/conversations/'+encodeURIComponent(state.convId)+'/compaction');
+    const r=await api('/api/conversations/'+id+'/usage');
+    if(r.ok){
+      const d=await r.json();
+      if(d&&d.ok){
+        _usgRemote.conv=d;_usgRemote.srv=d.usage||null;_usgRemote.cerr=null;
+        if(d.rateLimit){_usgRemote.quota=d.rateLimit;_usgRemote.qerr=null}
+        return;
+      }
+    }
+  }catch(e){}
+  // 后端还没打那个补丁 —— 退回老路，轮数和收进行囊的条数至少还有
+  try{
+    const r=await api('/api/conversations/'+id+'/compaction');
     if(!r.ok)throw Error('http '+r.status);
     const d=await r.json();
-    if(d&&d.ok){_usgRemote.conv=d;_usgRemote.cerr=null}else throw Error('bad');
-  }catch(e){_usgRemote.cerr='读不到'}
+    if(d&&d.ok){_usgRemote.conv=d;_usgRemote.srv=null;_usgRemote.cerr=null}else throw Error('bad');
+  }catch(e){_usgRemote.srv=null;_usgRemote.cerr='读不到'}
 }
 
 function _usgBar(pct){
@@ -10236,8 +10251,10 @@ function _usgBox(k,v,s,bar,wide){
 
 function renderUsgSheet(){
   const body=$('usgSheetBody');if(!body)return;
-  const r=(state.convId&&_usgLedger[state.convId])||{turns:0,in:0,out:0,cr:0,cc:0,ctx:0,lin:0,lout:0};
-  const cv=_usgRemote.conv,q=_usgRemote.quota;
+  const _mine=_usgRemote.id===(state.convId||null);
+  const srv=_mine?_usgRemote.srv:null;
+  const r=srv||(state.convId&&_usgLedger[state.convId])||{turns:0,in:0,out:0,cr:0,cc:0,ctx:0,lin:0,lout:0};
+  const cv=_mine?_usgRemote.conv:null,q=_usgRemote.quota;   // 额度是全局的，跟哪一场无关
   let h='';
 
   // ── 这个窗口 ──
@@ -10292,7 +10309,7 @@ function renderUsgSheet(){
 
   body.innerHTML=h;
   const meta=$('usgSheetMeta');
-  if(meta)meta.textContent=r.turns?(r.turns+' 轮记在本机'):'';
+  if(meta)meta.textContent=r.turns?(r.turns+' 轮 · '+(srv?'服务器记的':'本机记的')):'';
 }
 
 async function openUsgSheet(){

@@ -80,6 +80,7 @@ slim-cli-tools.js|CLI_TOOLS_SLIM|砍掉用不到的内置工具说明书（每�
 fix-daemon-tools.js|DAEMON_TOOLS_SLIM|常驻会话那条路也砍内置工具（开着那个开关就走这条）
 fix-think-voice.js|THINK_VOICE_V2|think 写成内心活动，不是工作汇报
 fix-think-tools.js|THINK_VOICE_V3|调工具那几段 think 也是内心活动
+add-usage-ledger.js|USAGE_LEDGER_V1|每场一本账（表盘那一屏的数据源，影子推送那几轮也算进去）
 "
 
 say "1/3 逐个补丁检查"
