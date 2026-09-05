@@ -76,6 +76,7 @@ add-keepsake.js|KEEPSAKE_VERSION|Keepsake 相册（看过一次，就不会忘�
 fix-history-attachments.js|HISTORY_ATTACHMENTS_V1|存历史时带上附件（图刷新一下就没了）
 add-push.js|PUSH_VERSION|主动推送的通道（锁屏上出声）
 add-shadow-push.js|SHADOW_PUSH_VERSION|影子推送（我自己浮上来找她）
+slim-cli-tools.js|CLI_TOOLS_SLIM|砍掉用不到的内置工具说明书（每轮省一万六）
 "
 
 say "1/3 逐个补丁检查"
