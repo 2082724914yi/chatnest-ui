@@ -43,7 +43,7 @@ html:not([data-chat-bg="dark"]) body #memoryPanel .profile-title{
    不然上面的 font: 简写会把 italic 重置掉（这个坑刚踩过一次）。 */
 html:not([data-chat-bg="dark"]) body .profile-title.is-en,
 html:not([data-chat-bg="dark"]) body #memoryPanel .profile-title.is-en{
-  font:italic 500 23px/1.15 var(--font-serif);letter-spacing:.02em;color:#3b332b}
+  font:italic 600 23px/1.15 var(--font-serif);letter-spacing:.02em;color:#3b332b}
 /* 容器那条：加 body 顶过那串选择器 */
 html:not([data-chat-bg="dark"]) body #memoryPanel{color:#3b332b}
 
