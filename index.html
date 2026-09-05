@@ -2059,6 +2059,142 @@ html[data-chat-bg="dark"] .home-grid-card{background:rgba(255,255,255,.08);borde
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;color:var(--text-primary)}
 html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:rgba(255,255,255,.12)}
 .home-back svg{width:18px;height:18px}
+
+/* 大头在这两个变量上：全前端 120 多处次要文字都吃它们。
+   压深但仍是暖褐，不是黑。--text-primary 本来就够深，只再压一点点。 */
+html[data-wall-photo]:not([data-chat-bg="dark"]){
+  --text-primary:#3B2A1C;
+  --text-secondary:#63503F;
+  --text-faint:#6F6153;
+}
+/* ── 换成照片当背景时，把偏浅的字统一压深一档（深褐灰，不用纯黑）──
+   她说的：有时候换了背景字浅得看不清。只在自定义照片壁纸下生效，
+   内置那几张渐变照旧 —— 那几张本来就是配着现在这套颜色调的。*/
+html[data-wall-photo]:not([data-chat-bg="dark"]) #input::-webkit-input-placeholder{color:rgba(74,55,40,0.53)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) #input::placeholder{color:rgba(74,55,40,0.53)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .cal-day-save{color:#723d27!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .cal-event-count{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .cal-event-input::placeholder{color:rgba(32,31,29,0.67)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .cal-weekday{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .chat-search-icon{color:rgba(32,31,29,0.79)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .chat-search-input::placeholder{color:rgba(32,31,29,0.73)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .clawd-zzz{color:#773722!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .completion-egg{color:#773722!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .diary-search-bubble{color:rgba(32,31,29,1.00)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .diary-search-icon{color:rgba(32,31,29,0.79)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .diary-search-input::placeholder{color:rgba(32,31,29,0.73)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .effort-note{color:rgba(32,31,29,0.73)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .file-item-del{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-block-label{color:#5c493d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-block-text.faint{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-cell-mine{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-close{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-count{color:#635546!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-d-back{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-d-send{color:#6e3e2b!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-d-when{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-empty-text{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-manage.on{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-manage{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-mini.ghost{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-mini{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-note-edit::placeholder{color:#6b5846!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-sheet-arrow{color:#6b5846!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-sheet-ico{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ks-sub{color:#584c41!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-add-input::placeholder{color:rgba(32,31,29,0.53)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-badge-disabled{color:#544545!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-badge-status.disabled{color:#544545!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-badge-tools{color:#224977!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-card-status.off{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-card-status.on{color:#2e6b31!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-card-url{color:#564646!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-detail-link{color:#224977!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mcp-server-chevron{color:#5f4d4d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mem-gate-meta{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .mem-hint{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .memory-search-bubble{color:rgba(32,31,29,1.00)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .memory-search-icon{color:rgba(32,31,29,0.79)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .memory-search-input::placeholder{color:rgba(32,31,29,0.73)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-action-btn.liked{color:#792323!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-action-btn{color:#6c5a47!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-comment-author.xi{color:#3d455c!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-comment-author.xy{color:#6c402d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-comment-input input::placeholder{color:#635546!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-comment-time{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-delete:active{color:#772222!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-delete{color:#635546!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-like-text svg{color:#783d2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-like-text{color:#584c41!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moment-time{color:#584c41!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-bottom-cam{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-bottom-text{color:#5e5042!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-close{color:#5e5042!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-compose textarea::placeholder{color:#635546!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-compose-close{color:#5e5042!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-compose-post{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-compose-toolbar label{color:#5b4d3f!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-cover-sub{color:#5a4b3f!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-cover::after{color:rgba(120,61,45,0.48)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-cover::before{color:rgba(120,61,45,0.33)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-empty-text{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-filter-btn.active{color:#6c3c2d!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-filter-btn{color:#6c5a47!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-hearts span{color:rgba(120,61,45,0.26)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-search input::placeholder{color:#615344!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-search-clear{color:#5e5042!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .moments-search-count{color:#584c41!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-add-label{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-card-meta{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-detail-label{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-detail-meta-label{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-importance-val{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-letter-date{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-letter-from.ai{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-letter-lock{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-loading{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-nav-item small{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-plan-btn.done{color:#227741!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-search-icon{color:rgba(32,31,29,0.79)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-search-input::placeholder{color:rgba(32,31,29,0.73)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-tag-chip b{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .ob-tool-row small{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .profile-memory-textarea::placeholder{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .profile-memory-time{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .profile-name-input::placeholder{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .profile-preferences-textarea::placeholder{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .pulse-cycle-remain{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .pulse-event-remain{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .pulse-log-day{color:#5a5348!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .pulse-log-time{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .pulse-note{color:#544e45!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .rename-action{color:rgba(0,0,0,1.00)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .rename-subtitle{color:rgba(0,0,0,0.96)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-btn.primary{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-log-tab.active{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-badge.connected{color:#2e6b31!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-badge.disconnected{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-icon.blue{color:#234178!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-icon.gray{color:#454554!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-icon.green{color:#2e6b31!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-icon.orange{color:#775422!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-icon.pink{color:#683131!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-icon.teal{color:#227773!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) .settings-row-icon.yellow{color:#776622!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) /* === Trail logo:跟随 row 末尾{color:#773722!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]) 永远在最后内容下方一行 === */
+.claude-trail-logo{color:#773722!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]):not([data-chat-bg]) #input::-webkit-input-placeholder{color:rgba(0,0,0,0.44)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"]):not([data-chat-bg]) #input::placeholder{color:rgba(0,0,0,0.44)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] #input::-webkit-input-placeholder{color:rgba(74,55,40,0.53)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] #input::placeholder{color:rgba(74,55,40,0.53)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .cal-weekday{color:#545045!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .diary-search-bubble{color:rgba(32,31,29,1.00)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .diary-search-icon{color:rgba(32,31,29,0.79)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .diary-search-input::placeholder{color:rgba(32,31,29,0.73)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-search-bubble{color:rgba(32,31,29,1.00)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-search-icon{color:rgba(32,31,29,0.79)!important}
+html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-search-input::placeholder{color:rgba(32,31,29,0.73)!important}
 </style>
 </head>
 <body>
@@ -5508,6 +5644,9 @@ function _applyCustomWallpaper(dataUrl){
   const r=document.documentElement;
   r.style.setProperty('--chat-wallpaper','url('+dataUrl+')');
   r.setAttribute('data-chat-bg','light');
+  // 照片当背景时，全前端偏浅的字统一压深一档（见 data-wall-photo 那段样式）。
+  // 内置那几张渐变不打这个标记 —— 它们本来就是配着现在这套颜色调出来的。
+  r.setAttribute('data-wall-photo','1');
 }
 const _BACK_ARROW='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
 
@@ -9050,6 +9189,7 @@ if(state.token)showChat();else loadMsgAvatars();resetEmpty();loadModels();update
   function apply(idx){
     idx=clamp(idx);var t=THEMES[idx]||'light',r=document.documentElement;
     r.setAttribute('data-chat-bg',t);r.setAttribute('data-wallpaper',String(idx));
+    r.removeAttribute('data-wall-photo');   // 换回内置渐变，字色也换回原来那套
     r.style.setProperty('--chat-wallpaper',WALLS[idx]);
     try{localStorage.setItem(SK,String(idx))}catch(e){}
     return idx;
