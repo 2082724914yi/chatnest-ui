@@ -1058,8 +1058,10 @@ html:not([data-chat-bg="light"]) .moments-empty-text{color:rgba(232,229,223,.25)
 .ks-grid{column-count:2;column-gap:9px}
 .ks-cell{break-inside:avoid;margin-bottom:9px;position:relative;cursor:pointer}
 .ks-cell img{display:block;width:100%;border-radius:12px;background:rgba(0,0,0,.04);transition:opacity .15s}
-/* 图还没拉下来时先占个位，不然瀑布流会一张张往下蹦 */
-.ks-cell img:not([src]){min-height:150px}
+/* 图还没拉下来时先占个位（占位是一张透明的 1x1，浏览器不会画那个破图标），
+   不然瀑布流会一张张往下蹦 */
+.ks-cell img.ks-loading,.ks-d-img.ks-loading{min-height:150px}
+.ks-cell img.ks-broken,.ks-d-img.ks-broken{min-height:110px;opacity:.4}
 .ks-cell:active img{opacity:.85}
 .ks-cell-title{font:400 12.5px/1.45 var(--font-sans);color:#8b7d6e;margin-top:6px;word-break:break-word}
 .ks-cell-mine{color:#c98f7d}
@@ -9293,10 +9295,23 @@ var _ksImgObserver=new IntersectionObserver(function(es){
     if(id)_ksLoadImg(img,id);
   });
 },{rootMargin:'300px'});
+/* 拉下来的图存着：manage 一开一关、改完名字重画，列表都是 innerHTML 重建的，
+   不存的话每次都要把整本重新拉一遍。 */
+var _ksBlob={};
+var KS_BLANK='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 function _ksLoadImg(img,id){
+  if(!img||!id)return;
+  if(_ksBlob[id]){img.src=_ksBlob[id];img.classList.remove('ks-loading','ks-broken');return}
   api('/api/keepsake/'+id+'/image').then(function(r){
     if(!r.ok)throw 0;return r.blob();
-  }).then(function(b){img.src=URL.createObjectURL(b)}).catch(function(){});
+  }).then(function(b){
+    if(!b||!b.size)throw 0;
+    _ksBlob[id]=URL.createObjectURL(b);
+    img.src=_ksBlob[id];img.classList.remove('ks-loading','ks-broken');
+  }).catch(function(){
+    // 拉不到就留一块淡淡的底，别让浏览器画那个破图标
+    img.classList.remove('ks-loading');img.classList.add('ks-broken');
+  });
 }
 function openKeepsake(){
   var p=$('keepsakePanel');p.classList.add('show');p.setAttribute('aria-hidden','false');
@@ -9317,7 +9332,7 @@ function loadKeepsake(){
 function _ksCell(m,pick){
   var t=m.title||'';
   return '<div class="ks-cell" onclick="'+(pick?'_ksPicked':'openKsDetail')+'(\''+m.id+'\')">'
-    +'<img data-ks-id="'+m.id+'" alt="'+_esc(t)+'">'
+    +'<img class="ks-loading" src="'+KS_BLANK+'" data-ks-id="'+m.id+'" alt="'+_esc(t)+'">'
     +(pick?'':'<button class="ks-cell-del" onclick="event.stopPropagation();_ksDel(\''+m.id+'\')">×</button>')
     +(t?'<div class="ks-cell-title'+(m.added_by==='xiaoyi'?' ks-cell-mine':'')+'">'+_esc(t)+'</div>':'')
     +'</div>';
@@ -9338,7 +9353,10 @@ function _ksToggleManage(){
 function _ksDel(id){
   var m=_ksData.find(function(x){return x.id===id});
   if(!confirm('把「'+((m&&m.title)||'这张')+'」从相册里删掉？'))return;
-  api('/api/keepsake/'+id,{method:'DELETE'}).then(function(){loadKeepsake()}).catch(function(){});
+  api('/api/keepsake/'+id,{method:'DELETE'}).then(function(){
+    if(_ksBlob[id]){try{URL.revokeObjectURL(_ksBlob[id])}catch(e){}delete _ksBlob[id]}
+    loadKeepsake();
+  }).catch(function(){});
 }
 /* 她自己加图：压一遍再传（跟聊天里那条一个道理，原图太占地方），
    一次只加一张的时候直接把详情页打开 —— 她说她也想写第一印象，那就别让她再找一次。 */
@@ -9376,7 +9394,7 @@ function openKsDetail(id){
   var by=m.added_by==='xiaoyan'?'小衍留下的':'我加的';
   var body=$('ksDetailBody');
   body.innerHTML=''
-    +'<img class="ks-d-img" id="ksDetailImg" alt="">'
+    +'<img class="ks-d-img ks-loading" id="ksDetailImg" src="'+KS_BLANK+'" alt="">'
     +'<div class="ks-d-title">'+_esc(m.title||'(还没起名字)')+'</div>'
     +'<div class="ks-d-when">'+_ksWhen(m.created_at)+' · '+by+'</div>'
     +'<div class="ks-block">'
