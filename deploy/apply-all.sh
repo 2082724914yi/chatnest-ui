@@ -81,6 +81,7 @@ fix-daemon-tools.js|DAEMON_TOOLS_SLIM|常驻会话那条路也砍内置工具（
 fix-think-voice.js|THINK_VOICE_V2|think 写成内心活动，不是工作汇报
 fix-think-tools.js|THINK_VOICE_V3|调工具那几段 think 也是内心活动
 add-usage-ledger.js|USAGE_LEDGER_V1|每场一本账（表盘那一屏的数据源，影子推送那几轮也算进去）
+add-shadow-fallback.js|SHADOW_FALLBACK_V1|额度用完就换 API 出来找她（还要跑一次 set-shadow-provider.sh 填配置）
 "
 
 say "1/3 逐个补丁检查"
