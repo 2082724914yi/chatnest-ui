@@ -1037,6 +1037,103 @@ html:not([data-chat-bg="light"]) .moments-filter-btn.active{color:#d6a092;backgr
 html:not([data-chat-bg="light"]) .moments-empty-text{color:rgba(232,229,223,.25)}
 }
 
+/* ── Keepsake：我们的相册。seen once, kept for good ──
+   两列瀑布流，图挨着图，中间只有一点缝。字都靠左，标题斜体 serif，
+   跟主页那些卡片一个嗓音。 */
+#keepsakePanel{position:fixed;inset:0;z-index:82;display:none;background:#faf7f2;color:#332d27;overflow:hidden}
+#keepsakePanel.show{display:flex;flex-direction:column}
+.ks-top{display:flex;align-items:flex-start;gap:12px;padding:14px 20px 12px;padding-top:calc(env(safe-area-inset-top) + 14px);flex:none}
+.ks-top-l{flex:1;min-width:0}
+.ks-title{font:italic 500 27px/1.15 'Georgia','Times New Roman',serif;color:#332d27;letter-spacing:.2px}
+.ks-sub{font:400 12px/1.5 var(--font-sans);color:#b0a294;margin-top:5px}
+.ks-manage{flex:none;border:0;background:transparent;color:#c0b3a5;font:400 13px/1 var(--font-sans);padding:6px 0;margin-top:6px}
+.ks-manage.on{color:#c98f7d}
+.ks-close{flex:none;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:#c0b3a5;font-size:19px;display:grid;place-items:center;margin-top:2px}
+.ks-bar{display:flex;align-items:center;gap:12px;padding:0 20px 14px;flex:none}
+.ks-add{border:0;border-radius:999px;background:#fffdfa;color:#8b7d6e;font:400 13.5px/1 var(--font-sans);padding:10px 17px;box-shadow:0 1px 6px rgba(0,0,0,.05);white-space:nowrap}
+.ks-add:active{opacity:.7}
+.ks-count{flex:1;text-align:right;font:400 12.5px/1 var(--font-sans);color:#c4b8ac}
+.ks-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px calc(env(safe-area-inset-bottom) + 28px)}
+/* CSS columns 做瀑布流：图高矮不一，网格会留一堆空 */
+.ks-grid{column-count:2;column-gap:9px}
+.ks-cell{break-inside:avoid;margin-bottom:9px;position:relative;cursor:pointer}
+.ks-cell img{display:block;width:100%;border-radius:12px;background:rgba(0,0,0,.04);transition:opacity .15s}
+/* 图还没拉下来时先占个位，不然瀑布流会一张张往下蹦 */
+.ks-cell img:not([src]){min-height:150px}
+.ks-cell:active img{opacity:.85}
+.ks-cell-title{font:400 12.5px/1.45 var(--font-sans);color:#8b7d6e;margin-top:6px;word-break:break-word}
+.ks-cell-mine{color:#c98f7d}
+.ks-cell-del{position:absolute;top:7px;right:7px;width:24px;height:24px;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:14px;display:none;place-items:center}
+.ks-grid.managing .ks-cell-del{display:grid}
+.ks-empty{padding:64px 12px;text-align:center}
+.ks-empty-icon{font-size:26px;opacity:.26;margin-bottom:10px}
+.ks-empty-text{font:italic 400 15px/1.5 'Georgia','Times New Roman',serif;color:#c0b3a5}
+/* 详情：一张图，底下几段字 */
+.ks-detail{position:fixed;inset:0;z-index:84;display:none;flex-direction:column;background:#faf7f2;color:#332d27}
+.ks-detail.show{display:flex}
+.ks-d-top{display:flex;align-items:center;gap:8px;padding:11px 16px;padding-top:calc(env(safe-area-inset-top) + 11px);border-bottom:1px solid rgba(0,0,0,.05);flex:none}
+.ks-d-back{border:0;background:transparent;color:#c98f7d;font:400 14px/1 var(--font-sans);padding:6px 2px;flex:none}
+.ks-d-heading{flex:1;text-align:center;font:italic 500 16px/1.3 'Georgia','Times New Roman',serif;color:#332d27;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ks-d-spacer{flex:none;width:38px}
+.ks-d-body{flex:1;overflow-y:auto;padding:18px 18px calc(env(safe-area-inset-bottom) + 24px)}
+.ks-d-img{display:block;width:100%;border-radius:14px;background:rgba(0,0,0,.04)}
+.ks-d-title{font:italic 500 21px/1.35 'Georgia','Times New Roman',serif;color:#332d27;margin:18px 0 4px;word-break:break-word}
+.ks-d-when{font:400 11.5px/1 var(--font-sans);color:#c0b3a5;margin-bottom:16px}
+.ks-block{background:#fdf6f2;border-radius:14px;padding:14px 16px;margin-bottom:11px}
+.ks-block-label{font:400 11.5px/1 var(--font-sans);color:#b8a294;margin-bottom:8px}
+.ks-block-text{font:400 14.5px/1.75 var(--font-sans);color:#4a3e34;white-space:pre-wrap;word-break:break-word}
+.ks-block-text.faint{color:#c0b3a5;font-style:italic}
+.ks-block.mine{background:#fbf4f6}
+.ks-note-edit{width:100%;min-height:96px;border:0;outline:0;resize:vertical;background:transparent;font:400 14.5px/1.75 var(--font-sans);color:#4a3e34}
+.ks-note-edit::placeholder{color:#cdc0b3}
+.ks-block-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.ks-mini{border:0;border-radius:999px;background:transparent;color:#c98f7d;font:400 13px/1 var(--font-sans);padding:7px 0}
+.ks-mini.ghost{color:#c0b3a5}
+.ks-mini:active{opacity:.6}
+.ks-d-send{width:100%;margin-top:6px;border:0;border-radius:14px;background:#fbeee8;color:#c07a5e;font:italic 500 15.5px/1 'Georgia','Times New Roman',serif;padding:15px 0}
+.ks-d-send:active{opacity:.75}
+/* 聊天里那个「发图片」面板 */
+.ks-sheet-item{display:flex;align-items:center;gap:13px;width:100%;padding:15px 4px;border:0;background:transparent;text-align:left;border-bottom:1px solid rgba(0,0,0,.045)}
+.ks-sheet-item:last-child{border-bottom:0}
+.ks-sheet-item:active{opacity:.6}
+.ks-sheet-ico{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center;background:rgba(201,143,125,.1);color:#c98f7d}
+.ks-sheet-ico svg{width:17px;height:17px}
+.ks-sheet-txt{flex:1;min-width:0}
+.ks-sheet-name{display:block;font:400 15px/1.3 var(--font-sans);color:var(--text-primary)}
+.ks-sheet-desc{display:block;font:400 12px/1.4 var(--font-sans);color:var(--text-secondary);margin-top:3px}
+.ks-sheet-arrow{flex:none;color:#cdc0b3;font-size:15px}
+/* 从相册挑图那一层 */
+.ks-pick{position:fixed;inset:0;z-index:86;display:none;flex-direction:column;background:#faf7f2;color:#332d27}
+.ks-pick.show{display:flex}
+html[data-chat-bg="dark"] #keepsakePanel,html[data-chat-bg="dark"] .ks-detail,html[data-chat-bg="dark"] .ks-pick{background:#1a1917;color:#e8e5df}
+html[data-chat-bg="dark"] .ks-title,html[data-chat-bg="dark"] .ks-d-title,html[data-chat-bg="dark"] .ks-d-heading{color:#e8e5df}
+html[data-chat-bg="dark"] .ks-sub,html[data-chat-bg="dark"] .ks-count,html[data-chat-bg="dark"] .ks-d-when{color:rgba(232,229,223,.32)}
+html[data-chat-bg="dark"] .ks-add{background:#262320;color:#d4c4b8;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html[data-chat-bg="dark"] .ks-cell-title{color:rgba(232,229,223,.5)}
+html[data-chat-bg="dark"] .ks-block{background:rgba(255,255,255,.045)}
+html[data-chat-bg="dark"] .ks-block.mine{background:rgba(214,160,146,.09)}
+html[data-chat-bg="dark"] .ks-block-label{color:rgba(232,229,223,.34)}
+html[data-chat-bg="dark"] .ks-block-text,html[data-chat-bg="dark"] .ks-note-edit{color:#e8e5df}
+html[data-chat-bg="dark"] .ks-block-text.faint{color:rgba(232,229,223,.3)}
+html[data-chat-bg="dark"] .ks-d-send{background:rgba(214,160,146,.16);color:#d6a092}
+html[data-chat-bg="dark"] .ks-d-top{border-bottom-color:rgba(255,255,255,.06)}
+html[data-chat-bg="dark"] .ks-sheet-item{border-bottom-color:rgba(255,255,255,.06)}
+@media(prefers-color-scheme:dark){
+html:not([data-chat-bg="light"]) #keepsakePanel,html:not([data-chat-bg="light"]) .ks-detail,html:not([data-chat-bg="light"]) .ks-pick{background:#1a1917;color:#e8e5df}
+html:not([data-chat-bg="light"]) .ks-title,html:not([data-chat-bg="light"]) .ks-d-title,html:not([data-chat-bg="light"]) .ks-d-heading{color:#e8e5df}
+html:not([data-chat-bg="light"]) .ks-sub,html:not([data-chat-bg="light"]) .ks-count,html:not([data-chat-bg="light"]) .ks-d-when{color:rgba(232,229,223,.32)}
+html:not([data-chat-bg="light"]) .ks-add{background:#262320;color:#d4c4b8;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+html:not([data-chat-bg="light"]) .ks-cell-title{color:rgba(232,229,223,.5)}
+html:not([data-chat-bg="light"]) .ks-block{background:rgba(255,255,255,.045)}
+html:not([data-chat-bg="light"]) .ks-block.mine{background:rgba(214,160,146,.09)}
+html:not([data-chat-bg="light"]) .ks-block-label{color:rgba(232,229,223,.34)}
+html:not([data-chat-bg="light"]) .ks-block-text,html:not([data-chat-bg="light"]) .ks-note-edit{color:#e8e5df}
+html:not([data-chat-bg="light"]) .ks-block-text.faint{color:rgba(232,229,223,.3)}
+html:not([data-chat-bg="light"]) .ks-d-send{background:rgba(214,160,146,.16);color:#d6a092}
+html:not([data-chat-bg="light"]) .ks-d-top{border-bottom-color:rgba(255,255,255,.06)}
+html:not([data-chat-bg="light"]) .ks-sheet-item{border-bottom-color:rgba(255,255,255,.06)}
+}
+
 /* ── Pulse：身体状态。felt, not told —— 这一屏不出现任何数字 ── */
 #pulsePanel{position:fixed;inset:0;z-index:82;display:none;background-color:#fdf8fa;background-image:var(--chat-wallpaper);background-position:center top;background-size:cover;background-repeat:no-repeat;color:#201f1d;overflow:hidden}
 #pulsePanel.show{display:block}
@@ -1998,7 +2095,7 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
       <div class="home-grid-card" data-page="moments"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="home-grid-title">Moments</div><div class="home-grid-sub">little things we keep</div></div>
       <div class="home-grid-card" data-page="dream"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div><div class="home-grid-title">Dream</div><div class="home-grid-sub">before they fade</div></div>
       <div class="home-grid-card" data-page="wander"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 17v4"/><path d="M17 19h4"/></svg></div><div class="home-grid-title">Wander</div><div class="home-grid-sub">somewhere beyond</div></div>
-      <div class="home-grid-card" data-page="refrain"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="home-grid-title">Refrain</div><div class="home-grid-sub">a song between us</div></div>
+      <div class="home-grid-card" data-page="keepsake"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m3.5 17 4.8-4.8a2 2 0 0 1 2.8 0L15 16.4"/><path d="m13.4 14.8 2.1-2.1a2 2 0 0 1 2.8 0l2.2 2.2"/></svg></div><div class="home-grid-title">Keepsake</div><div class="home-grid-sub">seen once, kept for good</div></div>
       <div class="home-grid-card" data-page="tonight"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div><div class="home-grid-title">Tonight</div><div class="home-grid-sub">a quieter place</div></div>
       <div class="home-grid-card" data-page="pulse"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="home-grid-title">Pulse</div><div class="home-grid-sub">felt, not told</div></div>
       <div class="home-grid-card" data-page="memory"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.81 0l2.78 2.58" opacity=".4"/></svg></div><div class="home-grid-title">Memory</div><div class="home-grid-sub">our story so far</div></div>
@@ -2224,6 +2321,53 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
   <div class="moment-lightbox" id="momentLightbox">
     <button class="moment-lightbox-close" id="momentLightboxClose" type="button">×</button>
     <img id="momentLightboxImg" alt="">
+  </div>
+</section>
+
+<section id="keepsakePanel" aria-hidden="true">
+  <div class="ks-top">
+    <div class="ks-top-l">
+      <div class="ks-title">Our pictures</div>
+      <div class="ks-sub">看过一次，就会记得是同一张</div>
+    </div>
+    <button class="ks-manage" id="ksManage" type="button">manage</button>
+    <button class="ks-close" id="ksClose" type="button" aria-label="Close">×</button>
+  </div>
+  <div class="ks-bar">
+    <button class="ks-add" id="ksAdd" type="button">+ add from phone</button>
+    <div class="ks-count" id="ksCount"></div>
+    <input hidden type="file" id="ksFileInput" multiple accept="image/*">
+  </div>
+  <div class="ks-scroll">
+    <div class="ks-empty" id="ksEmpty" hidden>
+      <div class="ks-empty-icon">✿</div>
+      <div class="ks-empty-text">还没有留下的图</div>
+    </div>
+    <div class="ks-grid" id="ksGrid"></div>
+  </div>
+</section>
+
+<section class="ks-detail" id="ksDetail" aria-hidden="true">
+  <div class="ks-d-top">
+    <button class="ks-d-back" id="ksDetailBack" type="button">‹ back</button>
+    <div class="ks-d-heading" id="ksDetailHeading"></div>
+    <button class="ks-d-back" id="ksRenameBtn" type="button" style="text-align:right">rename</button>
+  </div>
+  <div class="ks-d-body" id="ksDetailBody"></div>
+</section>
+
+<section class="ks-pick" id="ksPick" aria-hidden="true">
+  <div class="ks-d-top">
+    <button class="ks-d-back" id="ksPickBack" type="button">‹ back</button>
+    <div class="ks-d-heading">从 Keepsake 里挑</div>
+    <div class="ks-d-spacer"></div>
+  </div>
+  <div class="ks-scroll" style="padding-top:14px">
+    <div class="ks-empty" id="ksPickEmpty" hidden>
+      <div class="ks-empty-icon">✿</div>
+      <div class="ks-empty-text">相册还是空的</div>
+    </div>
+    <div class="ks-grid" id="ksPickGrid"></div>
   </div>
 </section>
 
@@ -2608,6 +2752,29 @@ html[data-chat-bg="dark"] .home-back{background:rgba(40,40,40,.6);border-color:r
 <div class="overlay" id="thoughtOverlay" aria-hidden="true" inert></div>
 <section class="sheet" id="thoughtSheet" aria-hidden="true" inert><div class="sheet-handle"></div><header class="sheet-head"><button class="icon-button" id="closeThought">×</button><h2 class="sheet-title">Thought process</h2><span></span></header><div class="sheet-content" id="thoughtContent"></div></section>
 
+<div class="overlay" id="picOverlay" aria-hidden="true" inert></div>
+<section class="sheet" id="picSheet" aria-hidden="true" inert>
+  <div class="sheet-handle"></div>
+  <header class="sheet-head"><button class="icon-button" id="closePic">×</button><h2 class="sheet-title" style="font:italic 500 19px/1 'Georgia','Times New Roman',serif">Send a picture</h2><span></span></header>
+  <div class="sheet-content">
+    <button class="ks-sheet-item" id="picFromPhone" type="button">
+      <span class="ks-sheet-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
+      <span class="ks-sheet-txt"><span class="ks-sheet-name">照片图库</span><span class="ks-sheet-desc">从相册里选，直接发给小衍</span></span>
+      <span class="ks-sheet-arrow">›</span>
+    </button>
+    <button class="ks-sheet-item" id="picCamera" type="button">
+      <span class="ks-sheet-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+      <span class="ks-sheet-txt"><span class="ks-sheet-name">拍照</span><span class="ks-sheet-desc">现在拍一张</span></span>
+      <span class="ks-sheet-arrow">›</span>
+    </button>
+    <button class="ks-sheet-item" id="picFromKeepsake" type="button">
+      <span class="ks-sheet-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <span class="ks-sheet-txt"><span class="ks-sheet-name">打开 Keepsake</span><span class="ks-sheet-desc">从我们保存的图片里挑一张</span></span>
+      <span class="ks-sheet-arrow">›</span>
+    </button>
+  </div>
+</section>
+
 <div class="overlay" id="modelOverlay" aria-hidden="true" inert></div>
 <section class="sheet" id="modelSheet" aria-hidden="true" inert><div class="sheet-handle"></div><header class="sheet-head"><button class="icon-button" id="closeModel">×</button><h2 class="sheet-title">Select model</h2><span></span></header><div class="sheet-content" id="modelContent"></div></section>
 
@@ -2712,7 +2879,18 @@ function updateSendButton(){
   send.setAttribute('aria-label','发送');send.disabled=false;
 }
 function storedFilename(attachment){return String(attachment.path||'').split('/').pop()}
-async function loadStoredImage(img,attachment){try{const r=await api(`/api/uploads/${encodeURIComponent(state.convId)}/${encodeURIComponent(storedFilename(attachment))}`);if(!r.ok)return;img.src=URL.createObjectURL(await r.blob())}catch{}}
+/* 后端存的时候会把会话 id 里的杂字符洗掉（safeConv），存出来的 path 是
+   uploads/<洗过的会话>/<文件名>。这边要是拿 state.convId 自己去拼，只要那个 id 里
+   有一个后端会洗掉的字符，拼出来的地址就对不上 —— 404，`if(!r.ok) return`，
+   img 连 src 都没有，于是「发出去那一瞬还在，之后就没了」。
+   后端已经把完整 path 给我们了，别自己拼，直接用。 */
+function storedImageUrl(a){
+  const p=String(a&&a.path||'');
+  if(/^uploads\/[^/]+\/[^/]+$/.test(p))return '/api/'+p;
+  // 老消息里只剩文件名的，退回按当前会话猜一次，聊胜于无
+  return `/api/uploads/${encodeURIComponent(state.convId||'')}/${encodeURIComponent(storedFilename(a))}`;
+}
+async function loadStoredImage(img,attachment){try{const r=await api(storedImageUrl(attachment));if(!r.ok)return;img.src=URL.createObjectURL(await r.blob())}catch{}}
 // 全局懒加载观察器:图片进视口前 200px 才开始拉,避免一开页 23 张图并发
 const lazyImgObserver=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){const img=e.target,att=img._lazyAtt;if(att){loadStoredImage(img,att);img._lazyAtt=null}lazyImgObserver.unobserve(img)}})},{rootMargin:'200px'});
 function attachmentCard(attachment,{pending=false,index=-1}={}){
@@ -2731,12 +2909,19 @@ function attachmentCard(attachment,{pending=false,index=-1}={}){
 function renderPendingFiles(){const root=$('attachmentPreview');root.innerHTML='';state.pendingFiles.forEach((item,index)=>root.append(attachmentCard(item,{pending:true,index})));root.classList.toggle('hidden',!state.pendingFiles.length);updateSendButton()}
 function removePendingFile(index){const [removed]=state.pendingFiles.splice(index,1);if(removed?.preview)URL.revokeObjectURL(removed.preview);renderPendingFiles()}
 function clearPendingFiles(){state.pendingFiles.forEach(item=>item.preview&&URL.revokeObjectURL(item.preview));state.pendingFiles=[];renderPendingFiles();$('fileInput').value=''}
-function addSelectedFiles(files){
+// mode: 'image' 只收图，'file' 只收非图 —— 两个图标现在是分开的，
+// 系统选择器再怎么给，进到这里也按各自的口径卡一道。
+function addSelectedFiles(files,mode){
+  let wrong=0;
   for(const file of files){
+    const isImg=file.type.startsWith('image/');
+    if(mode==='image'&&!isImg){wrong++;continue}
+    if(mode==='file'&&isImg){wrong++;continue}
     if(file.size>20*1024*1024){toast(`${file.name} 超过 20MB`);continue}
     if(state.pendingFiles.length>=10){toast('一次最多选择 10 个文件');break}
-    state.pendingFiles.push({file,name:file.name,size:file.size,mime:file.type,is_image:file.type.startsWith('image/'),preview:file.type.startsWith('image/')?URL.createObjectURL(file):''});
+    state.pendingFiles.push({file,name:file.name,size:file.size,mime:file.type,is_image:isImg,preview:isImg?URL.createObjectURL(file):''});
   }
+  if(wrong)toast(mode==='image'?'这里只发图片，文件走旁边那个回形针':'这里只发文件，图片走旁边那个图标');
   renderPendingFiles();
 }
 /* 图片上传前先缩小：小衍那边按 宽×高÷750 算 token，手机原图一张能吃掉一万多，
@@ -2770,23 +2955,33 @@ function _fileToDataURL(file){
 async function uploadPendingFiles(items){
   if(!items.length)return[];
   // 改走 base64 JSON：服务器上没有 multer，朋友圈的图也是这么传的，一致
-  const files=[];
+  const files=[],keepsake=[];
   for(const item of items){
+    // 从 Keepsake 挑的那张不用再传一遍像素，只报 id：服务器那边有原图，
+    // 而且会顺手把当初记下的文字一起端给小衍，他不用重新看一遍。
+    if(item.ks_id){keepsake.push(item.ks_id);continue}
     const data=item.is_image?await _shrinkImage(item.file):await _fileToDataURL(item.file);
     if(data)files.push({name:item.name,mime:item.mime||'',data});
   }
-  if(!files.length)throw Error('文件读不出来');
+  if(!files.length&&!keepsake.length)throw Error('文件读不出来');
   const r=await api('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({conversation_id:state.convId||'',files})});
+    body:JSON.stringify({conversation_id:state.convId||'',files,keepsake})});
   const data=await r.json();if(!r.ok)throw Error(data.detail||'文件上传失败');
   state.convId=data.conversation_id;state.legacySessionId=null;localStorage.setItem('chat_conversation',state.convId);localStorage.removeItem('chat_session');return data.attachments||[];
 }
-$('attachButton').onclick=()=>{$('fileInput').accept='image/*';$('fileInput').click()};
-$('fileAttachBtn').onclick=()=>{$('fileInput').accept='*/*';$('fileInput').click()};
+// 两个图标各管各的：图片那个先问从哪来（图库 / 现拍 / 相册里挑），
+// 文件那个只收文件 —— 之前两个都是「随便什么都行」，等于放了两个一样的按钮。
+$('attachButton').onclick=()=>{sheet('pic',true)};
+$('closePic').onclick=()=>sheet('pic',false);
+$('picOverlay').onclick=()=>sheet('pic',false);
+$('picFromPhone').onclick=()=>{sheet('pic',false);const f=$('fileInput');f.accept='image/*';f.dataset.mode='image';f.removeAttribute('capture');f.click()};
+$('picCamera').onclick=()=>{sheet('pic',false);const f=$('fileInput');f.accept='image/*';f.dataset.mode='image';f.setAttribute('capture','environment');f.click()};
+$('picFromKeepsake').onclick=()=>{sheet('pic',false);openKsPick()};
+$('fileAttachBtn').onclick=()=>{const f=$('fileInput');f.accept='';f.dataset.mode='file';f.removeAttribute('capture');f.click()};
 $('tipBtn').onclick=()=>{_mcpPage='list';renderMcpSheet();sheet('mcp',true)};
 document.addEventListener('click',e=>{const panel=$('mcpQuickPanel');if(!panel.classList.contains('hidden')&&!panel.contains(e.target)&&e.target!==$('tipBtn')&&!$('tipBtn').contains(e.target))panel.classList.add('hidden')});
 $('composerDropdown').onclick=()=>toast('coming soon');
-$('fileInput').onchange=e=>addSelectedFiles([...e.target.files]);
+$('fileInput').onchange=e=>{addSelectedFiles([...e.target.files],e.target.dataset.mode);e.target.value=''};
 (()=>{const cb=document.querySelector('.composer-box');if(!cb)return;cb.addEventListener('dragover',e=>{if(!e.dataTransfer?.types?.includes('Files'))return;e.preventDefault();cb.classList.add('drag-over')});cb.addEventListener('dragleave',e=>{if(e.target===cb)cb.classList.remove('drag-over')});cb.addEventListener('drop',e=>{e.preventDefault();cb.classList.remove('drag-over');const files=[...(e.dataTransfer?.files||[])];if(files.length)addSelectedFiles(files)})})();
 $('input').addEventListener('paste',e=>{const items=e.clipboardData?.items;const files=e.clipboardData?.files;const collected=[];if(items){for(const it of items){if(it.kind==='file'){const f=it.getAsFile();if(!f)continue;if(it.type.startsWith('image/')){const ext=(it.type.split('/')[1]||'png').replace(/^jpeg$/,'jpg');collected.push(new File([f],`paste-${Date.now()}.${ext}`,{type:it.type}))}else{collected.push(f)}}}}if(!collected.length&&files?.length){for(const f of files)collected.push(f)}if(collected.length){e.preventDefault();addSelectedFiles(collected)}});
 
@@ -3080,7 +3275,18 @@ async function loadMsgAvatars(){
   }
 }
 
+/* 发送的时候只把 path 发给后端，所以历史里读回来的附件常常是一串裸路径，
+   不是当初那个 {path,name,is_image} 对象。不补齐的话 is_image 是 undefined，
+   图和文件卡两边都 filter 不到，刷新完那条消息就成了光秃秃一句话。 */
+function _normAttachments(list){
+  return (Array.isArray(list)?list:[]).map(a=>{
+    if(a&&typeof a==='object')return a;
+    const p=String(a||''),name=p.split('/').pop();
+    return{path:p,name,mime:'',is_image:/\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name)};
+  }).filter(a=>a.path||a.name);
+}
 function _buildUserRow(text,timestamp='',attachments=[],messageId=''){
+  attachments=_normAttachments(attachments);
   const row=document.createElement('div');row.className='msg-user';row.dataset.raw=text;row.dataset.timestamp=timestamp||'';if(messageId)row.dataset.msgId=messageId;
   try{row.dataset.attachments=JSON.stringify(attachments||[])}catch{row.dataset.attachments='[]'}
   row.append(makeMsgAvatar('me'));
@@ -9075,6 +9281,206 @@ $('momentsFeed').addEventListener('keydown',function(e){
   }
 });
 
+/* ── Keepsake：我们的相册 ──
+   她发的图，我看完想留的那张会留进来；她自己也能加，也能在每张底下写她那一栏。
+   列表接口只给文字和地址，图是懒加载的 —— 一开屏别把二十几张一起拉下来。 */
+var _ksData=[],_ksManaging=false,_ksCur=null,_ksPickMode=false;
+var _ksImgObserver=new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    if(!e.isIntersecting)return;
+    var img=e.target,id=img.getAttribute('data-ks-id');
+    _ksImgObserver.unobserve(img);
+    if(id)_ksLoadImg(img,id);
+  });
+},{rootMargin:'300px'});
+function _ksLoadImg(img,id){
+  api('/api/keepsake/'+id+'/image').then(function(r){
+    if(!r.ok)throw 0;return r.blob();
+  }).then(function(b){img.src=URL.createObjectURL(b)}).catch(function(){});
+}
+function openKeepsake(){
+  var p=$('keepsakePanel');p.classList.add('show');p.setAttribute('aria-hidden','false');
+  _ksManaging=false;$('ksManage').classList.remove('on');$('ksGrid').classList.remove('managing');
+  loadKeepsake();
+}
+function closeKeepsake(){
+  var p=$('keepsakePanel');p.classList.remove('show');p.setAttribute('aria-hidden','true');
+}
+function loadKeepsake(){
+  return api('/api/keepsake').then(function(r){
+    if(r.status===404)throw Error('后端还没装相册，跑一下 apply-all.sh');
+    return r.json();
+  }).then(function(d){
+    _ksData=d.pictures||[];renderKeepsake();
+  }).catch(function(){_ksData=[];renderKeepsake()});
+}
+function _ksCell(m,pick){
+  var t=m.title||'';
+  return '<div class="ks-cell" onclick="'+(pick?'_ksPicked':'openKsDetail')+'(\''+m.id+'\')">'
+    +'<img data-ks-id="'+m.id+'" alt="'+_esc(t)+'">'
+    +(pick?'':'<button class="ks-cell-del" onclick="event.stopPropagation();_ksDel(\''+m.id+'\')">×</button>')
+    +(t?'<div class="ks-cell-title'+(m.added_by==='xiaoyi'?' ks-cell-mine':'')+'">'+_esc(t)+'</div>':'')
+    +'</div>';
+}
+function renderKeepsake(){
+  var g=$('ksGrid'),empty=$('ksEmpty');
+  $('ksCount').textContent=_ksData.length?(_ksData.length+' picture'+(_ksData.length>1?'s':'')):'';
+  if(!_ksData.length){g.innerHTML='';empty.hidden=false;return}
+  empty.hidden=true;
+  g.innerHTML=_ksData.map(function(m){return _ksCell(m,false)}).join('');
+  g.querySelectorAll('img[data-ks-id]').forEach(function(i){_ksImgObserver.observe(i)});
+}
+function _ksToggleManage(){
+  _ksManaging=!_ksManaging;
+  $('ksManage').classList.toggle('on',_ksManaging);
+  $('ksGrid').classList.toggle('managing',_ksManaging);
+}
+function _ksDel(id){
+  var m=_ksData.find(function(x){return x.id===id});
+  if(!confirm('把「'+((m&&m.title)||'这张')+'」从相册里删掉？'))return;
+  api('/api/keepsake/'+id,{method:'DELETE'}).then(function(){loadKeepsake()}).catch(function(){});
+}
+/* 她自己加图：压一遍再传（跟聊天里那条一个道理，原图太占地方），
+   一次只加一张的时候直接把详情页打开 —— 她说她也想写第一印象，那就别让她再找一次。 */
+function _ksAddFromPhone(files){
+  var arr=Array.from(files||[]).slice(0,9);
+  if(!arr.length)return;
+  var btn=$('ksAdd'),old=btn.textContent;btn.disabled=true;btn.textContent='正在留下…';
+  var lastId=null;
+  arr.reduce(function(chain,f){
+    return chain.then(function(){
+      return _shrinkImage(f).then(function(data){
+        if(!data)return;
+        return api('/api/keepsake',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({data:data,title:f.name.replace(/\.[^.]+$/,'').slice(0,60)})})
+          .then(function(r){return r.json()}).then(function(d){if(d&&d.picture)lastId=d.picture.id});
+      });
+    });
+  },Promise.resolve()).then(function(){
+    return loadKeepsake();
+  }).then(function(){
+    if(arr.length===1&&lastId)openKsDetail(lastId);
+  }).catch(function(e){alert('没加进去：'+(e&&e.message||e))})
+    .finally(function(){btn.disabled=false;btn.textContent=old});
+}
+function _ksWhen(ts){
+  if(!ts)return '';
+  var d=new Date(ts);
+  return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
+}
+function openKsDetail(id){
+  var m=_ksData.find(function(x){return x.id===id});
+  if(!m)return;
+  _ksCur=m;
+  $('ksDetailHeading').textContent=m.title||'';
+  var by=m.added_by==='xiaoyan'?'小衍留下的':'我加的';
+  var body=$('ksDetailBody');
+  body.innerHTML=''
+    +'<img class="ks-d-img" id="ksDetailImg" alt="">'
+    +'<div class="ks-d-title">'+_esc(m.title||'(还没起名字)')+'</div>'
+    +'<div class="ks-d-when">'+_ksWhen(m.created_at)+' · '+by+'</div>'
+    +'<div class="ks-block">'
+      +'<div class="ks-block-label">小衍第一次看见的</div>'
+      +'<div class="ks-block-text'+(m.visual?'':' faint')+'">'+_esc(m.visual||'他还没看过这张。发给他，他想留就会自己写下来。')+'</div>'
+    +'</div>'
+    +'<div class="ks-block">'
+      +'<div class="ks-block-label">当时留下的第一印象</div>'
+      +'<div class="ks-block-text'+(m.impression?'':' faint')+'">'+_esc(m.impression||'还没有。')+'</div>'
+    +'</div>'
+    +'<div class="ks-block mine" id="ksNoteBlock"></div>'
+    +'<button class="ks-d-send" onclick="_ksToChat()">带去 Chat ♡</button>';
+  _ksLoadImg(document.getElementById('ksDetailImg'),m.id);
+  _ksRenderNote(false);
+  var d=$('ksDetail');d.classList.add('show');d.setAttribute('aria-hidden','false');
+  $('ksDetailBody').scrollTop=0;
+}
+/* 她自己那一栏：平时是几行字，点「写一句」才变成输入框 */
+function _ksRenderNote(editing){
+  var box=$('ksNoteBlock');if(!box||!_ksCur)return;
+  var note=_ksCur.note||'';
+  if(!editing){
+    box.innerHTML='<div class="ks-block-label">我写的</div>'
+      +'<div class="ks-block-text'+(note?'':' faint')+'">'+_esc(note||'这张对我来说是什么，我想自己写一句。')+'</div>'
+      +'<div class="ks-block-row"><button class="ks-mini" onclick="_ksRenderNote(true)">'+(note?'改一改':'写一句')+'</button></div>';
+    return;
+  }
+  box.innerHTML='<div class="ks-block-label">我写的</div>'
+    +'<textarea class="ks-note-edit" id="ksNoteInput" placeholder="这张对我来说是什么…"></textarea>'
+    +'<div class="ks-block-row"><button class="ks-mini" onclick="_ksSaveNote()">保存</button>'
+    +'<button class="ks-mini ghost" onclick="_ksRenderNote(false)">算了</button></div>';
+  var i=$('ksNoteInput');i.value=note;i.focus();
+}
+function _ksSaveNote(){
+  var i=$('ksNoteInput');if(!i||!_ksCur)return;
+  var v=i.value;
+  api('/api/keepsake/'+_ksCur.id,{method:'PATCH',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({note:v})}).then(function(r){return r.json()}).then(function(d){
+    if(d&&d.picture){_ksCur=d.picture;var k=_ksData.findIndex(function(x){return x.id===d.picture.id});if(k>=0)_ksData[k]=d.picture}
+    _ksRenderNote(false);
+  }).catch(function(){alert('没存上，再试一次')});
+}
+function _ksRename(){
+  if(!_ksCur)return;
+  var t=prompt('给这张起个名字',_ksCur.title||'');
+  if(t===null)return;
+  api('/api/keepsake/'+_ksCur.id,{method:'PATCH',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({title:t.trim()})}).then(function(r){return r.json()}).then(function(d){
+    if(!d||!d.picture)return;
+    _ksCur=d.picture;
+    var k=_ksData.findIndex(function(x){return x.id===d.picture.id});if(k>=0)_ksData[k]=d.picture;
+    renderKeepsake();openKsDetail(d.picture.id);
+  }).catch(function(){});
+}
+function closeKsDetail(){
+  var d=$('ksDetail');d.classList.remove('show');d.setAttribute('aria-hidden','true');_ksCur=null;
+}
+/* 「带去 Chat」：不重新上传像素，只把 id 挂进输入框，
+   后端那边会把相册里那张复制进这一轮，并且顺手把当时记下的文字一起给小衍。 */
+function _ksToChat(){
+  if(!_ksCur)return;
+  var m=_ksCur;
+  _ksAttachToComposer(m);
+  closeKsDetail();closeKeepsake();
+  enterChat();
+  var _last=state.convId||localStorage.getItem('chat_conversation');
+  if(_last&&!streamInner.querySelector('[data-msg-id]'))openSession({conv_id:_last,title:state.currentTitle,starred:state.starred});
+}
+function _ksAttachToComposer(m){
+  if(state.pendingFiles.length>=10){toast('一次最多 10 个');return}
+  var item={name:m.title||'keepsake',mime:m.mime||'image/jpeg',size:m.size||0,is_image:true,ks_id:m.id,preview:''};
+  state.pendingFiles.push(item);renderPendingFiles();
+  api('/api/keepsake/'+m.id+'/image').then(function(r){return r.ok?r.blob():null}).then(function(b){
+    if(!b)return;item.preview=URL.createObjectURL(b);renderPendingFiles();
+  }).catch(function(){});
+}
+/* 从聊天里点「打开 Keepsake」挑一张 */
+function openKsPick(){
+  var p=$('ksPick');p.classList.add('show');p.setAttribute('aria-hidden','false');
+  var g=$('ksPickGrid'),e=$('ksPickEmpty');
+  g.innerHTML='';e.hidden=true;
+  api('/api/keepsake').then(function(r){return r.json()}).then(function(d){
+    _ksData=d.pictures||[];
+    if(!_ksData.length){e.hidden=false;return}
+    g.innerHTML=_ksData.map(function(m){return _ksCell(m,true)}).join('');
+    g.querySelectorAll('img[data-ks-id]').forEach(function(i){_ksImgObserver.observe(i)});
+  }).catch(function(){e.hidden=false});
+}
+function closeKsPick(){
+  var p=$('ksPick');p.classList.remove('show');p.setAttribute('aria-hidden','true');
+}
+function _ksPicked(id){
+  var m=_ksData.find(function(x){return x.id===id});
+  if(m)_ksAttachToComposer(m);
+  closeKsPick();
+}
+$('ksClose').addEventListener('click',closeKeepsake);
+$('ksManage').addEventListener('click',_ksToggleManage);
+$('ksAdd').addEventListener('click',function(){$('ksFileInput').click()});
+$('ksFileInput').addEventListener('change',function(){_ksAddFromPhone(this.files);this.value=''});
+$('ksDetailBack').addEventListener('click',closeKsDetail);
+$('ksRenameBtn').addEventListener('click',_ksRename);
+$('ksPickBack').addEventListener('click',closeKsPick);
+
 /* ── Home page wiring ── */
 document.querySelectorAll('[data-page]').forEach(function(card){
   card.addEventListener('click',function(){
@@ -9093,6 +9499,7 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     if(page==='settings'){openSettings();return}
     if(page==='pulse'){openPulse();return}
     if(page==='moments'){openMoments();return}
+    if(page==='keepsake'){openKeepsake();return}
   });
 });
 document.getElementById('homeBackBtn').addEventListener('click',backToHome);

@@ -72,6 +72,7 @@ add-home-mcp.js|HOME_MCP_VERSION|家里其他地方（翻聊天记录 / 搜历�
 add-moments-search.js|MOMENTS_SEARCH_V1|朋友圈搜索（别每次翻全部）
 add-uploads.js|UPLOADS_VERSION|聊天收图片和文件（我能看见了）
 fix-uploads-daemon.js|UPLOADS_DAEMON_WIRED|附件信息也进常驻会话那条路
+add-keepsake.js|KEEPSAKE_VERSION|Keepsake 相册（看过一次，就不会忘）
 "
 
 say "1/3 逐个补丁检查"
