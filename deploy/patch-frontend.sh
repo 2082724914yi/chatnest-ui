@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# 工具折叠 —— 前端补丁。
-#   curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/claude/baby-activities-today-0k5ueq/deploy/patch-tool-fold.sh | sudo bash
+# 前端部署 —— 覆盖 index.html，覆盖之前先逐条列出这次带来了什么。
+#   curl -fsSL -H 'Cache-Control: no-cache' "https://raw.githubusercontent.com/2082724914yi/chatnest-ui/claude/baby-activities-today-0k5ueq/deploy/patch-frontend.sh?cb=$(date +%s)" | sudo bash
+#
+# （原来叫 patch-tool-fold.sh，只认工具折叠那几条特征串。前端每加一件事都新写一个
+#  脚本没道理，而且清单不更新的话，后面的改动会被判成「没有新东西」直接跳过 ——
+#  9.6 差点就这么把 Latent 全文页漏掉。所以改成通用的：往下面 CHANGES 里加一行就行。）
 #
 # 前端是整份 index.html 部署的（不像 server.js 靠正则一层层打），
 # 所以这里也走整份覆盖 —— 但覆盖之前先逐条比对「这次带来了什么」，
@@ -26,6 +30,11 @@ function _tlUpdateFold|Used N tools 那一行
 isThink?'Thought process'|思考链单独一行，不跟工具一起收
 step.dataset.kind=|工具和思考分开算（data-kind）
 __userToggled|她点开过就不再自动收回去
+isThink?'Thought process'|思考链单独一行，不跟工具一起收
+function loadLatentWindows|Latent 全文页：一天一条的列表
+function openLatentDoc|Latent：点进去看某一篇
+function _ltSplitHits|Latent：搜索结果切成一条条，不再糊成一坨
+id=\"latentDoc\"|Latent：详情页 + 就地编辑
 "
 
 say "1/5 拉这次的 index.html（分支 $BRANCH）"
