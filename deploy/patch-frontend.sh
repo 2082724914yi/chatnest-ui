@@ -35,6 +35,9 @@ function loadLatentWindows|Latent 全文页：一天一条的列表
 function openLatentDoc|Latent：点进去看某一篇
 function _ltSplitHits|Latent：搜索结果切成一条条，不再糊成一坨
 id=\"latentDoc\"|Latent：详情页 + 就地编辑
+function _tlIsThink|Think process 归到思考，不再算进 Used N tools
+.ctx-meter{display:none}|去掉「online」底下那条上下文水位线
+backdrop-filter:blur(18px) saturate(1.6)|顶栏加一层玻璃（名字和图标看得清）
 "
 
 say "1/5 拉这次的 index.html（分支 $BRANCH）"

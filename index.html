@@ -225,6 +225,15 @@ button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}textar
 #chat{min-height:100dvh;display:flex;flex-direction:column;background:var(--bg-primary)}
 .topbar{position:fixed;top:0;left:0;right:0;z-index:25;flex:none;height:calc(env(safe-area-inset-top) + 52px);display:grid;grid-template-columns:48px 1fr auto;align-items:center;padding:env(safe-area-inset-top) max(env(safe-area-inset-right),var(--topbar-side-inset)) 0 max(env(safe-area-inset-left),var(--topbar-side-inset));background:linear-gradient(to bottom,rgba(0,0,0,.42) 0%,rgba(0,0,0,.16) 50%,transparent 100%);pointer-events:none}
 .topbar>*{pointer-events:auto}
+/* 顶栏那层玻璃：壁纸花的时候「小衍」和那几个图标看不清。
+   底下用 mask 渐隐而不是让背景渐变到透明 —— backdrop-filter 是整块生效的，
+   不渐隐的话下沿会切出一道硬边，那比没有玻璃还难看。 */
+.topbar{background:linear-gradient(to bottom,rgba(255,255,255,.44) 0%,rgba(255,255,255,.24) 55%,rgba(255,255,255,0) 100%);
+  backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);
+  -webkit-mask-image:linear-gradient(to bottom,#000 62%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 62%,transparent 100%)}
+html[data-chat-bg="dark"] .topbar{background:linear-gradient(to bottom,rgba(22,21,20,.58) 0%,rgba(22,21,20,.30) 55%,rgba(22,21,20,0) 100%)}
+@media(prefers-color-scheme:dark){html:not([data-chat-bg]) .topbar{background:linear-gradient(to bottom,rgba(22,21,20,.58) 0%,rgba(22,21,20,.30) 55%,rgba(22,21,20,0) 100%)}}
 .topbar-hamburger{grid-column:1;justify-self:start;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:var(--radius-full);background:transparent;color:var(--text-primary);-webkit-tap-highlight-color:transparent}.topbar-hamburger:active{opacity:.62}.topbar-hamburger svg{width:22px;height:22px}
 .topbar-center{grid-column:2;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:1px}
 .topbar-name{font:600 17px/1.2 var(--font-serif);font-style:italic;color:var(--text-primary)}
@@ -1255,6 +1264,9 @@ html:not([data-chat-bg="light"]) .ks-sheet-item{border-bottom-color:rgba(255,255
   transition:width 600ms cubic-bezier(.32,.72,0,1)}
 .ctx-meter.is-full .ctx-meter-fill{background:linear-gradient(90deg,rgba(193,123,123,.5),rgba(193,123,123,.95))}
 html[data-chat-bg="dark"] .ctx-meter-fill{background:linear-gradient(90deg,rgba(231,185,185,.24),rgba(231,185,185,.55))}
+/* 上下文水位那条线：横在名字底下像条下划线，她说不要。
+   只藏起来不删元素 —— 记水位的那几行 JS 还在往它身上写，删了要连着改。 */
+.ctx-meter{display:none}
 
 .ctx-fold{display:flex;align-items:center;gap:10px;margin:18px auto;max-width:min(580px,100%);
   padding:0 4px;color:var(--text-faint);font-size:11.5px;font-family:var(--font-serif);letter-spacing:.04em}
@@ -5103,11 +5115,19 @@ const _TL_CLOCK_ICON='<svg class="timeline-icon" viewBox="0 0 24 24" fill="none"
 const _TL_CHEVRON='<svg class="timeline-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.4L10.6 8 6 12.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function _tlDur(ms){if(!ms||ms<0)return'';if(ms<1000)return ms+'ms';const s=ms/1000;return(s<10?s.toFixed(1):Math.round(s))+'s'}
 function _tlJson(v){if(v==null)return'';if(typeof v==='string')return v;try{return JSON.stringify(v,null,2)}catch{return String(v)}}
+/* 后端有两条路会产出「思考」：CLI 的原生 thinking，和 <think> 标签解析出来的那条
+   （traceStart('thinking','Think process')）。只看 type 会漏，把名字也一起认上 ——
+   9.6 她截图里那条 Think process 就是被算进 Used N tools 里去了。 */
+function _tlIsThink(tr){
+  if(!tr)return false;
+  if(tr.type==='thinking')return true;
+  return /^(think|thought)\s*process$/i.test(String(tr.name||'').trim());
+}
 function _tlRender(step,tr){
   const st=tr.status||'running';
   step.dataset.status=st;
   const head=step.querySelector('.timeline-head'),body=step.querySelector('.timeline-body');
-  const isThink=tr.type==='thinking';
+  const isThink=_tlIsThink(tr);
   // 思考那条不是"某个步骤跑完了"，是她要点开看的东西，所以给钟表不给对勾
   const wantIcon=(isThink&&st!=='running')?_TL_CLOCK_ICON:(_TL_ICON[st]||_TL_ICON.running);
   if(step.__icon!==wantIcon){head.querySelector('.timeline-icon')?.remove();head.insertAdjacentHTML('afterbegin',wantIcon);step.__icon=wantIcon}
@@ -5130,7 +5150,8 @@ function _tlPaintBody(body,tr){
     el.textContent=String(text).slice(0,20000);
     body.append(el);
   };
-  if(tr.type==='thinking')add('',tr.content||'（这一步没有留下思考内容）',false);
+  // 思考不分段：后端一行一句发过来，堆成一列看着像清单，她要的是一句话
+  if(_tlIsThink(tr))add('',String(tr.content||'（这一步没有留下思考内容）').replace(/\s*\n+\s*/g,' ').trim(),false);
   else{
     add('输入参数',_tlJson(tr.input),true);
     if(tr.result)add(tr.is_error||tr.status==='error'?'错误':'返回结果',_tlJson(tr.result),true);
@@ -5149,7 +5170,7 @@ function _tlStep(tr){
   const step=document.createElement('div');
   step.className='timeline-step';step.dataset.traceId=tr.id||'';step.dataset.type=tr.type||'';
   // kind 只分两类：思考留在外面，其余一律算工具，跑完收进 used N tools
-  step.dataset.kind=tr.type==='thinking'?'thinking':'tool';
+  step.dataset.kind=_tlIsThink(tr)?'thinking':'tool';
   const head=document.createElement('button');head.type='button';head.className='timeline-head';
   head.setAttribute('aria-expanded','false');
   const name=document.createElement('span');name.className='timeline-name';
@@ -5185,7 +5206,8 @@ function _tlUpdateFold(root){
   const n=tools.length;
   // 一个工具就直接报名字（Used breath），多个才数数（Used 3 tools）
   const only=n===1?((tools[0].__tr&&tools[0].__tr.name)||tools[0].querySelector('.timeline-name')?.textContent||'').trim():'';
-  const label=only?('Used '+only):('Used '+n+' tools');
+  // 就一个工具时她要看的是工具本身，Used 前缀是多余的；两个及以上才有必要数
+  const label=only||('Used '+n+' tools');
   const txt=f.querySelector('.timeline-fold-text');
   if(txt.textContent!==label)txt.textContent=label;
   // 跑的时候摊开着让她看见我在动；全跑完了才收
@@ -5208,10 +5230,10 @@ function createTimeline(mount){
   // 一个回合只给她看一条 Thought process。后端分几段发是它的事，
   // 她看到的应该是一段完整的思考，而不是被工具切开的三四截。
   const mergedThink=()=>{
-    const parts=[...map.values()].filter(t=>t&&t.type==='thinking');
+    const parts=[...map.values()].filter(t=>_tlIsThink(t));
     return{
       id:thinkKey,type:'thinking',name:'',
-      content:parts.map(t=>String(t.content||'').trim()).filter(Boolean).join('\n\n'),
+      content:parts.map(t=>String(t.content||'').replace(/\s*\n+\s*/g,' ').trim()).filter(Boolean).join(' '),
       status:parts.some(t=>t.status==='running')?'running':'completed',
       duration_ms:parts.reduce((a,t)=>a+(t.duration_ms||0),0)
     };
@@ -5219,7 +5241,7 @@ function createTimeline(mount){
   function upsert(tr){
     map.set(tr.id,tr);
     const r=ensure();
-    const isThink=tr.type==='thinking';
+    const isThink=_tlIsThink(tr);
     if(isThink&&!thinkKey)thinkKey=tr.id;
     const key=isThink?thinkKey:tr.id;
     const view=isThink?mergedThink():tr;
@@ -5246,10 +5268,10 @@ function buildTimelineFromHistory(list){
   if(!valid.length)return null;
   const root=document.createElement('div');root.className='timeline';
   // 跟流式那条路一样：思考先合成一条，工具各自一条
-  const think=valid.filter(t=>t.type==='thinking'),tools=valid.filter(t=>t.type!=='thinking');
+  const think=valid.filter(t=>_tlIsThink(t)),tools=valid.filter(t=>!_tlIsThink(t));
   if(think.length){
     root.append(_tlStep({...think[0],type:'thinking',status:'completed',
-      content:think.map(t=>String(t.content||'').trim()).filter(Boolean).join('\n\n')}));
+      content:think.map(t=>String(t.content||'').replace(/\s*\n+\s*/g,' ').trim()).filter(Boolean).join(' ')}));
   }
   for(const tr of tools)root.append(_tlStep({status:'completed',...tr}));
   _tlUpdateFold(root); // 历史全是跑完的，翻上去看到的就是收好的一行
