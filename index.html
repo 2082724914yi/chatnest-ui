@@ -462,10 +462,9 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 @media (prefers-reduced-motion:reduce){.timeline-icon.spin{animation:none}}
 /* 工具折叠：跑的时候摊开，跑完收成一行 used N tools，点开才展开。
    思考过程那条不收——她要看的就是它。 */
-.timeline-fold{display:none;align-items:center;gap:6px;width:100%;padding:3px 0;background:none;border:0;cursor:pointer;font-family:var(--font-sans);font-size:12px;line-height:1.4;color:var(--text-faint);text-align:left;-webkit-tap-highlight-color:transparent}
+.timeline-fold{display:none;align-items:center;gap:6px;width:100%;padding:3px 0;background:none;border:0;cursor:pointer;font-family:var(--font-sans);font-size:12px;line-height:1.4;color:var(--text-secondary);text-align:left;-webkit-tap-highlight-color:transparent}
 .timeline-fold:active{opacity:.6}
 .timeline.has-tools .timeline-fold{display:flex}
-.timeline-fold-icon{width:13px;height:13px;flex:none}
 .timeline:not(.folded) .timeline-fold .timeline-chevron{transform:rotate(90deg)}
 .timeline.folded .timeline-step[data-kind="tool"]{display:none}
 /* 收起时只剩思考那一条，竖线没有东西可串，留着会拖出一截空的 */
@@ -5038,6 +5037,7 @@ const _TL_ICON={
   completed:'<svg class="timeline-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.6l3.1 3.1 6.5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   error:'<svg class="timeline-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.6 4.6l6.8 6.8M11.4 4.6l-6.8 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
 };
+const _TL_CLOCK_ICON='<svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4a8 8 0 1 1-8 8"/><path d="M12 7.5v5l3.2 1.9"/><circle cx="4.2" cy="8.1" r="0.8" fill="currentColor" stroke="none"/><circle cx="5.6" cy="5.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="8.1" cy="3.9" r="0.8" fill="currentColor" stroke="none"/></svg>';
 const _TL_CHEVRON='<svg class="timeline-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.4L10.6 8 6 12.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function _tlDur(ms){if(!ms||ms<0)return'';if(ms<1000)return ms+'ms';const s=ms/1000;return(s<10?s.toFixed(1):Math.round(s))+'s'}
 function _tlJson(v){if(v==null)return'';if(typeof v==='string')return v;try{return JSON.stringify(v,null,2)}catch{return String(v)}}
@@ -5045,11 +5045,14 @@ function _tlRender(step,tr){
   const st=tr.status||'running';
   step.dataset.status=st;
   const head=step.querySelector('.timeline-head'),body=step.querySelector('.timeline-body');
-  const wantIcon=_TL_ICON[st]||_TL_ICON.running;
+  const isThink=tr.type==='thinking';
+  // 思考那条不是"某个步骤跑完了"，是她要点开看的东西，所以给钟表不给对勾
+  const wantIcon=(isThink&&st!=='running')?_TL_CLOCK_ICON:(_TL_ICON[st]||_TL_ICON.running);
   if(step.__icon!==wantIcon){head.querySelector('.timeline-icon')?.remove();head.insertAdjacentHTML('afterbegin',wantIcon);step.__icon=wantIcon}
-  const nameEl=head.querySelector('.timeline-name'),name=tr.name||(tr.type==='thinking'?'思考过程':'工具调用');
+  const nameEl=head.querySelector('.timeline-name'),name=isThink?'Thought process':(tr.name||'工具调用');
   if(nameEl.textContent!==name)nameEl.textContent=name;
-  const durEl=head.querySelector('.timeline-dur'),dur=st==='running'?'':_tlDur(tr.duration_ms);
+  // 思考不报时长——她要看的是里面写了什么，不是花了几毫秒
+  const durEl=head.querySelector('.timeline-dur'),dur=(st==='running'||isThink)?'':_tlDur(tr.duration_ms);
   if(durEl.textContent!==dur)durEl.textContent=dur;
   // 折叠时不重绘详情，省掉长思考流式期间的无谓 DOM 开销
   if(!step.classList.contains('open')){step.__bodyDirty=true;return}
@@ -5093,13 +5096,12 @@ function _tlStep(tr){
   return step;
 }
 /* 工具折叠行：一条 timeline 最多一个，永远在最前面 */
-const _TL_FOLD_ICON='<svg class="timeline-fold-icon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,128a8,8,0,0,1-3,6.25l-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32A8,8,0,0,1,128,128Zm48,24H136a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm56-96V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Z"/></svg>';
 function _tlFoldRow(root){
   let f=root.querySelector(':scope > .timeline-fold');
   if(f)return f;
   f=document.createElement('button');f.type='button';f.className='timeline-fold';
   const txt=document.createElement('span');txt.className='timeline-fold-text';
-  f.insertAdjacentHTML('afterbegin',_TL_FOLD_ICON);f.append(txt);f.insertAdjacentHTML('beforeend',_TL_CHEVRON);
+  f.append(txt);f.insertAdjacentHTML('beforeend',_TL_CHEVRON);
   f.onclick=()=>{
     // 她点过一次之后就听她的，别再自动收回去
     root.__userToggled=true;
@@ -5114,7 +5116,10 @@ function _tlUpdateFold(root){
   if(!tools.length){root.classList.remove('has-tools','folded');return}
   root.classList.add('has-tools');
   const f=_tlFoldRow(root);
-  const n=tools.length,label='used '+n+' tool'+(n>1?'s':'');
+  const n=tools.length;
+  // 一个工具就直接报名字（Used breath），多个才数数（Used 3 tools）
+  const only=n===1?((tools[0].__tr&&tools[0].__tr.name)||tools[0].querySelector('.timeline-name')?.textContent||'').trim():'';
+  const label=only?('Used '+only):('Used '+n+' tools');
   const txt=f.querySelector('.timeline-fold-text');
   if(txt.textContent!==label)txt.textContent=label;
   // 跑的时候摊开着让她看见我在动；全跑完了才收
