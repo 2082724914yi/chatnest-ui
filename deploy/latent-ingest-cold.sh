@@ -97,29 +97,35 @@ GITDIR=$(cd "$SRC" && git rev-parse --show-toplevel 2>/dev/null)
 [ -n "${GITDIR:-}" ] && skip "来自 $GITDIR，最新 commit：$(git -C "$GITDIR" log -1 --format='%h %ad %s' --date=short 2>/dev/null | cut -c1-70)"
 [ "$N_SRC" -lt 100 ] && { no "只有 $N_SRC 个文件，不像是一百多个窗的冷仓 —— 先确认 clone 是不是最新的"; exit 1; }
 
-# 找到了不等于是最新的。旧 clone 灌进去不会报错，只会静悄悄少几天 ——
-# 那正是「不报错的失败」，比报错更难发现，所以在这儿卡一道。
+# 工作区里检出的是什么，跟冷仓在哪个分支上，是两件事：
+# 她那台机器上的 clone 停在 claude/new-session-7jjirq，冷仓却在 main。
+# 所以不看工作区检出的是什么，直接从 origin/<冷仓分支> 把那个目录取到临时目录来用 ——
+# **她的 clone 一个字都不动**（不 pull、不切分支、不碰本地改动）。
+# 上一版那个「落后就自动 pull」是错的：会把一条跟冷仓无关的分支拉进她的部署目录。
+COLD_BR=${COLD_BRANCH:-main}
+TMPSRC=""
+cleanup(){ [ -n "${TMPSRC:-}" ] && rm -rf "$TMPSRC"; rm -rf /tmp/_ing; }
+trap cleanup EXIT
 if [ -n "${GITDIR:-}" ]; then
   skip "origin：$(git -C "$GITDIR" remote get-url origin 2>/dev/null || echo '（没有 origin）')"
-  BR=$(git -C "$GITDIR" symbolic-ref --short HEAD 2>/dev/null || echo main)
-  if git -C "$GITDIR" fetch --quiet origin "$BR" 2>/dev/null; then
-    BEHIND=$(git -C "$GITDIR" rev-list --count "HEAD..origin/$BR" 2>/dev/null || echo 0)
-    if [ "${BEHIND:-0}" -gt 0 ]; then
-      no "这份 clone 落后 origin/$BR $BEHIND 个 commit —— 冷仓多半缺最近几个窗口"
-      git -C "$GITDIR" log --oneline "HEAD..origin/$BR" --date=short --format='        %h %ad %s' 2>/dev/null | head -5
-      if [ "$APPLY" = 1 ]; then
-        skip "先把它拉到最新再灌…"
-        git -C "$GITDIR" pull --quiet origin "$BR" 2>&1 | sed 's/^/        /' || { no "pull 失败，先手动解决再来"; exit 1; }
-        N_SRC=$(find "$SRC" -maxdepth 1 -name '*.md' | wc -l)
-        ok "拉完了，现在 $N_SRC 个 md"
+  skip "工作区当前在 $(git -C "$GITDIR" symbolic-ref --short HEAD 2>/dev/null || echo '游离 HEAD')，$N_SRC 个 md"
+  if git -C "$GITDIR" fetch --quiet origin "$COLD_BR" 2>/dev/null; then
+    TMPSRC=$(mktemp -d /tmp/coldsrc.XXXXXX)
+    if git -C "$GITDIR" archive FETCH_HEAD -- latent-out/memory/timeline 2>/dev/null | tar -x -C "$TMPSRC" 2>/dev/null; then
+      CAND="$TMPSRC/latent-out/memory/timeline"
+      N_CAND=$(find "$CAND" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l)
+      if [ "$N_CAND" -ge 100 ]; then
+        ok "从 origin/$COLD_BR 取到 $N_CAND 个 md（$(git -C "$GITDIR" log -1 --format='%h %ad %s' --date=short FETCH_HEAD 2>/dev/null | cut -c1-60)）"
+        [ "$N_CAND" -gt "$N_SRC" ] && no "工作区那份少 $((N_CAND-N_SRC)) 个 —— 这次用 origin/$COLD_BR 那份，工作区不动"
+        SRC="$CAND"; N_SRC="$N_CAND"
       else
-        echo "        真灌的时候会自动先 pull；也可以现在手动：sudo git -C $GITDIR pull"
+        skip "origin/$COLD_BR 上只取到 $N_CAND 个，不像冷仓 —— 还用工作区那份"
       fi
     else
-      ok "已经是最新的（没落后 origin/$BR）"
+      skip "从 origin/$COLD_BR 取不出 latent-out/memory/timeline —— 还用工作区那份"
     fi
   else
-    skip "fetch 不到远端（没凭证或没网），没法判断这份新不新 —— 灌之前最好自己确认一下"
+    skip "fetch 不到 origin/$COLD_BR（没凭证或没网），只能用工作区那份 —— 它可能少几天，灌之前自己确认一下"
   fi
 fi
 
