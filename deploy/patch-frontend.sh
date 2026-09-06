@@ -27,7 +27,6 @@ say(){ printf '\n\033[1m%s\033[0m\n' "$*"; }
 CHANGES="
 .timeline.folded .timeline-step[data-kind=\"tool\"]|工具跑完收起来（折叠样式）
 function _tlUpdateFold|Used N tools 那一行
-isThink?'Thought process'|思考链单独一行，不跟工具一起收
 step.dataset.kind=|工具和思考分开算（data-kind）
 __userToggled|她点开过就不再自动收回去
 isThink?'Thought process'|思考链单独一行，不跟工具一起收
@@ -38,6 +37,7 @@ id=\"latentDoc\"|Latent：详情页 + 就地编辑
 function _tlIsThink|Think process 归到思考，不再算进 Used N tools
 .ctx-meter{display:none}|去掉「online」底下那条上下文水位线
 backdrop-filter:blur(18px) saturate(1.6)|顶栏加一层玻璃（名字和图标看得清）
+.topbar>.topbar-center{pointer-events:none}|「小衍」回到屏幕正中间
 "
 
 say "1/5 拉这次的 index.html（分支 $BRANCH）"

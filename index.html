@@ -235,7 +235,15 @@ button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}textar
 html[data-chat-bg="dark"] .topbar{background:linear-gradient(to bottom,rgba(22,21,20,.58) 0%,rgba(22,21,20,.30) 55%,rgba(22,21,20,0) 100%)}
 @media(prefers-color-scheme:dark){html:not([data-chat-bg]) .topbar{background:linear-gradient(to bottom,rgba(22,21,20,.58) 0%,rgba(22,21,20,.30) 55%,rgba(22,21,20,0) 100%)}}
 .topbar-hamburger{grid-column:1;justify-self:start;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:var(--radius-full);background:transparent;color:var(--text-primary);-webkit-tap-highlight-color:transparent}.topbar-hamburger:active{opacity:.62}.topbar-hamburger svg{width:22px;height:22px}
-.topbar-center{grid-column:2;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+.topbar-center{grid-column:1/-1;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+/* 跨满整行再居中：原来它待在中间那一列里，而右边三个图标那列比左边汉堡宽，
+   于是「中间列的中心」并不是屏幕中心，名字看着就偏左了。
+   ⚠ 跨列必须同时把三个都钉在第 1 行：grid 的自动放置会避让已占满的行，
+   不写 grid-row 的话右边那组会被挤到第二行去，再被顶栏的 mask 切掉、点都点不到。
+   跨行还会盖住两边按钮的点击区，所以中间层自己不吃点击、只有文字吃。 */
+.topbar>.topbar-hamburger,.topbar>.topbar-center,.topbar>.topbar-right-group{grid-row:1}
+.topbar>.topbar-center{pointer-events:none}
+.topbar-center>*{pointer-events:auto}
 .topbar-name{font:600 17px/1.2 var(--font-serif);font-style:italic;color:var(--text-primary)}
 .topbar-status{font:400 12px/1.2 var(--font-sans);color:var(--text-secondary);opacity:.8}
 html[data-chat-bg="dark"] .topbar-hamburger{color:#f4f3ef}
