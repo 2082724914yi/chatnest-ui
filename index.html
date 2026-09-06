@@ -878,6 +878,11 @@ html.sidebar-select-lock ::selection,html.context-menu-open ::selection{backgrou
   font:400 14.5px/1.72 var(--font-sans);color:#4A3728;background:rgba(255,255,255,.20);
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);white-space:pre-wrap;word-break:break-word}
 .lt-editbar{display:flex;gap:9px;margin-top:11px}
+/* ⚠ 作者样式里写了 display 的元素，[hidden] 的浏览器默认样式压不住它 ——
+   于是 el.hidden=true 看着生效实则没有：9.6 那次「47 字的一篇底下挂着
+   『还有 32.4 万字』，保存按钮也一直在」就是这么来的。凡是靠 hidden 收起来的，
+   都得自己再写一条。 */
+.lt-more[hidden],.lt-editbar[hidden],.lt-editor[hidden],#latentDocView[hidden]{display:none}
 .lt-editbar button{flex:1;border:0;border-radius:999px;padding:13px;font-size:14.5px;cursor:pointer;
   background:rgba(255,255,255,.24);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);color:#4A3728}
 .lt-editbar button.primary{background:var(--accent);color:#fff;box-shadow:none}
@@ -10218,10 +10223,15 @@ async function loadLatentWindows(){
 
 async function openLatentDoc(file){
   showProfilePage('latentDoc');
+  // 先把上一篇彻底忘掉再摆样式 —— _ltDocSetEditing 要读 _ltDoc 判断展开按钮该不该在，
+  // 这时候还留着上一篇的话，新的一篇会顶着上一篇的「还有 N 万字」
+  _ltDoc=null;
   $('latentDocTitle').textContent='读取中…';
   $('latentDocMeta').textContent='';
   $('latentDocView').textContent='';
+  $('latentDocEditor').value='';
   $('latentDocMore').hidden=true;
+  $('latentDocMore').textContent='';
   _ltDocSetEditing(false);
   try{
     var r=await fetch('/api/latent/window?file='+encodeURIComponent(file));
@@ -10310,7 +10320,8 @@ function _ltSplitHits(text){
       if(card)openLatentDoc(card.getAttribute('data-file'));
     });
   });
-  $('latentDocBack').addEventListener('click',function(){showProfilePage('latentHome')});
+  // 退出前先退出编辑：不然编辑状态会跟着带到下一篇去
+  $('latentDocBack').addEventListener('click',function(){_ltDocSetEditing(false);showProfilePage('latentHome')});
   $('latentDocMore').addEventListener('click',function(){_ltRenderDoc(true)});
   $('latentDocEdit').addEventListener('click',function(){
     if(!_ltDoc)return;
@@ -10323,7 +10334,9 @@ function _ltSplitHits(text){
   });
   $('latentDocCancel').addEventListener('click',function(){_ltDocSetEditing(false)});
   $('latentDocSave').addEventListener('click',async function(){
-    if(!_ltDoc)return;
+    // 不在编辑状态就绝不写盘 —— 这颗按钮要是因为别的毛病露在外面，
+    // 点下去会把编辑框里剩的上一篇内容盖到这一篇上，那是真丢东西
+    if(!_ltDoc||$('latentDocEditor').hidden)return;
     var t=$('latentDocEditor').value;
     if(!t.trim()){toast('正文不能空');return}
     if(t===_ltDoc.text){_ltDocSetEditing(false);return}
