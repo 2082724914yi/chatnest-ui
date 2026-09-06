@@ -439,9 +439,11 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 .timeline{display:flex;flex-direction:column;margin:0 0 8px;position:relative}
 .timeline:empty{display:none}
 .timeline-step{position:relative;padding-left:19px}
-/* 左侧竖线：把连续节点串成时间轴 */
-.timeline-step::before{content:'';position:absolute;left:6px;top:19px;bottom:0;width:1px;background:var(--border)}
-.timeline-step:last-child::before{display:none}
+/* 排版顺序固定：Thought process 一条在最上，Used N tools 在下，工具再下面。
+   不靠 DOM 到达顺序 —— 到达顺序会把思考夹进工具中间。 */
+.timeline-step[data-kind="thinking"]{order:0}
+.timeline-fold{order:1}
+.timeline-step[data-kind="tool"]{order:2}
 .timeline-head{display:flex;align-items:center;gap:6px;width:100%;padding:3px 0;background:none;border:0;cursor:pointer;font-family:var(--font-sans);font-size:12px;line-height:1.4;color:var(--text-secondary);text-align:left;-webkit-tap-highlight-color:transparent}
 .timeline-head:active{opacity:.6}
 .timeline-icon{position:absolute;left:0;top:4px;width:13px;height:13px;flex:none;color:var(--text-faint)}
@@ -467,8 +469,9 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 .timeline.has-tools .timeline-fold{display:flex}
 .timeline:not(.folded) .timeline-fold .timeline-chevron{transform:rotate(90deg)}
 .timeline.folded .timeline-step[data-kind="tool"]{display:none}
-/* 收起时只剩思考那一条，竖线没有东西可串，留着会拖出一截空的 */
-.timeline.folded .timeline-step::before{display:none}
+/* 只有一个工具时，Used 那一行说的就是它本身 —— 展开别再重复一遍标题，直接给详情 */
+.timeline[data-tools="1"]:not(.folded) .timeline-step[data-kind="tool"]{padding-left:0}
+.timeline[data-tools="1"]:not(.folded) .timeline-step[data-kind="tool"]>.timeline-head{display:none}
 .thinking-row{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;color:var(--text-secondary);font-size:var(--text-sm)}.thinking-row.hidden{display:none}.thinking-status-line{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.thinking-clock-icon{width:14px;height:14px;flex:none}.thinking-status-line>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 /* === Trail logo:跟随 row 末尾,永远在最后内容下方一行 === */
 .claude-trail-logo{width:26px;height:26px;margin:13px 0 0;color:#D97757;display:block;position:relative;overflow:hidden}.claude-trail-logo.cat{width:30px;height:30px;overflow:visible}.cat-roll{width:100%;height:100%;display:block;animation:cat-roll 1.15s linear infinite;transform-origin:50% 50%}@keyframes cat-roll{to{transform:rotate(360deg)}}.claude-logo-inner{width:100%;height:100%;display:block;will-change:transform}.claude-logo-track{width:100%;will-change:transform}.claude-logo-track svg{display:block;width:100%;height:auto;fill:currentColor}.claude-trail-logo[data-mode="tool"] .claude-logo-inner{animation:claudeToolPulse 1800ms cubic-bezier(.2,.8,.2,1) infinite;transform-origin:center}@keyframes claudeToolPulse{0%{transform:scale(1) rotate(0deg);opacity:1}38%{transform:scale(.16) rotate(80deg);opacity:.85}52%{transform:scale(.16) rotate(180deg);opacity:.85}100%{transform:scale(1) rotate(360deg);opacity:1}}
@@ -5075,6 +5078,14 @@ function _tlPaintBody(body,tr){
     else if(tr.status==='running')add('',' 执行中…',false);
   }
 }
+/* 展开/收起一个步骤。单工具那种「Used 行就是它本身」的情况要从外面驱动，所以抽出来 */
+function _tlOpenStep(step,open){
+  if(!step)return;
+  const head=step.querySelector('.timeline-head'),body=step.querySelector('.timeline-body');
+  step.classList.toggle('open',!!open);
+  if(head)head.setAttribute('aria-expanded',String(!!open));
+  if(open&&step.__bodyDirty!==false&&body){_tlPaintBody(body,step.__tr);step.__bodyDirty=false}
+}
 function _tlStep(tr){
   const step=document.createElement('div');
   step.className='timeline-step';step.dataset.traceId=tr.id||'';step.dataset.type=tr.type||'';
@@ -5087,11 +5098,7 @@ function _tlStep(tr){
   head.append(name,dur);head.insertAdjacentHTML('beforeend',_TL_CHEVRON);
   const body=document.createElement('div');body.className='timeline-body';
   step.append(head,body);
-  head.onclick=()=>{
-    const open=step.classList.toggle('open');
-    head.setAttribute('aria-expanded',String(open));
-    if(open&&step.__bodyDirty!==false){_tlPaintBody(body,step.__tr||tr);step.__bodyDirty=false}
-  };
+  head.onclick=()=>_tlOpenStep(step,!step.classList.contains('open'));
   step.__tr=tr;_tlRender(step,tr);
   return step;
 }
@@ -5126,18 +5133,40 @@ function _tlUpdateFold(root){
   const running=[...tools].some(s=>s.dataset.status==='running');
   if(running)root.classList.remove('folded');
   else if(!root.__userToggled)root.classList.add('folded');
-  f.setAttribute('aria-expanded',String(!root.classList.contains('folded')));
+  const openNow=!root.classList.contains('folded');
+  f.setAttribute('aria-expanded',String(openNow));
+  root.dataset.tools=String(n);
+  // 就一个工具时，Used 那行说的就是它 —— 展开直接给详情，不再列一遍它自己的标题。
+  // 但工具是一个个到的：先到一个时这么摊开了，第二个到了就得收回去，
+  // 否则第一个工具会一直挂着详情，后面几个只有标题。
+  if(n===1){_tlOpenStep(tools[0],openNow);tools[0].__autoOpen=true}
+  else tools.forEach(s=>{if(s.__autoOpen){_tlOpenStep(s,false);s.__autoOpen=false}});
 }
 /* 时间轴控制器：mount 决定 DOM 插到哪，事件流驱动增量更新 */
 function createTimeline(mount){
-  const map=new Map(),steps=new Map();let root=null;
+  const map=new Map(),steps=new Map();let root=null,thinkKey='';
   const ensure=()=>{if(!root||!root.isConnected){root=document.createElement('div');root.className='timeline';mount(root)}return root};
+  // 一个回合只给她看一条 Thought process。后端分几段发是它的事，
+  // 她看到的应该是一段完整的思考，而不是被工具切开的三四截。
+  const mergedThink=()=>{
+    const parts=[...map.values()].filter(t=>t&&t.type==='thinking');
+    return{
+      id:thinkKey,type:'thinking',name:'',
+      content:parts.map(t=>String(t.content||'').trim()).filter(Boolean).join('\n\n'),
+      status:parts.some(t=>t.status==='running')?'running':'completed',
+      duration_ms:parts.reduce((a,t)=>a+(t.duration_ms||0),0)
+    };
+  };
   function upsert(tr){
     map.set(tr.id,tr);
     const r=ensure();
-    let step=steps.get(tr.id);
-    if(!step){step=_tlStep(tr);steps.set(tr.id,step);r.append(step)}
-    else{step.__tr=tr;_tlRender(step,tr)}
+    const isThink=tr.type==='thinking';
+    if(isThink&&!thinkKey)thinkKey=tr.id;
+    const key=isThink?thinkKey:tr.id;
+    const view=isThink?mergedThink():tr;
+    let step=steps.get(key);
+    if(!step){step=_tlStep(view);steps.set(key,step);r.append(step)}
+    else{step.__tr=view;step.__bodyDirty=true;_tlRender(step,view)}
     _tlUpdateFold(r);
   }
   return{
@@ -5157,7 +5186,13 @@ function buildTimelineFromHistory(list){
   const valid=list.filter(t=>t&&t.type&&(t.content||t.input!=null||t.result||t.name));
   if(!valid.length)return null;
   const root=document.createElement('div');root.className='timeline';
-  for(const tr of valid)root.append(_tlStep({status:'completed',...tr}));
+  // 跟流式那条路一样：思考先合成一条，工具各自一条
+  const think=valid.filter(t=>t.type==='thinking'),tools=valid.filter(t=>t.type!=='thinking');
+  if(think.length){
+    root.append(_tlStep({...think[0],type:'thinking',status:'completed',
+      content:think.map(t=>String(t.content||'').trim()).filter(Boolean).join('\n\n')}));
+  }
+  for(const tr of tools)root.append(_tlStep({status:'completed',...tr}));
   _tlUpdateFold(root); // 历史全是跑完的，翻上去看到的就是收好的一行
   return root;
 }
