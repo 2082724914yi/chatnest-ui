@@ -88,6 +88,8 @@ add-shadow-switch.js|SHADOW_SWITCH_V1|一个真的总开关（关了我完全不
 add-latent-windows.js|LATENT_WINDOWS_VERSION|Latent 全文页：一天一条、点进去看、改得动
 fix-latent-unresolved.js|LATENT_UNRESOLVED_FIX|「现在还没结束的」不再显示一句报错（那个接口调的是只写工具的 list）
 fix-uploads-any.js|UPLOADS_ANY_VERSION|她发的文件我也能看（txt/md/json/csv/日志/代码，不只是图）
+fix-moments-prompt.js|MOMENTS_PROMPT_V3|发朋友圈改成调工具（说明还停在「写标签」那版，写了等于没发）
+add-usage-official.js|USAGE_OFFICIAL_VERSION|订阅额度显示官方那份数，不再自己记账估
 "
 
 say "1/3 逐个补丁检查"
