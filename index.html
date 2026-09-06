@@ -857,6 +857,37 @@ html.sidebar-select-lock ::selection,html.context-menu-open ::selection{backgrou
   backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05)}
 .lt-empty{padding:22px;border-radius:22px;border:1px solid rgba(32,31,29,.10);color:#77736c;text-align:center;
   font-size:14.5px;line-height:1.6}
+/* 一天一条：一张卡一篇，日期在最上面 —— 搜出来一大坨分不清，就是因为以前全糊在一个块里 */
+.lt-count{margin-left:8px;font-size:12px;color:#8a857d;font-weight:400}
+.lt-card{display:block;width:100%;text-align:left;border:0;cursor:pointer;margin-bottom:9px;
+  background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);border-radius:20px;padding:13px 15px;
+  backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05);
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s}
+.lt-card:active{opacity:.62}
+.lt-card-head{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.lt-card-date{font:600 14px/1.3 var(--font-sans);color:#4A3728;font-variant-numeric:tabular-nums}
+.lt-card-win{font-size:12px;color:#8a857d}
+.lt-card-size{margin-left:auto;font-size:11.5px;color:#a09a92;flex:none}
+.lt-card-preview{font-size:13px;line-height:1.6;color:#77736c;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lt-doc-meta{font-size:12.5px;color:#8a857d;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.lt-more{display:block;width:100%;margin-top:10px;padding:11px;border:0;border-radius:16px;cursor:pointer;
+  background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);color:#4A3728;font-size:13.5px}
+.lt-more:active{opacity:.62}
+.lt-editor{width:100%;min-height:56vh;border:0;outline:0;border-radius:22px;padding:16px 17px;resize:vertical;
+  font:400 14.5px/1.72 var(--font-sans);color:#4A3728;background:rgba(255,255,255,.20);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);white-space:pre-wrap;word-break:break-word}
+.lt-editbar{display:flex;gap:9px;margin-top:11px}
+.lt-editbar button{flex:1;border:0;border-radius:999px;padding:13px;font-size:14.5px;cursor:pointer;
+  background:rgba(255,255,255,.24);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);color:#4A3728}
+.lt-editbar button.primary{background:var(--accent);color:#fff;box-shadow:none}
+.lt-editbar button:active{opacity:.62}
+html[data-chat-bg="dark"] .lt-card,body.dark .lt-card{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+html[data-chat-bg="dark"] .lt-card-date,body.dark .lt-card-date{color:#F4F3EF}
+html[data-chat-bg="dark"] .lt-card-preview,body.dark .lt-card-preview{color:rgba(244,243,239,.56)}
+html[data-chat-bg="dark"] .lt-editor,body.dark .lt-editor{color:#F4F3EF;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+html[data-chat-bg="dark"] .lt-more,body.dark .lt-more,html[data-chat-bg="dark"] .lt-editbar button,body.dark .lt-editbar button{color:#F4F3EF;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+html[data-chat-bg="dark"] .lt-editbar button.primary,body.dark .lt-editbar button.primary{background:var(--accent);color:#fff}
 .lt-search{display:flex;gap:9px;align-items:center}
 .lt-search input{flex:1;min-width:0;border:0;outline:0;border-radius:999px;padding:12px 16px;font:400 15px/1.3 var(--font-sans);
   color:#201f1d;background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
@@ -2838,8 +2869,31 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
       <div id="latentUnresolvedOut"><div class="lt-empty">读取中…</div></div>
     </div>
     <div class="profile-section">
+      <div class="pulse-section-title">一天一条<span class="lt-count" id="latentCount"></span></div>
+      <div id="latentWindows"><div class="lt-empty">读取中…</div></div>
+    </div>
+    <div class="profile-section">
       <div class="pulse-section-title">最近留下的</div>
       <div id="latentRecall"><div class="lt-empty">读取中…</div></div>
+    </div>
+  </div>
+
+  <!-- 点进去看某一篇：全文 + 就地改 -->
+  <div class="profile-page" id="latentDoc">
+    <header class="profile-header">
+      <button class="profile-round-button" id="latentDocBack" type="button" aria-label="Back">‹</button>
+      <div class="profile-title" id="latentDocTitle">…</div>
+      <button class="profile-round-button" id="latentDocEdit" type="button" aria-label="Edit">✎</button>
+    </header>
+    <div class="profile-section">
+      <div class="lt-doc-meta" id="latentDocMeta"></div>
+      <div class="lt-block" id="latentDocView"></div>
+      <button class="lt-more" id="latentDocMore" type="button" hidden></button>
+      <textarea class="lt-editor" id="latentDocEditor" spellcheck="false" hidden></textarea>
+      <div class="lt-editbar" id="latentDocBar" hidden>
+        <button type="button" id="latentDocCancel">算了</button>
+        <button type="button" id="latentDocSave" class="primary">保存</button>
+      </div>
     </div>
   </div>
 
@@ -8320,7 +8374,7 @@ function cloneProfile(p){return JSON.parse(JSON.stringify(p||blankProfile()))}
 function profileId(){return crypto.randomUUID?crypto.randomUUID():'m_'+Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function normalizeProfileClient(p){p=p&&typeof p==='object'?p:{};const prefs=p.preferences&&typeof p.preferences==='object'?p.preferences:{};const importState=p.claudeExportImport&&typeof p.claudeExportImport==='object'?p.claudeExportImport:{};return{fullName:String(p.fullName||''),nickname:String(p.nickname||''),savedMemories:(Array.isArray(p.savedMemories)?p.savedMemories:[]).map(x=>{const item={id:String(x.id||profileId()),content:String(x.content||''),enabled:x.enabled!==false,source:['manual','claude_export','migration'].includes(x.source)?x.source:'manual',createdAt:Number(x.createdAt)||Date.now(),updatedAt:Number(x.updatedAt)||Date.now()};if(x.importedAt)item.importedAt=Number(x.importedAt)||Date.now();if(x.externalId)item.externalId=String(x.externalId);return item}).filter(x=>x.content.trim()).slice(0,200),preferences:{enabled:prefs.enabled!==false,content:String(prefs.content||'')},claudeExportImport:{checkedAt:Number(importState.checkedAt)||0,importedAt:Number(importState.importedAt)||0,importedCount:Number(importState.importedCount)||0,foundCount:Number(importState.foundCount)||0},updatedAt:p.updatedAt||Date.now()}}
 function setProfileDirty(v=true){profileDirty=v;document.querySelectorAll('.profile-save-button:not([data-scope])').forEach(b=>b.disabled=!profileDirty)}
-function showProfilePage(id){if(id!=='obHome'&&id!=='memoryPicker'&&id!=='latentHome')renderProfile();['memoryPicker','latentHome','obHome','profileHome','savedMemoriesPage','memorySummaryPage','preferencesPage'].forEach(k=>{var el=$(k);if(el)el.classList.toggle('active',k===id)});$(id)?.scrollTo?.(0,0);$('memorySearchBar').classList.toggle('show',id==='savedMemoriesPage')}
+function showProfilePage(id){if(id!=='obHome'&&id!=='memoryPicker'&&id!=='latentHome'&&id!=='latentDoc')renderProfile();['memoryPicker','latentHome','latentDoc','obHome','profileHome','savedMemoriesPage','memorySummaryPage','preferencesPage'].forEach(k=>{var el=$(k);if(el)el.classList.toggle('active',k===id)});$(id)?.scrollTo?.(0,0);$('memorySearchBar').classList.toggle('show',id==='savedMemoriesPage')}
 function autoSizeMemoryTextarea(area){area.style.height='auto';area.style.height=`${Math.max(44,area.scrollHeight)}px`}
 function closeOpenMemoryRows(except=null){document.querySelectorAll('.profile-memory-row.open').forEach(row=>{if(row!==except){row.classList.remove('open');row.querySelector('.profile-memory-card').style.transform=''}})}
 /* —— 近似去重（与后端 app/memory.py 的 is_near_duplicate 同一套规则）——
@@ -10105,6 +10159,7 @@ async function openLatentPage(){
   $('latentSearchOut').innerHTML='';
   $('latentRecall').innerHTML='<div class="lt-empty">读取中…</div>';
   $('latentUnresolvedOut').innerHTML='<div class="lt-empty">读取中…</div>';
+  loadLatentWindows();
   // 两栏各问各的，互不拖累：一边挂了另一边照样出内容
   fetch('/api/latent/unresolved').then(function(r){
     if(!r.ok)throw new Error('没连上');return r.json();
@@ -10126,6 +10181,84 @@ async function openLatentPage(){
     $('latentRecall').innerHTML='<div class="lt-empty">记忆库没连上。<br>可能是服务还没起来。</div>';
   });
 }
+/* ===== 一天一条：列表 / 点进去 / 就地改 =====
+   语料本来就是一窗一个 md，信息都在，以前只是没有口子读，
+   全靠 MCP 那段拼好的召回文本，所以糊成一坨分不清。 */
+var _LT_VIEW_LIMIT=20000;   // 一次先渲染这么多字，剩下的点「全部展开」
+var _LT_EDIT_LIMIT=80000;   // 再长就别在手机上编辑了，textarea 扛不住
+var _ltDoc=null;
+
+function _ltSize(n){return n>=10000?((n/10000).toFixed(1)+' 万字'):(n+' 字')}
+function _ltDate(s){return String(s||'').replace(/-/g,'.')}
+
+function _ltCard(w){
+  return '<button class="lt-card" type="button" data-file="'+_esc(w.file)+'">'
+    +'<div class="lt-card-head"><span class="lt-card-date">'+_esc(_ltDate(w.date)||'时间未知')+'</span>'
+    +(w.window?'<span class="lt-card-win">第'+w.window+'个窗口</span>':'')
+    +'<span class="lt-card-size">'+_ltSize(w.chars||0)+'</span></div>'
+    +'<div class="lt-card-preview">'+_esc(w.preview||'')+'</div></button>';
+}
+
+async function loadLatentWindows(){
+  var box=$('latentWindows');if(!box)return;
+  box.innerHTML='<div class="lt-empty">读取中…</div>';
+  try{
+    var r=await fetch('/api/latent/windows');
+    if(!r.ok)throw new Error('没连上');
+    var d=await r.json();
+    var ws=(d&&d.windows)||[];
+    $('latentCount').textContent=ws.length?(ws.length+' 篇'):'';
+    if(!ws.length){box.innerHTML='<div class="lt-empty">语料目录还是空的。</div>';return}
+    box.innerHTML=ws.map(_ltCard).join('');
+  }catch(e){
+    // 后端还没打 add-latent-windows.js 时就是这条路 —— 说清楚，别让她以为是数据没了
+    box.innerHTML='<div class="lt-empty">读不到列表。<br>可能后端还没加这个口子。</div>';
+  }
+}
+
+async function openLatentDoc(file){
+  showProfilePage('latentDoc');
+  $('latentDocTitle').textContent='读取中…';
+  $('latentDocMeta').textContent='';
+  $('latentDocView').textContent='';
+  $('latentDocMore').hidden=true;
+  _ltDocSetEditing(false);
+  try{
+    var r=await fetch('/api/latent/window?file='+encodeURIComponent(file));
+    var d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d&&d.error||'读不到');
+    _ltDoc=d;
+    $('latentDocTitle').textContent=_ltDate(d.date)||d.title||file;
+    $('latentDocMeta').textContent=[d.window?('第'+d.window+'个窗口'):'',_ltSize(d.chars||0),file].filter(Boolean).join(' · ');
+    _ltRenderDoc(false);
+  }catch(e){
+    _ltDoc=null;
+    $('latentDocTitle').textContent='读不到';
+    $('latentDocView').textContent=String(e.message||e);
+  }
+}
+
+function _ltRenderDoc(full){
+  if(!_ltDoc)return;
+  var t=_ltDoc.text||'';
+  if(!full&&t.length>_LT_VIEW_LIMIT){
+    $('latentDocView').textContent=t.slice(0,_LT_VIEW_LIMIT);
+    var rest=t.length-_LT_VIEW_LIMIT;
+    var b=$('latentDocMore');b.hidden=false;b.textContent='还有 '+_ltSize(rest)+'，全部展开';
+  }else{
+    $('latentDocView').textContent=t;
+    $('latentDocMore').hidden=true;
+  }
+}
+
+function _ltDocSetEditing(on){
+  $('latentDocView').hidden=!!on;
+  $('latentDocMore').hidden=!!on||!( _ltDoc&&(_ltDoc.text||'').length>_LT_VIEW_LIMIT);
+  $('latentDocEditor').hidden=!on;
+  $('latentDocBar').hidden=!on;
+  $('latentDocEdit').textContent=on?'✕':'✎';
+}
+
 async function latentDoSearch(){
   var q=($('latentQuery').value||'').trim();
   if(!q){$('latentSearchOut').innerHTML='';return}
@@ -10134,15 +10267,80 @@ async function latentDoSearch(){
     var r=await fetch('/api/latent/search?q='+encodeURIComponent(q));
     if(!r.ok){$('latentSearchOut').innerHTML='<div class="lt-empty">记忆库没连上</div>';return}
     var d=await r.json();
-    $('latentSearchOut').innerHTML=d.text?('<div class="lt-block">'+_esc(d.text)+'</div>')
-      :'<div class="lt-empty">没找到。<br>换个更具体的说法再试试。</div>';
+    var t=(d&&d.text)||'';
+    if(!t){$('latentSearchOut').innerHTML='<div class="lt-empty">没找到。<br>换个更具体的说法再试试。</div>';return}
+    var hits=_ltSplitHits(t);
+    if(!hits.length){
+      // 切不出条目（多半是「没有可靠命中」那段说明），原样给她看
+      $('latentSearchOut').innerHTML='<div class="lt-block">'+_esc(t)+'</div>';return;
+    }
+    $('latentSearchOut').innerHTML=hits.map(function(h){
+      var f=/\.md$/.test(h.src)?h.src:'';
+      return '<button class="lt-card" type="button"'+(f?' data-file="'+_esc(f)+'"':'')+'>'
+        +'<div class="lt-card-head"><span class="lt-card-date">'+_esc(_ltDate(h.date))+'</span>'
+        +(h.src?'<span class="lt-card-win">'+_esc(h.src.replace(/\.md$/,''))+'</span>':'')
+        +'</div><div class="lt-card-preview">'+_esc(h.body)+'</div></button>';
+    }).join('');
   }catch(e){$('latentSearchOut').innerHTML='<div class="lt-empty">'+_esc(String(e.message||e))+'</div>'}
+}
+
+/* 召回文本里每条片段的抬头长这样： - [2026.07.18·window_63_2026-07-18.md] 正文…
+   按这个把一坨切成一条条。切不出来就说明不是命中列表（比如「没有可靠命中」那段）。*/
+function _ltSplitHits(text){
+  var re=/[-–—•]\s*\[(\d{4}[.\-\/]\d{1,2}[.\-\/]\d{1,2})[^\]]*?(?:·([^\]]*))?\]/g;
+  var out=[],m,last=null,s=String(text||'');
+  while((m=re.exec(s))){
+    if(last)last.body=s.slice(last.end,m.index).trim();
+    last={date:m[1].replace(/[.\/]/g,'-'),src:(m[2]||'').trim(),end:re.lastIndex};
+    out.push(last);
+  }
+  if(last)last.body=s.slice(last.end).trim();
+  return out;
 }
 (function(){
   var c=$('closeMemoryPicker'); if(!c)return;
   c.addEventListener('click',closeMemoryPanel);
   $('gateOB').addEventListener('click',function(){showProfilePage('obHome');loadOBData()});
   $('gateLatent').addEventListener('click',openLatentPage);
+  // 卡片用事件委托：列表和搜索结果都是后画出来的，逐个绑会漏
+  ['latentWindows','latentSearchOut'].forEach(function(id){
+    var el=$(id);if(!el)return;
+    el.addEventListener('click',function(ev){
+      var card=ev.target.closest('.lt-card[data-file]');
+      if(card)openLatentDoc(card.getAttribute('data-file'));
+    });
+  });
+  $('latentDocBack').addEventListener('click',function(){showProfilePage('latentHome')});
+  $('latentDocMore').addEventListener('click',function(){_ltRenderDoc(true)});
+  $('latentDocEdit').addEventListener('click',function(){
+    if(!_ltDoc)return;
+    if(!$('latentDocEditor').hidden){_ltDocSetEditing(false);return}   // 已在编辑 → 退出
+    if((_ltDoc.text||'').length>_LT_EDIT_LIMIT){
+      toast('这篇 '+_ltSize(_ltDoc.text.length)+'，太长了，在手机上改不动');return;
+    }
+    $('latentDocEditor').value=_ltDoc.text||'';
+    _ltDocSetEditing(true);
+  });
+  $('latentDocCancel').addEventListener('click',function(){_ltDocSetEditing(false)});
+  $('latentDocSave').addEventListener('click',async function(){
+    if(!_ltDoc)return;
+    var t=$('latentDocEditor').value;
+    if(!t.trim()){toast('正文不能空');return}
+    if(t===_ltDoc.text){_ltDocSetEditing(false);return}
+    var btn=this;btn.disabled=true;btn.textContent='保存中…';
+    try{
+      var r=await fetch('/api/latent/window',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({file:_ltDoc.file,text:t})});
+      var d=await r.json();
+      if(!r.ok||!d.ok)throw new Error(d&&d.error||'保存失败');
+      _ltDoc.text=t;_ltDoc.chars=t.length;
+      _ltDocSetEditing(false);_ltRenderDoc(false);
+      $('latentDocMeta').textContent=[_ltDoc.window?('第'+_ltDoc.window+'个窗口'):'',_ltSize(t.length),_ltDoc.file].filter(Boolean).join(' · ');
+      toast('存好了，旧的备份在服务器上');
+      loadLatentWindows();
+    }catch(e){toast(String(e.message||e))}
+    btn.disabled=false;btn.textContent='保存';
+  });
   // 以前这个是「退回那个门」。门没了，就让它直接关掉整个记忆页。
   $('latentBack').addEventListener('click',closeMemoryPanel);
   // 顶上那条切换。两个页各有一条，各自的 active 是写死在 HTML 里的，不用同步。
