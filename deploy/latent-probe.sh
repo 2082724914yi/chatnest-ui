@@ -17,6 +17,10 @@ say(){ printf '\n\033[1m%s\033[0m\n' "$*"; }
 
 [ "$(id -u)" = 0 ] || { no "要用 sudo 跑（要读 .env 和 /proc）"; exit 1; }
 
+# 口令可能作为命令行参数传给服务（--token xxx），那么进程命令行里就是明文。
+# 凡是要印出来给人看的东西，一律先过这道打码 —— 9.6 就是漏在这儿。
+_mask(){ sed -E 's/(--?[Tt][Oo][Kk][Ee][Nn][= ])[^ ]+/\1****（打码）/g; s/(--?[Aa][Pp][Ii][-_]?[Kk][Ee][Yy][= ])[^ ]+/\1****（打码）/g; s/([Ss][Ee][Cc][Rr][Ee][Tt][= ])[^ ]+/\1****（打码）/g; s/([Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd][= ])[^ ]+/\1****（打码）/g'; }
+
 say "1/6 8765 上跑的是谁"
 # ss / netstat 不一定装了。没有就别装作「没人听」—— 那是看不见，不是不存在
 HAVE_NET=0
@@ -64,7 +68,7 @@ if [ -n "${PID:-}" ]; then
   ok "pid $PID"
   echo "  程序: $(readlink -f /proc/$PID/exe 2>/dev/null || echo 未知)"
   echo "  目录: $(readlink -f /proc/$PID/cwd 2>/dev/null || echo 未知)"
-  echo "  命令: $(cat "/proc/$PID/cmdline" 2>/dev/null | tr '\0' ' ' | cut -c1-300)"
+  echo "  命令: $(cat "/proc/$PID/cmdline" 2>/dev/null | tr '\0' ' ' | cut -c1-300 | _mask)"
 fi
 
 say "2/6 口令在不在"
@@ -86,18 +90,31 @@ _call(){ # $1=method $2=params-json
 
 say "3/6 它认得哪些工具"
 TOOLS=$(_call "tools/list" "{}")
-if printf '%s' "$TOOLS" | grep -q '"tools"'; then
-  # 没有 jq 也要能看：把工具名一个个抠出来
-  if command -v jq >/dev/null 2>&1; then
-    printf '%s' "$TOOLS" | jq -r '.result.tools[] | "  · \(.name) — \(.description // "" | .[0:70])"' 2>/dev/null \
-      || printf '%s' "$TOOLS" | grep -oE '"name":"[^"]+"' | sed 's/"name":"/  · /; s/"$//'
-  else
-    printf '%s' "$TOOLS" | grep -oE '"name":"[^"]+"' | sed 's/"name":"/  · /; s/"$//'
-  fi
-  ok "工具清单如上"
+# 上一版这儿会在解析不出来的时候静默吞掉，然后还嘴硬说「工具清单如上」。
+# 现在：解析出几个就报几个，一个都解析不出来就把它到底回了什么摆出来。
+LISTED=0
+if command -v python3 >/dev/null 2>&1; then
+  OUT=$(printf '%s' "$TOOLS" | python3 -c '
+import sys,json
+try: j=json.load(sys.stdin)
+except Exception: raise SystemExit(1)
+ts=((j.get("result") or {}).get("tools")) or j.get("tools") or []
+if not isinstance(ts,list) or not ts: raise SystemExit(1)
+for t in ts:
+    if not isinstance(t,dict): continue
+    d=" ".join((t.get("description") or "").split())[:70]
+    print("  · %s%s"%(t.get("name","?")," — "+d if d else ""))
+' 2>/dev/null) && [ -n "$OUT" ] && { printf '%s\n' "$OUT"; LISTED=$(printf '%s\n' "$OUT" | wc -l); }
+fi
+if [ "$LISTED" = 0 ]; then
+  OUT=$(printf '%s' "$TOOLS" | grep -oE '"name": *"[^"]+"' | sed 's/"name": *"/  · /; s/"$//')
+  [ -n "$OUT" ] && { printf '%s\n' "$OUT"; LISTED=$(printf '%s\n' "$OUT" | wc -l); }
+fi
+if [ "$LISTED" != 0 ]; then
+  ok "一共 $LISTED 个工具"
 else
-  no "问不到工具清单，它回的是："
-  printf '%s' "$TOOLS" | head -c 400 | sed 's/^/      /'
+  no "问不到工具清单。它回的是（前 400 字）："
+  printf '%s' "$TOOLS" | head -c 400 | _mask | sed 's/^/      /'
   echo
 fi
 
