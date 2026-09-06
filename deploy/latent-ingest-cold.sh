@@ -197,8 +197,8 @@ head -3 /tmp/_ing/plan | while IFS=$'\t' read -r a b; do skip "例：$(basename 
 
 if [ "$APPLY" != 1 ]; then
   printf '\n\033[1m干跑到此为止，一个字都没写。\033[0m\n'
-  echo "  真要灌就跑："
-  echo "    curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/claude/baby-activities-today-0k5ueq/deploy/latent-ingest-cold.sh -o /tmp/ing.sh && sudo APPLY=1 bash /tmp/ing.sh"
+  echo "  真要灌就跑（带 ?cb= 是为了绕开 GitHub 的 CDN 缓存，不然可能拉到旧版）："
+  echo "    curl -fsSL -H 'Cache-Control: no-cache' \"https://raw.githubusercontent.com/2082724914yi/chatnest-ui/claude/baby-activities-today-0k5ueq/deploy/latent-ingest-cold.sh?cb=\$(date +%s)\" -o /tmp/ing.sh && sudo APPLY=1 bash /tmp/ing.sh"
   rm -rf /tmp/_ing; exit 0
 fi
 
