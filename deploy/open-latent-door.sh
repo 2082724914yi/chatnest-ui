@@ -226,7 +226,17 @@ else
 fi
 
 say "8/8 重启 + 验证"
-systemctl restart "$UNIT" && sleep 5
+systemctl restart "$UNIT"
+# ⚠ 不能 sleep 几秒就验：151 篇语料建索引要 10~15 秒，那时候 8765 还没开始监听，
+# 验出来是本机 000 / 外网 502，看着像门没开成 —— 9.6 就是这么虚惊一场的。等到它应答为止。
+printf '  等它把语料读完'
+for i in $(seq 1 30); do
+  _c=$(curl -s -m 10 -o /dev/null -w '%{http_code}' "$LATENT_URL/" -X POST \
+        -H 'Content-Type: application/json' -d '{}' 2>/dev/null)
+  [ "$_c" != "000" ] && { printf '（%d 秒，应答了）\n' "$((i*3))"; break; }
+  printf '.'; sleep 3
+done
+echo
 if systemctl is-active --quiet "$UNIT"; then ok "$UNIT 活着"
 else
   no "起不来了！恢复所有备份"
