@@ -460,6 +460,16 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 @keyframes tl-spin{to{transform:rotate(360deg)}}
 .timeline-icon.spin{animation:tl-spin 1s linear infinite;transform-origin:50% 50%}
 @media (prefers-reduced-motion:reduce){.timeline-icon.spin{animation:none}}
+/* 工具折叠：跑的时候摊开，跑完收成一行 used N tools，点开才展开。
+   思考过程那条不收——她要看的就是它。 */
+.timeline-fold{display:none;align-items:center;gap:6px;width:100%;padding:3px 0;background:none;border:0;cursor:pointer;font-family:var(--font-sans);font-size:12px;line-height:1.4;color:var(--text-faint);text-align:left;-webkit-tap-highlight-color:transparent}
+.timeline-fold:active{opacity:.6}
+.timeline.has-tools .timeline-fold{display:flex}
+.timeline-fold-icon{width:13px;height:13px;flex:none}
+.timeline:not(.folded) .timeline-fold .timeline-chevron{transform:rotate(90deg)}
+.timeline.folded .timeline-step[data-kind="tool"]{display:none}
+/* 收起时只剩思考那一条，竖线没有东西可串，留着会拖出一截空的 */
+.timeline.folded .timeline-step::before{display:none}
 .thinking-row{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;color:var(--text-secondary);font-size:var(--text-sm)}.thinking-row.hidden{display:none}.thinking-status-line{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.thinking-clock-icon{width:14px;height:14px;flex:none}.thinking-status-line>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 /* === Trail logo:跟随 row 末尾,永远在最后内容下方一行 === */
 .claude-trail-logo{width:26px;height:26px;margin:13px 0 0;color:#D97757;display:block;position:relative;overflow:hidden}.claude-trail-logo.cat{width:30px;height:30px;overflow:visible}.cat-roll{width:100%;height:100%;display:block;animation:cat-roll 1.15s linear infinite;transform-origin:50% 50%}@keyframes cat-roll{to{transform:rotate(360deg)}}.claude-logo-inner{width:100%;height:100%;display:block;will-change:transform}.claude-logo-track{width:100%;will-change:transform}.claude-logo-track svg{display:block;width:100%;height:auto;fill:currentColor}.claude-trail-logo[data-mode="tool"] .claude-logo-inner{animation:claudeToolPulse 1800ms cubic-bezier(.2,.8,.2,1) infinite;transform-origin:center}@keyframes claudeToolPulse{0%{transform:scale(1) rotate(0deg);opacity:1}38%{transform:scale(.16) rotate(80deg);opacity:.85}52%{transform:scale(.16) rotate(180deg);opacity:.85}100%{transform:scale(1) rotate(360deg);opacity:1}}
@@ -5065,6 +5075,8 @@ function _tlPaintBody(body,tr){
 function _tlStep(tr){
   const step=document.createElement('div');
   step.className='timeline-step';step.dataset.traceId=tr.id||'';step.dataset.type=tr.type||'';
+  // kind 只分两类：思考留在外面，其余一律算工具，跑完收进 used N tools
+  step.dataset.kind=tr.type==='thinking'?'thinking':'tool';
   const head=document.createElement('button');head.type='button';head.className='timeline-head';
   head.setAttribute('aria-expanded','false');
   const name=document.createElement('span');name.className='timeline-name';
@@ -5080,6 +5092,37 @@ function _tlStep(tr){
   step.__tr=tr;_tlRender(step,tr);
   return step;
 }
+/* 工具折叠行：一条 timeline 最多一个，永远在最前面 */
+const _TL_FOLD_ICON='<svg class="timeline-fold-icon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,128a8,8,0,0,1-3,6.25l-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32A8,8,0,0,1,128,128Zm48,24H136a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm56-96V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Z"/></svg>';
+function _tlFoldRow(root){
+  let f=root.querySelector(':scope > .timeline-fold');
+  if(f)return f;
+  f=document.createElement('button');f.type='button';f.className='timeline-fold';
+  const txt=document.createElement('span');txt.className='timeline-fold-text';
+  f.insertAdjacentHTML('afterbegin',_TL_FOLD_ICON);f.append(txt);f.insertAdjacentHTML('beforeend',_TL_CHEVRON);
+  f.onclick=()=>{
+    // 她点过一次之后就听她的，别再自动收回去
+    root.__userToggled=true;
+    const folded=root.classList.toggle('folded');
+    f.setAttribute('aria-expanded',String(!folded));
+  };
+  root.prepend(f);
+  return f;
+}
+function _tlUpdateFold(root){
+  const tools=root.querySelectorAll(':scope > .timeline-step[data-kind="tool"]');
+  if(!tools.length){root.classList.remove('has-tools','folded');return}
+  root.classList.add('has-tools');
+  const f=_tlFoldRow(root);
+  const n=tools.length,label='used '+n+' tool'+(n>1?'s':'');
+  const txt=f.querySelector('.timeline-fold-text');
+  if(txt.textContent!==label)txt.textContent=label;
+  // 跑的时候摊开着让她看见我在动；全跑完了才收
+  const running=[...tools].some(s=>s.dataset.status==='running');
+  if(running)root.classList.remove('folded');
+  else if(!root.__userToggled)root.classList.add('folded');
+  f.setAttribute('aria-expanded',String(!root.classList.contains('folded')));
+}
 /* 时间轴控制器：mount 决定 DOM 插到哪，事件流驱动增量更新 */
 function createTimeline(mount){
   const map=new Map(),steps=new Map();let root=null;
@@ -5090,6 +5133,7 @@ function createTimeline(mount){
     let step=steps.get(tr.id);
     if(!step){step=_tlStep(tr);steps.set(tr.id,step);r.append(step)}
     else{step.__tr=tr;_tlRender(step,tr)}
+    _tlUpdateFold(r);
   }
   return{
     start(d){if(!d||!d.id||map.has(d.id))return;upsert({id:d.id,type:d.type||'tool',name:d.name||'',content:'',input:null,result:'',status:'running',duration_ms:0})},
@@ -5109,6 +5153,7 @@ function buildTimelineFromHistory(list){
   if(!valid.length)return null;
   const root=document.createElement('div');root.className='timeline';
   for(const tr of valid)root.append(_tlStep({status:'completed',...tr}));
+  _tlUpdateFold(root); // 历史全是跑完的，翻上去看到的就是收好的一行
   return root;
 }
 function beginClaude(userText,userAttachments=[]){document.querySelector('.stream-disclaimer')?.remove();
