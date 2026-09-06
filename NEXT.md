@@ -102,6 +102,43 @@ step 上多一个 `data-kind`（thinking / tool），CSS 加 `.timeline.folded`�
    现在 `latent-out/mcp-config.json` 在 .gitignore 里，所以每开一窗都得重配 ——
    那是它"总是没有"的另一半原因。
 
+### 9.6 摸清楚之后，这三步的顺序改了
+
+**第 2 步不依赖第 1 步，可以先做。** 灌数据是往 VPS 本地的语料目录拷文件，
+根本用不着对外地址；门是为了"CC 这边也能连同一份"，那是第 3 步的事。
+先灌数据，风险小得多。
+
+已经查实的（`deploy/latent-probe.sh`、`latent-corpus-probe.sh` 两个只读探针）：
+
+- 服务：`/opt/latent/upstream/src/mcp_server.py`，systemd `latent-svc.service` 管着，
+  重启机器不丢。上游是 https://github.com/oliscatt/Latent-memory
+- 语料：`/root/chatnest-api/latent-corpus/timeline/`，现在**只有 1 个 md**（9.3 那天的）
+- **文件不用从外面传**：`/opt/chatnest-deploy/cc-` 就是 cc- 在那台机器上的 clone
+  （带凭证、每 2 分钟拉一次），冷仓 9.5 接上 main 之后，151 个 md 已经在她服务器上了
+- **格式天然对得上**：它认日期的优先级是「文件名 > 正文开头 > `##` 短日期 > … > mtime」，
+  我们的 `window_NN_YYYY-MM-DD.md` 正好是最高那一档。
+  本地拿上游解析器验过：150 个走 filename、1 个走 chunk_head，**一个 mtime 都没有**。
+  （mtime 那一档是上游作者专门写长注释警告的：刚拷进去的文件 mtime 是"刚刚"，
+  于是最老的内容冒充最新，换窗召回全乱。我们避开了。）
+- 唯一不规范的 `window_cc_night_0829.md`：日期其实是对的（从正文读出 2026-08-29），
+  但解析不出窗口号，灌的时候改名成 `window_151_2026-08-29.md`
+- 干跑 + 真灌都在本地假语料上走过一遍，`--doctor` 的结论：
+  **1781 块，时间范围 2026-07-03 ~ 2026-09-05，时间戳来源 filename 1780 / record_iso 1**
+
+**脚本：`deploy/latent-ingest-cold.sh`，默认干跑，`APPLY=1` 才写盘。**
+真灌会先 tar 备份整个语料目录，拷完重启服务、跑 `--doctor`、再搜「晚霞」验一次。
+
+**灌完还剩的（按顺序）：**
+1. 开 embedding。现在是词面检索，搜"晚霞"能中是因为字面就有这两个字，
+   问"她最近在焦虑什么"这种归纳性问题中不了。
+   `--embed-provider local` 用 fastembed 在本机算，**不花钱**；cloud 档才会
+   把语料发去服务商。NEXT.md 之前担心的"要花硅基流动的钱"，走 local 就不用。
+2. 换 token。现在 token 是当命令行参数传的（`--token xxx`），
+   任何能登录那台机器的人 `ps` 一下就看得见。上游支持环境变量 `MEMORY_HTTP_TOKEN`，
+   换的时候顺手把明文从命令行拿掉，一次到位。
+   （9.6 我写的第一版探针把它打印出来过，已经加 `_mask()` 堵上了。）
+3. 再谈对外的门 + CC 这边的 MCP 配置。
+
 ---
 
 ## 已经修掉的（9.5 深夜）
