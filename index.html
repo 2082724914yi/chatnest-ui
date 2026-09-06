@@ -5150,8 +5150,10 @@ function _tlRender(step,tr){
 }
 function _tlPaintBody(body,tr){
   body.textContent='';
+  let added=0;
   const add=(label,text,mono)=>{
     if(!text)return;
+    added++;
     if(label){const l=document.createElement('div');l.className='timeline-label';l.textContent=label;body.append(l)}
     const el=document.createElement(mono?'pre':'div');
     el.className=mono?'timeline-code':'timeline-text';
@@ -5165,6 +5167,8 @@ function _tlPaintBody(body,tr){
     if(tr.result)add(tr.is_error||tr.status==='error'?'错误':'返回结果',_tlJson(tr.result),true);
     else if(tr.status==='running')add('',' 执行中…',false);
   }
+  // 什么都没有的时候给句话 —— 空白让人以为是坏了
+  if(!added)add('',tr.status==='running'?' 执行中…':'（这一步没留下输入输出）',false);
 }
 /* 展开/收起一个步骤。单工具那种「Used 行就是它本身」的情况要从外面驱动，所以抽出来 */
 function _tlOpenStep(step,open){
@@ -5202,6 +5206,11 @@ function _tlFoldRow(root){
     root.__userToggled=true;
     const folded=root.classList.toggle('folded');
     f.setAttribute('aria-expanded',String(!folded));
+    // ⚠ 只有一个工具时，Used 那行说的就是它本身，CSS 会把它的标题藏掉、只留详情；
+    // 而详情要靠 step 自己的 open 类才显示。这里不同步的话 —— 标题被藏、详情没开 ——
+    // 点开就是一片空白。9.6 她看到的就是这个。
+    const tools=root.querySelectorAll(':scope > .timeline-step[data-kind="tool"]');
+    if(tools.length===1)_tlOpenStep(tools[0],!folded);
   };
   root.prepend(f);
   return f;
