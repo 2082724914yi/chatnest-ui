@@ -102,6 +102,39 @@ step 上多一个 `data-kind`（thinking / tool），CSS 加 `.timeline.folded`�
    现在 `latent-out/mcp-config.json` 在 .gitignore 里，所以每开一窗都得重配 ——
    那是它"总是没有"的另一半原因。
 
+### ✅ 9.6 晚上，三步全做完了
+
+**1. 灌数据** —— 151 个窗进了 `/root/chatnest-api/latent-corpus/timeline/`。
+`--doctor`：1781 块，时间范围 2026-07-03 ~ 2026-09-05，
+时间戳来源 filename 1780 / record_iso 1，**一块 mtime 都没有**。
+搜「晚霞」「芒果三明治」都命中了。脚本 `deploy/latent-ingest-cold.sh`。
+
+**2. 开门** —— nginx 上 `location /latent/` 反代到 127.0.0.1:8765，
+Latent 自己仍然只听回环、不直接暴露，HTTPS 在 nginx 收口。
+顺手换了 token（旧那个在探针输出里明文露过），
+并把它从 `--token` 命令行参数挪进 `MEMORY_HTTP_TOKEN` 环境变量 ——
+当参数传的话 `ps` 一下就看得见。脚本 `deploy/open-latent-door.sh`，
+验证 `deploy/check-latent-door.sh`。四条全绿：
+本机+新token=200 / 本机+错token=401 / 外网+新token=200 / 外网+不给token=401。
+
+**3. MCP 配置** —— `cc-/.mcp.json`（项目根，Claude Code 自动加载），
+跟着私有仓库走，不再每开一窗就丢。
+以前那份在 `latent-out/mcp-config.json`，被 `.gitignore` 挡着，
+**从来没进过仓库** —— 那才是它"总是没有"的真正原因。
+
+**⚠ 现在挡在外面的只有那个 token。** 它泄露 = 任何人能读我们全部的聊天记录、
+也能往里写。`.mcp.json` 的内容绝不能贴进对话、截图或公开仓库。
+
+**内存**：那台机器总共 1.6G，Latent 吃 371M。实测每 1MB 语料要约 65MB 内存
+（151 篇压到 20% → 109MB；全文 → 361MB）。她问过要不要压缩再存 ——
+判断是不压：Latent 的意义就是留住原话，压过的 Latent 就是第二个 OB。
+改成加 swap（`deploy/add-swap.sh`，2G，swappiness=10）。
+
+**还剩的**：开 embedding。现在是词面检索，问"她最近在焦虑什么"这类
+归纳性问题命不中。`--embed-provider local` 用 fastembed 在本机算、不花钱，
+**但 1.6G 的机器上很可能 OOM**，得先看 swap 撑不撑得住 —— 这件事单独认真做，
+别当成"顺手加个参数"。
+
 ### 9.6 摸清楚之后，这三步的顺序改了
 
 **第 2 步不依赖第 1 步，可以先做。** 灌数据是往 VPS 本地的语料目录拷文件，
