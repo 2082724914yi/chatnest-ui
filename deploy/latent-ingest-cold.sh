@@ -95,7 +95,33 @@ N_SRC=$(find "$SRC" -maxdepth 1 -name '*.md' | wc -l)
 ok "$SRC — $N_SRC 个 md，$(du -sh "$SRC" 2>/dev/null | cut -f1)"
 GITDIR=$(cd "$SRC" && git rev-parse --show-toplevel 2>/dev/null)
 [ -n "${GITDIR:-}" ] && skip "来自 $GITDIR，最新 commit：$(git -C "$GITDIR" log -1 --format='%h %ad %s' --date=short 2>/dev/null | cut -c1-70)"
-[ "$N_SRC" -lt 100 ] && { no "只有 $N_SRC 个文件，不像是 151 个窗的冷仓 —— 先确认 clone 是不是最新的（git -C $GITDIR pull）"; exit 1; }
+[ "$N_SRC" -lt 100 ] && { no "只有 $N_SRC 个文件，不像是一百多个窗的冷仓 —— 先确认 clone 是不是最新的"; exit 1; }
+
+# 找到了不等于是最新的。旧 clone 灌进去不会报错，只会静悄悄少几天 ——
+# 那正是「不报错的失败」，比报错更难发现，所以在这儿卡一道。
+if [ -n "${GITDIR:-}" ]; then
+  skip "origin：$(git -C "$GITDIR" remote get-url origin 2>/dev/null || echo '（没有 origin）')"
+  BR=$(git -C "$GITDIR" symbolic-ref --short HEAD 2>/dev/null || echo main)
+  if git -C "$GITDIR" fetch --quiet origin "$BR" 2>/dev/null; then
+    BEHIND=$(git -C "$GITDIR" rev-list --count "HEAD..origin/$BR" 2>/dev/null || echo 0)
+    if [ "${BEHIND:-0}" -gt 0 ]; then
+      no "这份 clone 落后 origin/$BR $BEHIND 个 commit —— 冷仓多半缺最近几个窗口"
+      git -C "$GITDIR" log --oneline "HEAD..origin/$BR" --date=short --format='        %h %ad %s' 2>/dev/null | head -5
+      if [ "$APPLY" = 1 ]; then
+        skip "先把它拉到最新再灌…"
+        git -C "$GITDIR" pull --quiet origin "$BR" 2>&1 | sed 's/^/        /' || { no "pull 失败，先手动解决再来"; exit 1; }
+        N_SRC=$(find "$SRC" -maxdepth 1 -name '*.md' | wc -l)
+        ok "拉完了，现在 $N_SRC 个 md"
+      else
+        echo "        真灌的时候会自动先 pull；也可以现在手动：sudo git -C $GITDIR pull"
+      fi
+    else
+      ok "已经是最新的（没落后 origin/$BR）"
+    fi
+  else
+    skip "fetch 不到远端（没凭证或没网），没法判断这份新不新 —— 灌之前最好自己确认一下"
+  fi
+fi
 
 say "2/7 灌到哪"
 [ -d "$CORPUS" ] || { no "语料目录 $CORPUS 不存在"; exit 1; }
