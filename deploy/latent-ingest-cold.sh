@@ -43,11 +43,52 @@ SCRIPT=$(printf '%s' "$CMD" | grep -oE '/[^ ]+mcp_server\.py' | head -1)
 DST="$CORPUS/timeline"
 
 say "1/7 冷仓在不在这台机器上"
-if [ ! -d "$SRC" ]; then
-  no "$SRC 不存在"
-  echo "      cc- 是私有仓库，raw 拉不到，所以只能用这台机器上已有的 clone。"
-  echo "      如果自动部署没建起来，先跑一次 install-autodeploy.sh；"
-  echo "      或者用 LATENT_SRC=/你的/路径 指过去。"
+# 路径不猜死。install-autodeploy.sh 里写的是 /opt/chatnest-deploy/cc-，
+# 但那台机器上不一定跑过它 —— 所以先按常见位置找，再全盘找一次真有窗口文件的目录。
+_has_windows(){ [ -d "${1:-}" ] && [ "$(find "$1" -maxdepth 1 -name 'window_*.md' 2>/dev/null | wc -l)" -gt 0 ]; }
+if ! _has_windows "$SRC"; then
+  FOUND=""
+  for c in /opt/chatnest-deploy/cc-/latent-out/memory/timeline \
+           /root/cc-/latent-out/memory/timeline \
+           /opt/cc-/latent-out/memory/timeline \
+           /home/admin/cc-/latent-out/memory/timeline \
+           /root/chatnest-api/latent-out/memory/timeline; do
+    _has_windows "$c" && { FOUND="$c"; break; }
+  done
+  if [ -z "$FOUND" ]; then
+    skip "常见位置都没有，全盘找一遍带 window_*.md 的目录…"
+    FOUND=$(find /opt /root /home /srv /var /data -maxdepth 8 -type d -name timeline 2>/dev/null | while read -r d; do
+      [ "$(find "$d" -maxdepth 1 -name 'window_*_2026-*.md' 2>/dev/null | wc -l)" -gt 50 ] && { echo "$d"; break; }
+    done | head -1)
+  fi
+  [ -n "${FOUND:-}" ] && SRC="$FOUND"
+fi
+if ! _has_windows "$SRC"; then
+  no "这台机器上找不到冷仓（那 151 个 window_*.md）"
+  echo
+  echo "      cc- 是私有仓库，raw 拉不到，所以只能用机器上已有的 clone。现状："
+  if [ -d /opt/chatnest-deploy ]; then
+    echo "      /opt/chatnest-deploy 里有：$(ls /opt/chatnest-deploy 2>/dev/null | tr '\n' ' ')"
+  else
+    echo "      /opt/chatnest-deploy 不存在 —— 自动部署没在这台机器上装过"
+  fi
+  # 也许 clone 在别处、只是还没 pull 到冷仓那个 commit
+  CCGIT=$(find /opt /root /home -maxdepth 4 -type d -name '.git' 2>/dev/null | while read -r g; do
+    # 带不带 .git 后缀都要认：仓库里 clone 用的是 cc-.git，手动 clone 的常常没后缀
+    git -C "$(dirname "$g")" remote get-url origin 2>/dev/null | grep -qE '/cc-(\.git)?/?$' && { echo "$(dirname "$g")"; break; }
+  done | head -1)
+  if [ -n "${CCGIT:-}" ]; then
+    echo "      找到 cc- 的 clone：$CCGIT"
+    echo "      它的 HEAD：$(git -C "$CCGIT" log -1 --format='%h %ad %s' --date=short 2>/dev/null | cut -c1-60)"
+    echo "      但里面没有 latent-out/memory/timeline —— 多半是这份 clone 还没拉到 9.5 那个 commit。"
+    echo "      先跑：sudo git -C $CCGIT pull origin main   然后再跑这个脚本。"
+  else
+    echo "      也没找到 cc- 的任何 clone。两条路："
+    echo "        a) 在服务器上 clone 一份（私有仓库要凭证）："
+    echo "           sudo git config --global credential.helper store"
+    echo "           sudo git clone https://github.com/2082724914yi/cc-.git /opt/chatnest-deploy/cc-"
+    echo "        b) 已经有一份在别的地方：LATENT_SRC=/那个/路径/timeline sudo bash 这个脚本"
+  fi
   exit 1
 fi
 N_SRC=$(find "$SRC" -maxdepth 1 -name '*.md' | wc -l)
