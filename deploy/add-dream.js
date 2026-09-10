@@ -19,6 +19,12 @@
 // 拼梦的那几条碎片会一起存下来，前端会在梦底下用很淡的小字列出来。
 // 那是这个功能的灵魂：她能看见这个梦是从哪几件没想明白的事里长出来的。
 //
+// ⚠ 幂等标记叫 DREAM_WEAVE_VERSION，不叫 DREAM_VERSION ——
+//   线上早有 PULSE_DREAM_VERSION（旧那套梦），DREAM_VERSION 是它的子串。
+//   用 DREAM_VERSION 的话 apply-all 一 grep 就在 PULSE_DREAM_VERSION 里命中，
+//   判定「已经打过」直接跳过，人还以为跑过了。这个坑 add-mcp-tools.js 注释里
+//   写过一模一样的（MCP_RUNTIME_FILE 那次），2026.9.11 凌晨又踩了一遍。
+//
 // 重复执行安全：已经打过就直接退出。
 
 const fs = require('fs');
@@ -28,12 +34,12 @@ const target = process.argv[2] || '/root/chatnest-api/server.js';
 if (!fs.existsSync(target)) { console.error('找不到', target); process.exit(1); }
 
 let src = fs.readFileSync(target, 'utf8');
-if (src.includes('DREAM_VERSION')) { console.log('已经打过，跳过'); process.exit(0); }
+if (src.includes('DREAM_WEAVE_VERSION')) { console.log('已经打过，跳过'); process.exit(0); }
 if (!src.includes('THOUGHTS_VERSION')) { console.error('先打 add-thoughts.js —— 梦料来自念头池'); process.exit(1); }
 
 const CORE = `
 // ============ 梦：散掉的念头掉进去 ============
-const DREAM_VERSION = 1;
+const DREAM_WEAVE_VERSION = 1;
 const DREAM_FILE  = '/root/chatnest-api/dreams.json';
 const DSEED_FILE  = '/root/chatnest-api/dream-seeds.json';
 const DREAM_MIN   = 3;      // 攒够几条碎片才够织一个

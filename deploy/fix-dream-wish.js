@@ -21,7 +21,7 @@ if (!fs.existsSync(target)) { console.error('找不到', target); process.exit(1
 
 let src = fs.readFileSync(target, 'utf8');
 if (src.includes('DREAM_WISH_VERSION')) { console.log('已经打过，跳过'); process.exit(0); }
-if (!src.includes('DREAM_VERSION')) { console.error('先打 add-dream.js'); process.exit(1); }
+if (!src.includes('DREAM_WEAVE_VERSION')) { console.error('先打 add-dream.js'); process.exit(1); }
 if (!src.includes('THOUGHTS_VERSION')) { console.error('先打 add-thoughts.js'); process.exit(1); }
 
 const BLOCK = `
