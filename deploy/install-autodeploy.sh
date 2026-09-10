@@ -8,8 +8,22 @@
 #   · 部署前备份，重启后做健康检查，起不来自动回滚
 #   · 内容没变就不动，不做无谓重启
 #   · 重复跑安装器是安全的
+#
+# 后端默认不进自动部署（WITH_BACKEND=0）。两个原因：
+#   1. 线上 /root/chatnest-api/server.js 是 chatnest-ui/deploy/ 里二十多个补丁
+#      一层层打上去的，跟 cc- 仓库里那份不是同一条线。让定时器自动覆盖 =
+#      cc- 一有新提交（存个冷仓就够）就把补丁全抹掉，而且老版本照样能通过
+#      /api/health，回滚逻辑判定成功、不会救。
+#   2. cc- 是私有仓库，VPS 上没有凭据就 clone 不下来，而原来这一步失败会 die,
+#      整个安装中止 —— 结果是连前端的自动部署也一起装不上。
+#      （2026.9.10 查到的：线上从 9.6 起就没更新过，就是死在这儿，
+#        /opt/chatnest-deploy 目录压根没建成。）
+# 所以默认只自动部署前端 —— 前端仓库那份 index.html 就是真相，覆盖是安全的。
+# 真要连后端一起：先把补丁体系并进仓库、让仓库那份就是线上那份，再
+#   WITH_BACKEND=1 bash install-autodeploy.sh
 set -euo pipefail
 
+WITH_BACKEND=${WITH_BACKEND:-0}
 DEPLOY_DIR=/opt/chatnest-deploy
 WEB_ROOT=/var/www/chatnest
 API_DIR=/root/chatnest-api
@@ -50,8 +64,10 @@ clone_or_update(){ # $1=url $2=目录名
   fi
 }
 clone_or_update "$UI_REPO" chatnest-ui
-clone_or_update "$API_REPO" cc-
+# cc- 是私有仓库。只装前端时根本不需要它，更不该让它的 clone 失败拖垮整个安装。
+[ "$WITH_BACKEND" = 1 ] && clone_or_update "$API_REPO" cc-
 
+if [ "$WITH_BACKEND" = 1 ]; then
 say "3/5 对齐仓库与线上后端"
 LIVE_SRV="$API_DIR/server.js"
 REPO_SRV="$DEPLOY_DIR/cc-/chatnest-api/server.js"
@@ -82,6 +98,11 @@ else
   fi
 fi
 
+else
+  say "3/5 对齐仓库与线上后端"
+  ok "只装前端，这一步跳过（后端不进自动部署，理由见文件头）"
+fi
+
 say "4/5 写入部署脚本"
 cat > "$DEPLOY_DIR/deploy.sh" <<'DEPLOY_EOF'
 #!/usr/bin/env bash
@@ -95,6 +116,8 @@ PORT=${PORT:-3000}
 LOG=${LOG:-/var/log/chatnest-deploy.log}
 API_LOG=${API_LOG:-/var/log/chatnest-api.log}
 LOCKFILE=${LOCKFILE:-/var/lock/chatnest-deploy.lock}
+# 安装时写死在这儿（见 install-autodeploy.sh 文件头）。0 = 只自动部署前端。
+WITH_BACKEND=__WITH_BACKEND__
 
 log(){ printf '%s %s\n' "$(date '+%F %T')" "$*" >> "$LOG"; }
 
@@ -191,7 +214,10 @@ if deploy_repo chatnest-ui; then
 fi
 
 # ---- 后端 ----
-if deploy_repo cc-; then
+# ⚠ WITH_BACKEND=0 时整段不跑。线上 server.js 是补丁堆出来的，
+#    拿 cc- 仓库那份盖上去 = 一次抹掉全部补丁，而且下面的健康检查救不了：
+#    老版本照样能通过 /api/health，于是判成功、不回滚。
+if [ "$WITH_BACKEND" = 1 ] && deploy_repo cc-; then
   NEW="$DEPLOY_DIR/cc-/chatnest-api/server.js"
   CUR="$API_DIR/server.js"
   if [ ! -s "$NEW" ]; then
@@ -235,6 +261,7 @@ fi
 [ "$changed" = 1 ] && log "—— 本轮部署完成 ——"
 exit 0
 DEPLOY_EOF
+sed -i "s/__WITH_BACKEND__/$WITH_BACKEND/" "$DEPLOY_DIR/deploy.sh"
 chmod +x "$DEPLOY_DIR/deploy.sh"
 touch /var/log/chatnest-deploy.log
 ok "已写入 $DEPLOY_DIR/deploy.sh"
