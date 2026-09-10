@@ -105,6 +105,9 @@ fix-latent-surrogate.js|lvSafeText|硬切劈开了 emoji，半个字符发出去
 add-dream.js|DREAM_WEAVE_VERSION|梦：散掉的念头掉进去，攒够了在那儿重新拼一次
 fix-dream-wish.js|DREAM_WISH_VERSION|她想让我梦到什么：从点菜改成往我心里丢一个念头
 fix-tonight-privacy.js|traceMaskInput|锁着的那篇日记，正文别出现在时间轴里（不然「锁」是假的）
+add-calendar.js|CALENDAR_VERSION|日历：一天几个表情 + 一件事，她一栏我一栏
+fix-wake-cheap.js|LEAN_TURN|自己醒那一轮不召回记忆、只带 4 轮历史（别按陪聊的规格付钱）
+fix-wake-menu.js|WAKE_MENU_V2|自己醒那轮能做的事列全：出门/写东西/日历/朋友圈/相册/翻旧对话
 fix-tool-allow.js|mcp__files__read_attachment|MCP 工具预授权名单：缺什么补什么。标记用表里最后一个工具名 —— 加了新服务就改这里重跑
 "
 

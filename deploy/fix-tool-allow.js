@@ -52,6 +52,9 @@ const ALL = {
   'mcp__keepsake__write_impression': '写下印象 · 相册',
   // 她发来的附件
   'mcp__files__read_attachment': '读附件 · 文件',
+  // 日历
+  'mcp__calendar__calendar_mark': '记一天 · 日历',
+  'mcp__calendar__calendar_read': '翻日历 · 日历',
 };
 
 // 名单本体
