@@ -96,6 +96,7 @@ add-trace.js|TRACE_PATCH_VERSION|行踪 / Wander / Tonight（她看得见我去�
 add-wake-do.js|WAKE_DO_VERSION|醒来能做自己的事，不只是找她说话（+ 我给自己定点的闹钟）
 fix-wake-desire.js|WAKE_DESIRE_VERSION|醒来干嘛由身体决定，不再掷骰子
 add-thoughts.js|THOUGHTS_VERSION|念头池：闪念↔执念，反复冒出来的那条把我推出门
+add-latent-vec.js|LATENT_VEC_VERSION|Latent 按意思翻（硅基流动 bge-m3，跟 OB 同一家）
 "
 
 say "1/3 逐个补丁检查"

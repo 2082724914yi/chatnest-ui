@@ -10796,6 +10796,26 @@ async function latentDoSearch(){
   var q=($('latentQuery').value||'').trim();
   if(!q){$('latentSearchOut').innerHTML='';return}
   $('latentSearchOut').innerHTML='<div class="lt-empty">翻找中…</div>';
+  // 先走语义那条：她打「她哭的那天晚上」，找得到没写这几个字但说的是那件事的段落。
+  // 没建索引 / 没配 key 就悄悄退回老的关键词搜，不拿报错糊她一脸。
+  try{
+    var vr=await fetch('/api/latent/vsearch?q='+encodeURIComponent(q)+'&n=8');
+    if(vr.ok){
+      var vd=await vr.json();
+      if(vd&&vd.ok&&vd.items&&vd.items.length){
+        $('latentSearchOut').innerHTML=vd.items.map(function(h){
+          return '<button class="lt-card" type="button" data-file="'+_esc(h.file||'')+'">'
+            +'<div class="lt-card-head"><span class="lt-card-date">'+_esc(_ltDate(h.date)||'')+'</span>'
+            +(h.window?'<span class="lt-card-win">第 '+h.window+' 个窗口</span>':'')
+            +'</div><div class="lt-card-preview">'+_esc(String(h.text||'').slice(0,220))+'</div></button>';
+        }).join('');
+        $('latentSearchOut').querySelectorAll('[data-file]').forEach(function(el){
+          el.addEventListener('click',function(){var f=el.getAttribute('data-file');if(f)openLatentDoc(f)});
+        });
+        return;
+      }
+    }
+  }catch(e){}
   try{
     var r=await fetch('/api/latent/search?q='+encodeURIComponent(q));
     if(!r.ok){$('latentSearchOut').innerHTML='<div class="lt-empty">记忆库没连上</div>';return}
