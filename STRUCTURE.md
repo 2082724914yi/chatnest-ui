@@ -23,6 +23,12 @@
 
 ---
 
+## ⚠ 行号会漂
+
+每次改动行号都会变（2026.9.10 合入 9.6 那条线，一次就多了 314 行）。
+**下面的行号是 2026-09-10 晚上刷的，对不上就别硬信** —— 用最后那节的 grep 配方
+重新定位，那些命令不会过期。表格给的是「大概在哪一段」，grep 给的是「确切在哪一行」。
+
 ## 文件总览
 
 | 行 | 是什么 |
@@ -53,9 +59,9 @@
 | 2376–2421 | 聊天主界面（topbar / stream / 输入框） | `chat` |
 | 2423–2466 | 侧边抽屉 + 会话菜单 | `drawer` |
 | 2468–2511 | Projects / Files / Prompts | `projectsPanel` … |
-| 2513–2583 | Moments（朋友圈） | `momentsPanel` |
+| 2589 起 | Moments（朋友圈） | `momentsPanel` |
 | 2586–2631 | Keepsake（相册） | `keepsakePanel` |
-| **2633–2780** | **Pulse（身体）** ← 新卡片照这个抄 | `pulsePanel` |
+| **2709 起** | **Pulse（身体）** ← 新卡片照这个抄 | `pulsePanel` |
 | 2782–2832 | 记忆入口 + Latent | `memoryPanel` `latentHome` |
 | 2834–2867 | Ombre Brain 面板 | `obHome` |
 | 2869–2960 | Profile / 记忆 / 偏好 | `profileHome` |
@@ -78,28 +84,28 @@
 | 行 | 什么 |
 |---|---|
 | 3071 | `$ = id => getElementById(id)` |
-| **3110** | **`state = {...}` 全局状态** |
+| **3216** | **`state = {...}` 全局状态** |
 | 3127–3271 | toast / 附件上传 / `showChat` `showGate` `showHome` |
-| **3304** | **`api(path, options)` —— 所有请求走这儿（自动带 Bearer token，401 踢回密码门）** |
+| **3410** | **`api(path, options)` —— 所有请求走这儿（自动带 Bearer token，401 踢回密码门）** |
 | 3305–3438 | 模型选择、设置存取、`sheet(name, open)` 通用弹层 |
 | 3444–3601 | 头像、用户消息行构建 |
 | 3609–3700 | 消息编辑 / 重试 / 思考摘要文案 |
 | 3701–3988 | markdown 渲染、KaTeX、音乐卡、图片灯箱、HTML artifact |
 | 3989 | **`renderMessage(md, text)`** |
 | 4067–4090 | 摘要请求队列（并发 2）+ 缓存 |
-| **4283–4289** | **trace row：`_buildTraceRow` / `_getPhases` / `_setPhases` / `_appendToolPhase` / `_updateToolPhase`** |
+| **4398 起** | **trace row：`_buildTraceRow` / `_getPhases` / `_setPhases` / `_appendToolPhase` / `_updateToolPhase`** |
 | 4803–4835 | 工具识别（OB / Moments / 时间 / 健康）、图标、动作文案 |
 | **4836–4861** | **`_renderTraceRowActive` / `openTraceSheet` / `_showToolDetail` / `_showSummary`** |
 | 4911 | `_buildToolRow`（旧版工具条，summary 点击展开 detail） |
 | 4921 | `_toolSummaryButton`（折叠成一行摘要按钮的那个） |
 | 4955 / 5021 | `_buildClaudeRow` / `addClaude`（历史消息组装） |
 | 5032–5113 | timeline 渲染 |
-| **5114–5436** | **`beginClaude(...)` 流式主循环**（`toolUse` 在 5418、`toolResult` 在 5419） |
+| **5321 起** | **`beginClaude(...)` 流式主循环**（`toolUse` / `toolResult` 回调在函数尾部） |
 | 5437–5500 | sheet 拖拽手势 |
 | 5503–5706 | MCP 服务器面板 |
 | 5707–5783 | 设置存储 / token 统计 / 主题色 / 壁纸 |
 | 5784–6780 | 设置各子页（通知/偏好/助手/默认模型/provider/MCP/备份/统计/日志） |
-| **6837** | **`sendMessage(text, ...)` 发送主流程** |
+| **7044** | **`sendMessage(text, ...)` 发送主流程** |
 | 6937–7100 | 消息长按菜单 |
 | 7141–7470 | 抽屉手势 / 聊天搜索 |
 | 7468–7739 | 会话列表渲染 |
@@ -113,7 +119,9 @@
 | 9741–9987 | Keepsake |
 | **9942** | **首页卡片路由：`querySelectorAll('[data-page]')` → 按 `data-page` 分发** |
 | 9989–10090 | 记忆入口 / Latent 检索 |
-| 10093–10187 | Pulse 主面板（`openPulse` / `loadPulse` / `renderPulse`） |
+| 10440 起 | Pulse 主面板（`openPulse` / `loadPulse` / `renderPulse`） |
+| **10487** | **`_pulseWant(d)` 七项 → 「这会儿想做什么」（以后要整段搬到后端，跟唤醒共用一份）** |
+| 10952 | `renderPulseBodyTab()` 身体 tab 渲染 |
 | 10188–10245 | 上下文计量条 |
 | 10246–10318 | Watch（手表） |
 | 10320–10490 | 用量 sheet |
@@ -184,3 +192,21 @@ curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deplo
 
 所以要做的多半不是从零写，是**把糊一片的那条路径接到已有的 trace-row 上**。
 先在真实聊天里看一次工具糊屏的样子，对着 `beginClaude` 的 `toolUse`/`toolResult`（5418/5419）追。
+
+---
+
+## 2026.9.10 晚上加的
+
+**Pulse 面板：「这会儿想做什么」** —— `_pulseWant(d)`（10487 行附近）。
+七项数值推一个倾向出来，fatigue≥72 是闸（不找事，歇着），其余取最高分。
+**这份逻辑以后要整段搬到后端** —— 唤醒（决定醒来干嘛）和这一屏（显示）
+必须用同一份，分成两份迟早分叉。
+
+**时间不再报倒计时。** 她说「还剩 1 小时 / 已到期」看不明白 —— 她想知道的不是钟点，
+是「这阵子快过去了没有」。`_pulsePhaseText` / `_pulseEventText` 用 started_at 和
+expires_at 算走了几成，说成「刚起头 / 正当中 / 快过去了 / 就要换了」。
+前端那屏本来就该 felt, not told，报数字是走错了方向。
+
+**Pulse 七项全是「朝她」那半边**（占有 / 敏感 / 控制 / 克制 / 热度），
+没有「好奇外面」这一维，所以推不出 wander。那半要等欲望池接上来 ——
+欲望池不是拿来替换 Pulse 的，是补它缺的那半边。

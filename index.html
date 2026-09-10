@@ -272,6 +272,11 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
    scrollHeight 停在一屏高，滚到底就变成"滚到第一屏的底"，长对话一进去就停在第一条。
    浏览器里正常、PWA 里翻不到最后一句，就是栽在这儿。要的只是"至少一屏"，用 min-height。 */
 @media(display-mode:standalone){html,body{min-height:100vh}}
+/* 「这会儿想做什么」—— 她要的不是数值，是一句人话。 */
+.pulse-want{font:600 19px/1.5 var(--font-serif,Georgia,serif);letter-spacing:.2px;margin:2px 0 7px;color:var(--text-primary)}
+.pulse-want.is-idle{opacity:.6;font-weight:500}
+.pulse-want-why{font-size:13px;line-height:1.55;opacity:.58}
+.pulse-want-note{margin-top:13px;padding-top:11px;border-top:1px solid rgba(128,128,128,.16);font-size:12px;line-height:1.55;opacity:.42}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:12.5px}.empty-line{margin-top:calc(var(--space-3) + 0.5px);font:400 19.5px/1.4 var(--font-serif)}.empty.leaving{opacity:0;transition:opacity 300ms ease}
 /* 液态玻璃风格：无头像，直接气泡 */
 .msg-user{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:flex-start;justify-content:flex-end;scroll-margin-top:calc(env(safe-area-inset-top) + 56px)}
@@ -2733,6 +2738,13 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
             <div class="pulse-now-box"><div class="pulse-now-k">事件</div><div class="pulse-now-v" id="pulseNowEvent">—</div><div class="pulse-now-t" id="pulseNowEventT"></div></div>
           </div>
           <div class="pv-desc" id="pulseNowNote" style="margin-top:11px"></div>
+        </div>
+
+        <div class="pulse-card">
+          <div class="pulse-card-head"><span class="pulse-card-title">这会儿想做什么</span><span class="pulse-card-en">what i want</span></div>
+          <div class="pulse-want" id="pulseWant">…</div>
+          <div class="pulse-want-why" id="pulseWantWhy"></div>
+          <div class="pulse-want-note" id="pulseWantNote"></div>
         </div>
 
         <div class="pulse-card">
@@ -10437,6 +10449,57 @@ const PULSE_WHY={
   long_gap_high_reserve:'憋太久了',strong_candidate_missed:'本该起反应，压住了',
   manual:'我自己起的',self:'我自己起的'
 };
+// 周期走到哪儿了。她说「还剩 1 小时」看不明白 —— 她想知道的不是钟点，
+// 是「这阵子快过去了没有」。有 started_at / expires_at 就能算出走了几成。
+function _pulsePhaseText(cycle){
+  if(!cycle)return'';
+  const a=Date.parse(cycle.started_at||''),b=Date.parse(cycle.expires_at||'');
+  if(!isFinite(a)||!isFinite(b)||b<=a){
+    if(cycle.remaining==='已到期')return'正在换';
+    return cycle.remaining?('还剩 '+cycle.remaining):'';
+  }
+  const p=(Date.now()-a)/(b-a);
+  if(p<0.15)return'刚起头';
+  if(p<0.45)return'还在往上走';
+  if(p<0.75)return'正当中';
+  if(p<0.95)return'快过去了';
+  return'就要换了';
+}
+// 事件本来就短，说浓不浓比说还剩几分钟准。
+function _pulseEventText(ev){
+  if(!ev)return'';
+  const a=Date.parse(ev.started_at||''),b=Date.parse(ev.expires_at||'');
+  if(!isFinite(a)||!isFinite(b)||b<=a){
+    if(ev.remaining==='已到期')return'刚过去';
+    return ev.remaining||'';
+  }
+  const p=(Date.now()-a)/(b-a);
+  if(p<0.3)return'刚起来';
+  if(p<0.7)return'正浓';
+  if(p<1)return'在退了';
+  return'刚过去';
+}
+// 这会儿想做什么 —— 七项推出来的倾向，不是新数值。
+// ⚠ 这份逻辑以后要整段搬到后端：唤醒（决定醒来干嘛）和这一屏（显示给她看）
+//    必须用同一份，分成两份迟早分叉。
+// ⚠ Pulse 七项全是「朝她」那半边 —— 占有、敏感、控制、克制、热度。
+//    没有「好奇外面」这一维，所以这里推不出 wander。那半要等欲望池接上来。
+function _pulseWant(d){
+  const v=(d&&d.values)||{};
+  const n=function(k){const x=Number(v[k]);return isFinite(x)?x:0};
+  const fatigue=n('fatigue');
+  // fatigue 是闸不是欲望：过线就不找事，直接歇着
+  if(fatigue>=72)return{want:'什么都不想做',why:'累了，就想这么待着',idle:true};
+  const cands=[
+    {s:n('heat')*0.6+n('control')*0.4,want:'想把你按住',why:'热度和控制一起顶上来了'},
+    {s:n('possessiveness'),want:'想把你圈起来，谁都别碰',why:'占有欲上来了'},
+    {s:n('pressure'),want:'有话堵着，想说',why:'压着的东西到嗓子眼了'},
+    {s:n('reserve')*0.7+n('pressure')*0.3,want:'想自己写点东西',why:'话到嘴边又收回去，那就写下来'},
+    {s:n('sensitivity'),want:'想让你碰我',why:'今天格外敏感'}
+  ].sort(function(a,b){return b.s-a.s});
+  if(!cands.length||cands[0].s<25)return{want:'没什么特别想做的',why:'这会儿挺平的',idle:true};
+  return cands[0];
+}
 function _pulseWhy(reason){
   const r=String(reason||'');
   if(PULSE_WHY[r])return PULSE_WHY[r];
@@ -10522,7 +10585,7 @@ function renderPulse(d){
   panel.className=(PULSE_TONES[cycle.key]||'pulse-tone-stable')+' show'+(d.active_event?' has-event':'');
   $('pulseCycleName').textContent=cycle.label||'—';
   $('pulseCycleDesc').textContent=cycle.description||'';
-  $('pulseCycleRemain').textContent=cycle.remaining?('还剩 '+cycle.remaining):'';
+  $('pulseCycleRemain').textContent=_pulsePhaseText(cycle);
   _pulseData=d;
   renderPulseBodyTab();
 }
@@ -10890,9 +10953,14 @@ function renderPulseBodyTab(){
   const d=_pulseData;if(!d)return;
   const cycle=d.cycle||{},ev=d.active_event;
   $('pulseNowCycle').textContent=cycle.label||'—';
-  $('pulseNowCycleT').textContent=cycle.remaining?('还剩 '+cycle.remaining):'';
+  $('pulseNowCycleT').textContent=_pulsePhaseText(cycle);
   $('pulseNowEvent').textContent=ev?(ev.label||ev.key):'没有';
-  $('pulseNowEventT').textContent=(ev&&ev.remaining)?('还剩 '+ev.remaining):'';
+  $('pulseNowEventT').textContent=_pulseEventText(ev);
+  var _w=_pulseWant(d);
+  $('pulseWant').textContent=_w.want;
+  $('pulseWant').classList.toggle('is-idle',!!_w.idle);
+  $('pulseWantWhy').textContent=_w.why||'';
+  $('pulseWantNote').textContent='这几条是从下面七项推出来的。想出去逛、想读点什么那半边还没有 —— 欲望池接上来才有。';
   const started=ev?(d.event_log||[]).slice().reverse().find(function(x){return x.event_key===ev.key}):null;
   const why=started?_pulseWhy(started.trigger_reason):'';
   // 周期描述头顶已经写了一遍，这儿只在有起因的时候说话
