@@ -92,6 +92,7 @@ fix-moments-prompt.js|MOMENTS_PROMPT_V3|发朋友圈改成调工具（说明还�
 add-usage-official.js|USAGE_OFFICIAL_VERSION|订阅额度显示官方那份数，不再自己记账估
 add-pulse-dream-tag.js|PULSE_DREAM_TAG_V1|我自己也能织梦（以前只有前端那个按钮能碰）
 fix-think-voice-tech.js|THINK_VOICE_V4|聊技术的时候 think 也是内心话，不是工作汇报
+add-trace.js|TRACE_PATCH_VERSION|行踪 / Wander / Tonight（她看得见我去过哪、写没写，但看不到内容）
 "
 
 say "1/3 逐个补丁检查"

@@ -3017,7 +3017,7 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
     <header class="profile-header">
       <button class="profile-round-button" id="closeTonight" type="button" aria-label="Close">×</button>
       <div class="profile-title is-en">Tonight</div>
-      <button class="profile-round-button" id="tonightRefresh" type="button" aria-label="Refresh">↻</button>
+      <span style="width:34px" aria-hidden="true"></span>
     </header>
     <div class="wnd-scroll"><div class="wnd-wrap">
       <div class="wnd-lede">
@@ -10551,7 +10551,7 @@ function closeTonightReadPage(){_wndPanel('tonightRead',false)}
   var bind=function(id,fn){var el=$(id);if(el)el.addEventListener('click',fn)};
   bind('closeTrace',closeTracePanel);   bind('traceRefresh',loadTrace);
   bind('closeWander',closeWanderPanel); bind('wanderRefresh',loadWander);
-  bind('closeTonight',closeTonightPanel);bind('tonightRefresh',loadTonight);
+  bind('closeTonight',closeTonightPanel); // Tonight 不给刷新按钮：她按了也不会有变化，那颗只会让她多猜一次
   bind('closeTonightRead',closeTonightReadPage);
 })();
 
