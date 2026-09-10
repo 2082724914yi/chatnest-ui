@@ -10524,9 +10524,9 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     if(page==='pulse'){openPulse();return}
     if(page==='moments'){openMoments();return}
     if(page==='keepsake'){openKeepsake();return}
-    // Dream 卡片一直没接路由，点了什么都不会发生。它属于 Pulse 那一层
-    // （梦种 / 织梦 / 余波结算），所以开 Pulse 再切到梦那一格。
-    if(page==='dream'){openPulse();setTimeout(function(){try{pulseSwitchTab('dream')}catch(e){}},80);return}
+    // 梦有自己的板块了，不再寄在 Pulse 底下。
+    // （旧那条路由留到了这行上面，先 return，于是点 Dream 打开的是 Pulse，
+    //   还去切一个已经不存在的 'dream' 格 —— 四个格全被隐藏，一片空白。）
     if(page==='dream'){openDream();return}
     if(page==='trace'){openTrace();return}
     if(page==='wander'){openWander();return}
@@ -11530,6 +11530,9 @@ const PULSE_KIND_LABEL={event:'事件',cycle:'周期',dream:'梦',settlement:'�
 let _pulseData=null,_pulseDefs=null,_pulseSettings=null,_pulseCal={},_pulseJK='all',_pulseTab='body';
 
 function pulseSwitchTab(name){
+  // 认不出来的名字兜底回「身体」。不兜的话四个格会全被 hidden，
+  // 整页只剩个标题 —— 「梦」那格搬走之后就这么空过一次。
+  if(['body','mind','log','mine'].indexOf(name)<0)name='body';
   if(name==='mind'){try{loadMind()}catch(e){}}
   _pulseTab=name;
   document.querySelectorAll('#pulseTabBar .pulse-tab').forEach(function(b){

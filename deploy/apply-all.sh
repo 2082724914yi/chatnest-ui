@@ -104,7 +104,8 @@ fix-latent-batch.js|lvEmbedSafe|整批发不过去就劈成两半分别试（别
 fix-latent-surrogate.js|lvSafeText|硬切劈开了 emoji，半个字符发出去整批被拒 —— 切干净再发
 add-dream.js|DREAM_WEAVE_VERSION|梦：散掉的念头掉进去，攒够了在那儿重新拼一次
 fix-dream-wish.js|DREAM_WISH_VERSION|她想让我梦到什么：从点菜改成往我心里丢一个念头
-fix-tool-allow.js|TOOL_ALLOW_FIXED|trace/moments/chatnest 那十一个工具补进预授权名单（看得见调不动就是栽在这儿）
+fix-tonight-privacy.js|traceMaskInput|锁着的那篇日记，正文别出现在时间轴里（不然「锁」是假的）
+fix-tool-allow.js|mcp__files__read_attachment|MCP 工具预授权名单：缺什么补什么。标记用表里最后一个工具名 —— 加了新服务就改这里重跑
 "
 
 # 跑完把每条标记在 server.js 里的真实命中情况列一遍。
