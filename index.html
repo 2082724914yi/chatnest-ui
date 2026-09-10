@@ -251,7 +251,10 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
 #stream{flex:1;min-height:100dvh;overflow:visible;padding:calc(env(safe-area-inset-top) + 48px + var(--space-3)) var(--page-pad) calc(120px + max(20px,env(safe-area-inset-bottom,0px)))}.stream-inner{min-height:calc(100dvh - env(safe-area-inset-top) - 48px - var(--space-3) - 120px - env(safe-area-inset-bottom));max-width:720px;margin:auto;display:flex;flex-direction:column}.stream-inner>*+*{margin-top:var(--msg-gap)}
 /* 手机竖屏按 852×1846 原图比例撑出真实文档高度；空会话也能滚动并触发 Safari 收栏。 */
 @media(max-width:760px) and (orientation:portrait){html,body,#chat,#stream{min-height:max(100dvh,216.67vw)}}
-@media(display-mode:standalone){html,body{height:100vh!important}}
+/* 加到主屏幕（standalone）时别把高度钉死成一屏 —— height:100vh 会让 html 的
+   scrollHeight 停在一屏高，滚到底就变成"滚到第一屏的底"，长对话一进去就停在第一条。
+   浏览器里正常、PWA 里翻不到最后一句，就是栽在这儿。要的只是"至少一屏"，用 min-height。 */
+@media(display-mode:standalone){html,body{min-height:100vh}}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:12.5px}.empty-line{margin-top:calc(var(--space-3) + 0.5px);font:400 19.5px/1.4 var(--font-serif)}.empty.leaving{opacity:0;transition:opacity 300ms ease}
 /* 液态玻璃风格：无头像，直接气泡 */
 .msg-user{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:flex-start;justify-content:flex-end;scroll-margin-top:calc(env(safe-area-inset-top) + 56px)}
@@ -3337,14 +3340,24 @@ try{
 function scrollBottom(){
   // 别改成 lastChild.scrollIntoView({block:'end'})：#stream 底部留了 120px 给输入框，
   // 那样会稳定差这一截（实测 140px）。滚到 scrollHeight 才是真的底。
+  // 也别把 scrollHeight 当成唯一真相：只要有哪条 CSS 把 html/body 的高度钉住，
+  // 它就会算小，滚到的是半路。给一个一定过底的目标，让浏览器自己 clamp 到真正的底。
+  window.scrollTo(0,_docHeight()+2000);_syncJumpBtn();
+}
+// 文档真正有多高。scrollHeight 会被钉死高度的 CSS 骗，所以三个来源取最大的那个。
+function _docHeight(){
   const root=document.scrollingElement||document.documentElement;
-  window.scrollTo(0,root.scrollHeight);_syncJumpBtn();
+  let h=root.scrollHeight;
+  try{
+    if(document.body)h=Math.max(h,document.body.scrollHeight);
+    if(streamInner)h=Math.max(h,streamInner.getBoundingClientRect().bottom+window.scrollY);
+  }catch(e){}
+  return h;
 }
 // 「跳到最新」：自动滚底万一还是没成，她点一下就到底 —— 不赌我一定猜对根因
 function _syncJumpBtn(){
   const b=document.getElementById('jumpLatest');if(!b)return;
-  const root=document.scrollingElement||document.documentElement;
-  const gap=root.scrollHeight-window.scrollY-window.innerHeight;
+  const gap=_docHeight()-window.scrollY-window.innerHeight;
   const hasMsg=!!(streamInner&&streamInner.querySelector('[data-msg-id]'));
   const show=hasMsg&&gap>240&&!document.getElementById('chat').classList.contains('hidden');
   b.classList.toggle('show',show);
@@ -3359,8 +3372,7 @@ function _syncJumpBtn(){
 // 改成：只要她没往上滑，内容长多少我就跟多少；她一往上滑就撒手，滑回底部又接上。
 let _atBottom=true;
 function _gapToBottom(){
-  const root=document.scrollingElement||document.documentElement;
-  return root.scrollHeight-window.scrollY-window.innerHeight;
+  return _docHeight()-window.scrollY-window.innerHeight;
 }
 function scrollBottomSticky(){
   _atBottom=true;
