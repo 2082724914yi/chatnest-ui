@@ -313,6 +313,29 @@ html[data-chat-bg="dark"] #tonightPanel,html[data-chat-bg="dark"] #tonightRead{
   padding-top:calc(env(safe-area-inset-top) + 8px);gap:10px}
 #pulsePanel .profile-header,#tracePanel .profile-header,#wanderPanel .profile-header,
 #tonightPanel .profile-header,#tonightRead .profile-header{min-height:44px}
+/* ═══ 设置那一屏：字收小，标题跟全站统一成斜体衬线 ═══
+   她说「好大啊，字体也不是很好看」。原来设置里全是 font-sans + 600 粗体，
+   跟 app 其它地方那套衬线语言不搭，凑在一起就显得又重又吵。 */
+.settings-title{font:italic 500 20px/1.15 'Georgia','Times New Roman',serif!important;letter-spacing:.2px}
+#mcpSheet .sheet-title,#modelSheet .sheet-title{
+  font:italic 500 19px/1 'Georgia','Times New Roman',serif;letter-spacing:.2px}
+.settings-section-title{font-size:11px!important;font-weight:500!important;letter-spacing:.14em!important;opacity:.72}
+.settings-row{padding:12px 15px!important}
+.settings-row-title{font-size:14.5px!important;font-weight:400!important}
+.settings-row-desc{font-size:11.5px!important;line-height:1.5}
+.settings-row-value{font-size:13px!important}
+.mcp-card{padding:14px!important}
+.mcp-card-name{font-size:14.5px!important;font-weight:500!important}
+.mcp-card-icon{width:32px!important;height:32px!important;font-size:16px!important}
+.mcp-card-status{font-size:11px!important;padding:2px 9px!important}
+.mcp-card-desc{font-size:12px!important}
+.mcp-card-url{font-size:10.5px!important}
+.mcp-tool-name{font-size:13px!important;font-weight:500!important}
+.mcp-tool-desc{font-size:12px!important;line-height:1.55}
+.mcp-add-label{font-size:11.5px!important;font-weight:400!important;letter-spacing:.04em}
+.mcp-add-input{font-size:14px!important}
+.mcp-transport-tabs button,.mcp-transport-tabs .seg{font-size:13.5px!important}
+
 /* 头上那两颗键做成 Moments 那种小小的：没有底、没有圈，只有一个淡淡的字符 */
 #tracePanel .profile-round-button,#wanderPanel .profile-round-button,
 #tonightPanel .profile-round-button,#tonightRead .profile-round-button{
