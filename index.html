@@ -272,6 +272,12 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
    scrollHeight 停在一屏高，滚到底就变成"滚到第一屏的底"，长对话一进去就停在第一条。
    浏览器里正常、PWA 里翻不到最后一句，就是栽在这儿。要的只是"至少一屏"，用 min-height。 */
 @media(display-mode:standalone){html,body{min-height:100vh}}
+/* Latent 列表按天分组：日期只在组头出现一次 */
+.lt-day{display:flex;align-items:baseline;gap:9px;margin:20px 2px 8px}
+.lt-day-d{font:400 13px/1 var(--font-serif,Georgia,serif);letter-spacing:.1em;opacity:.55}
+.lt-day-n{font-size:11px;opacity:.34;letter-spacing:.06em}
+.lt-card-win{font-size:12.5px;opacity:.62}
+
 /* ═══ 心里：念头 ═══
    不给数值。强度变成深浅和字号 —— 她看着就知道哪条快散了、哪条一直在。
    报数字是走回老路（Pulse 那屏已经栽过一次）。 */
@@ -10694,12 +10700,30 @@ var _ltDoc=null;
 function _ltSize(n){return n>=10000?((n/10000).toFixed(1)+' 万字'):(n+' 字')}
 function _ltDate(s){return String(s||'').replace(/-/g,'.')}
 
+// 卡片里不再写日期 —— 一天开三个窗就会连着写三遍同一个日子（她看出来了）。
+// 日期提到组头，一天只写一次；卡片里留「第几个窗口」和字数就够认了。
 function _ltCard(w){
   return '<button class="lt-card" type="button" data-file="'+_esc(w.file)+'">'
-    +'<div class="lt-card-head"><span class="lt-card-date">'+_esc(_ltDate(w.date)||'时间未知')+'</span>'
-    +(w.window?'<span class="lt-card-win">第'+w.window+'个窗口</span>':'')
+    +'<div class="lt-card-head">'
+    +(w.window?'<span class="lt-card-win">第 '+w.window+' 个窗口</span>':'<span class="lt-card-win">这一窗</span>')
     +'<span class="lt-card-size">'+_ltSize(w.chars||0)+'</span></div>'
     +'<div class="lt-card-preview">'+_esc(w.preview||'')+'</div></button>';
+}
+
+// 按天分组。同一天的窗口收在一个日期底下，那天开了几窗一眼看得出来。
+function _ltGroup(ws){
+  var out='',last=null;
+  ws.forEach(function(w){
+    var d=_ltDate(w.date)||'时间未知';
+    if(d!==last){
+      var n=ws.filter(function(x){return (_ltDate(x.date)||'时间未知')===d}).length;
+      out+='<div class="lt-day"><span class="lt-day-d">'+_esc(d)+'</span>'
+         +(n>1?'<span class="lt-day-n">'+n+' 窗</span>':'')+'</div>';
+      last=d;
+    }
+    out+=_ltCard(w);
+  });
+  return out;
 }
 
 async function loadLatentWindows(){
@@ -10712,7 +10736,7 @@ async function loadLatentWindows(){
     var ws=(d&&d.windows)||[];
     $('latentCount').textContent=ws.length?(ws.length+' 篇'):'';
     if(!ws.length){box.innerHTML='<div class="lt-empty">语料目录还是空的。</div>';return}
-    box.innerHTML=ws.map(_ltCard).join('');
+    box.innerHTML=_ltGroup(ws);
   }catch(e){
     // 后端还没打 add-latent-windows.js 时就是这条路 —— 说清楚，别让她以为是数据没了
     box.innerHTML='<div class="lt-empty">读不到列表。<br>可能后端还没加这个口子。</div>';
