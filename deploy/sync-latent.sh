@@ -95,10 +95,17 @@ NOW_N=$(find "$DEST" -maxdepth 1 -name '*.md' | wc -l)
 if [ "$COPIED" -gt 0 ]; then ok "同步了 $COPIED 篇，前端这边现在共 $NOW_N 篇"
 else ok "已经是一样的了（$NOW_N 篇）"; fi
 
-say "4/4 从外面验一眼"
-CNT=$(curl -fsS -m 10 "http://127.0.0.1:3000/api/latent/windows" 2>/dev/null | grep -o '"file"' | wc -l)
-if [ "$CNT" -gt 0 ]; then ok "接口能读到 $CNT 篇 —— 前端 Latent 里应该也看得见了"
-else hm "接口读不到。后端可能没打 add-latent-windows.js，或者没重启"; fi
+say "4/4 验一眼"
+# ⚠ 别去调 /api/latent/windows —— 那条在登录态全拦的 /api 底下，
+#   不带 token 永远是 401，会让人以为同步失败（她被这行吓过一次）。
+#   要验就验文件本身：目录里有几篇、最新那篇是哪天的。
+LATEST=$(ls -1t "$DEST"/*.md 2>/dev/null | head -1)
+if [ -n "$LATEST" ]; then
+  ok "前端那个目录里现在有 $NOW_N 篇，最新一篇：$(basename "$LATEST")"
+  echo "  （前端 Latent 那一屏读的就是这个目录。她在手机上下拉刷新就能看到）"
+else
+  no "目录是空的，同步没成 —— 看看上面几步哪儿断了"
+fi
 
 if [ "$INSTALL" = 1 ]; then
   say "装成定时（每 10 分钟）"
