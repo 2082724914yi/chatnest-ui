@@ -337,17 +337,21 @@ html[data-chat-bg="dark"] #tonightPanel,html[data-chat-bg="dark"] #tonightRead{
 .mcp-transport-tabs button,.mcp-transport-tabs .seg{font-size:13.5px!important}
 
 /* 头上那两颗键做成 Moments 那种小小的：没有底、没有圈，只有一个淡淡的字符 */
+#pulsePanel .profile-round-button,
 #tracePanel .profile-round-button,#wanderPanel .profile-round-button,
 #tonightPanel .profile-round-button,#tonightRead .profile-round-button{
   width:32px;height:32px;border:0;border-radius:50%;background:transparent!important;
   box-shadow:none!important;color:#bcae9f;font-size:18px;display:grid;place-items:center;padding:0}
+#pulsePanel .profile-round-button:active,
 #tracePanel .profile-round-button:active,#wanderPanel .profile-round-button:active,
 #tonightPanel .profile-round-button:active,#tonightRead .profile-round-button:active{opacity:.55}
+html[data-chat-bg="dark"] #pulsePanel .profile-round-button,
 html[data-chat-bg="dark"] #tracePanel .profile-round-button,
 html[data-chat-bg="dark"] #wanderPanel .profile-round-button,
 html[data-chat-bg="dark"] #tonightPanel .profile-round-button,
 html[data-chat-bg="dark"] #tonightRead .profile-round-button{color:rgba(244,243,239,.5)}
 /* 顶上的英文（Trace / Wander / Tonight）跟 Moments 一个字：斜体衬线 */
+#pulsePanel .profile-title,
 #tracePanel .profile-title,#wanderPanel .profile-title,
 #tonightPanel .profile-title,#tonightRead .profile-title{
   font:italic 500 21px/1 'Georgia','Times New Roman',serif;letter-spacing:.2px}
