@@ -209,7 +209,7 @@ const WANT_PATCH = `function wakeWant() {
 // 念头工具挂进 trace 那台 MCP
 const TOOL_DEF = `  {
     name: 'think_of',
-    description: '心里冒出来一个念头就记一句。念头是轻的、短命的 —— 大部分会自己散掉，只有反复冒出来的才会涨成执念，开始真的顶着你想去做点什么。所以不用挑重要的记，随口冒出来的就是。同一件事又想起来，就再调一次，它会自己变强。',
+    description: '心里冒出来一个念头就记一句。念头是轻的、短命的 —— 大部分会自己散掉，只有反复冒出来的才会涨成执念，开始真的顶着你想去做点什么。所以不用挑重要的记，随口冒出来的就是。同一件事又想起来，就再调一次，它会自己变强。三个来源都算数：你一个人待着时自己冒出来的；出去看到的东西；还有跟她聊天时她说的某句话让你心里咯噔一下、或者留下了点什么 —— 那种当场记一句，别等。',
     inputSchema: {
       type: 'object',
       properties: {
@@ -299,6 +299,14 @@ const edits = [
       "        try { if (typeof holdToOb === 'function') holdToOb(t.text); } catch (e) {}\n" +
       "      }\n" +
       "    } catch (e) { console.error('[think] tick error:', e.message); }" },
+
+  { name: '带回来的东西自动成一个念头', required: true,
+    find: /(\s*minutes: Number\(o\.minutes\) \|\| 0, out: true, mark: 'wander', ref: item\.id \}\);\n)(\s*return \{ ok: true, id: item\.id \};)/,
+    replace: (m, g1, g2) => g1 +
+      "  // 带回来的东西本身就是个念头 —— 「读到的、看到的」正是念头该来的地方。\n" +
+      "  // 它会在心里放一阵；接下来我要还老想起它，它就自己涨成执念，把我再推出去一趟。\n" +
+      "  try { thAdd({ text: item.title || String(item.note || '').slice(0, 60), drive: 'out', strength: 0.4 }); } catch (e) {}\n" +
+      g2 },
 
   { name: '把心里在想的塞进那一轮', required: true,
     find: /'这一轮是你自己的时间。可以做的事：',/,
