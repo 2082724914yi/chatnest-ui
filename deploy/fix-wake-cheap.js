@@ -50,9 +50,12 @@ const edits = [
   // 3. 调用侧带标记。⚠ 别拿 `daemon: false` 当锚点：线上有三处，
   //    其中一处是「找她说话」那条（7020 行那个单行写法），改错了就是把
   //    省钱标记盖到说话那轮上。wakeDoMessage() 只有一处，就是我要的那个。
+  //    括号里有没有参数都认：fix-wake-desire.js 把 generateWakeDo() 改成了
+  //    generateWakeDo(_wd.want)，wakeDoMessage 多半也跟着带上了参数。
+  //    写死成空括号就是又一次拿假设当事实。
   { name: '自己醒那一轮打上 lean 标记', required: true,
-    find: /(\s*)message: wakeDoMessage\(\),/,
-    replace: (m, s1) => s1 + 'message: wakeDoMessage(),' +
+    find: /(\s*)(message: wakeDoMessage\([^)]*\),)/,
+    replace: (m, s1, g2) => s1 + g2 +
                         s1 + 'lean: true,   // 不召回记忆、只带 4 轮历史' },
 ];
 
