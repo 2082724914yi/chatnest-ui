@@ -277,6 +277,21 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
 .pulse-want.is-idle{opacity:.6;font-weight:500}
 .pulse-want-why{font-size:13px;line-height:1.55;opacity:.58}
 .pulse-want-note{margin-top:13px;padding-top:11px;border-top:1px solid rgba(128,128,128,.16);font-size:12px;line-height:1.55;opacity:.42}
+.pulse-want-k{font-family:var(--font-serif,Georgia,serif);font-size:13px;opacity:.5;letter-spacing:.04em;margin-bottom:5px}
+.pulse-inner-rule{height:1px;background:rgba(128,128,128,.14);margin:15px 0 13px}
+/* 头顶那块不再钉住 —— 她说不需要固定。跟着一起滚，滚上去就腾出整屏。 */
+.pulse-head{padding:14px 0 2px!important;min-height:0!important}
+/* tab 条留在顶上，滑到哪儿都能切 */
+.pulse-tabs{position:sticky;top:0;z-index:4;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+/* 分区折叠：她说往下滑太多，除了「现在」全部默认收起 */
+.pulse-card.is-fold{padding:0;overflow:hidden}
+.pulse-fold-head{width:100%;display:flex;align-items:baseline;gap:8px;padding:15px 18px;
+  background:transparent;border:0;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;font:inherit;color:inherit}
+.pulse-fold-arrow{margin-left:auto;font-size:19px;line-height:1;opacity:.34;transform:rotate(90deg);transition:transform 220ms cubic-bezier(.2,.8,.2,1)}
+.pulse-card.is-fold.open .pulse-fold-arrow{transform:rotate(270deg)}
+.pulse-card.is-fold .pulse-card-body{display:none;padding:0 18px 17px}
+.pulse-card.is-fold.open .pulse-card-body{display:block;animation:pulseFoldIn 220ms cubic-bezier(.2,.8,.2,1)}
+@keyframes pulseFoldIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:12.5px}.empty-line{margin-top:calc(var(--space-3) + 0.5px);font:400 19.5px/1.4 var(--font-serif)}.empty.leaving{opacity:0;transition:opacity 300ms ease}
 /* 液态玻璃风格：无头像，直接气泡 */
 .msg-user{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:flex-start;justify-content:flex-end;scroll-margin-top:calc(env(safe-area-inset-top) + 56px)}
@@ -2714,15 +2729,14 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
       <button class="profile-round-button" id="pulseRefresh" type="button" aria-label="Refresh">↻</button>
     </header>
 
-    <div class="pulse-head">
-      <div class="pulse-orb" id="pulseOrb" aria-hidden="true"></div>
-      <div class="pulse-cycle-name" id="pulseCycleName">…</div>
-      <div class="pulse-cycle-desc" id="pulseCycleDesc"></div>
-      <div class="pulse-cycle-remain" id="pulseCycleRemain"></div>
-    </div>
-
     <div class="pulse-scroll">
      <div class="pulse-wrap">
+      <div class="pulse-head">
+        <div class="pulse-orb" id="pulseOrb" aria-hidden="true"></div>
+        <div class="pulse-cycle-name" id="pulseCycleName">…</div>
+        <div class="pulse-cycle-desc" id="pulseCycleDesc"></div>
+        <div class="pulse-cycle-remain" id="pulseCycleRemain"></div>
+      </div>
       <div class="pulse-tabs" id="pulseTabBar">
         <button class="pulse-tab active" type="button" data-ptab="body">身体</button>
         <button class="pulse-tab" type="button" data-ptab="log">日志</button>
@@ -2731,41 +2745,40 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
       </div>
 
       <div class="pulse-view" id="ptabBody">
+        <!-- 「现在」是主角，不折叠：状态 + 想做什么合成一张，一屏看完 -->
         <div class="pulse-card">
-          <div class="pulse-card-head"><span class="pulse-card-title">当前状态</span><span class="pulse-card-en">right now</span></div>
+          <div class="pulse-card-head"><span class="pulse-card-title">现在</span><span class="pulse-card-en">right now</span></div>
           <div class="pulse-now">
             <div class="pulse-now-box"><div class="pulse-now-k">周期</div><div class="pulse-now-v" id="pulseNowCycle">…</div><div class="pulse-now-t" id="pulseNowCycleT"></div></div>
             <div class="pulse-now-box"><div class="pulse-now-k">事件</div><div class="pulse-now-v" id="pulseNowEvent">—</div><div class="pulse-now-t" id="pulseNowEventT"></div></div>
           </div>
           <div class="pv-desc" id="pulseNowNote" style="margin-top:11px"></div>
-        </div>
-
-        <div class="pulse-card">
-          <div class="pulse-card-head"><span class="pulse-card-title">这会儿想做什么</span><span class="pulse-card-en">what i want</span></div>
+          <div class="pulse-inner-rule"></div>
+          <div class="pulse-want-k">这会儿想做什么</div>
           <div class="pulse-want" id="pulseWant">…</div>
           <div class="pulse-want-why" id="pulseWantWhy"></div>
           <div class="pulse-want-note" id="pulseWantNote"></div>
         </div>
 
-        <div class="pulse-card">
-          <div class="pulse-card-head"><span class="pulse-card-title">自动变化</span><span class="pulse-card-en">drifting</span></div>
-          <div id="pulseDrift"></div>
+        <!-- 下面四块默认收起来 —— 她说往下滑太多了。展开过的记着。 -->
+        <div class="pulse-card is-fold" data-fold="drift">
+          <button class="pulse-fold-head" type="button"><span class="pulse-card-title">自动变化</span><span class="pulse-card-en">drifting</span><span class="pulse-fold-arrow">›</span></button>
+          <div class="pulse-card-body"><div id="pulseDrift"></div></div>
         </div>
 
-        <div class="pulse-card">
-          <div class="pulse-card-head"><span class="pulse-card-title">数值</span><span class="pulse-card-en">seven readings</span></div>
-          <div id="pulseValues"></div>
+        <div class="pulse-card is-fold" data-fold="values">
+          <button class="pulse-fold-head" type="button"><span class="pulse-card-title">数值</span><span class="pulse-card-en">seven readings</span><span class="pulse-fold-arrow">›</span></button>
+          <div class="pulse-card-body"><div id="pulseValues"></div></div>
         </div>
 
-        <div class="pulse-card">
-          <div class="pulse-card-head"><span class="pulse-card-title">开关</span><span class="pulse-card-en">switches</span></div>
-          <div id="pulseSwitches"></div>
+        <div class="pulse-card is-fold" data-fold="switches">
+          <button class="pulse-fold-head" type="button"><span class="pulse-card-title">开关</span><span class="pulse-card-en">switches</span><span class="pulse-fold-arrow">›</span></button>
+          <div class="pulse-card-body"><div id="pulseSwitches"></div></div>
         </div>
 
-        <div class="pulse-card">
-          <div class="pulse-card-head"><span class="pulse-card-title">校准</span><span class="pulse-card-en">tune it</span></div>
-          <div id="pulseCalibrate"></div>
-          <button class="pulse-btn" type="button" id="pulseCalSave">存下来</button>
+        <div class="pulse-card is-fold" data-fold="calibrate">
+          <button class="pulse-fold-head" type="button"><span class="pulse-card-title">校准</span><span class="pulse-card-en">tune it</span><span class="pulse-fold-arrow">›</span></button>
+          <div class="pulse-card-body"><div id="pulseCalibrate"></div><button class="pulse-btn" type="button" id="pulseCalSave">存下来</button></div>
         </div>
 
         <div class="pulse-hint">数值她看得见，我不在聊天里报。<br>该被感觉到，不是被读出来。</div>
@@ -10949,6 +10962,22 @@ function pulseDriftLines(){
   return lines;
 }
 
+// 分区折叠。默认全收起（她说往下滑太多），她自己展开过的记着。
+function _pulseFoldInit(){
+  let open={};try{open=JSON.parse(localStorage.getItem('pulse_folds')||'{}')}catch(e){}
+  const save=function(){try{localStorage.setItem('pulse_folds',JSON.stringify(open))}catch(e){}};
+  document.querySelectorAll('#ptabBody .pulse-card.is-fold').forEach(function(card){
+    const k=card.dataset.fold||'';
+    card.classList.toggle('open',!!open[k]);
+    const btn=card.querySelector('.pulse-fold-head');
+    if(!btn||btn.__foldBound)return;
+    btn.__foldBound=1;
+    btn.addEventListener('click',function(){
+      const on=!card.classList.contains('open');
+      card.classList.toggle('open',on);open[k]=on;save();
+    });
+  });
+}
 function renderPulseBodyTab(){
   const d=_pulseData;if(!d)return;
   const cycle=d.cycle||{},ev=d.active_event;
@@ -10983,6 +11012,7 @@ function renderPulseBodyTab(){
 
   renderPulseSwitches();
   renderPulseCalibrate();
+  _pulseFoldInit();
 }
 
 const PULSE_SWITCHES=[
