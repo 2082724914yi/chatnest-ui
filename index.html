@@ -281,12 +281,12 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
 /* ═══ 梦 ═══
    梦是夜里的东西：底色压暗一档、行距拉开、字距松一点，让它慢下来。
    底下那行碎片是这一屏的灵魂 —— 她能看见这个梦是从哪几件没想明白的事里长出来的。 */
-#dreamPanel{position:fixed;inset:0;z-index:83;display:none;color:#201f1d;
+#dreamPanel,#timelinePanel{position:fixed;inset:0;z-index:83;display:none;color:#201f1d;
   background-color:#f7f4f2;
   background-image:linear-gradient(rgba(247,244,242,.58),rgba(247,244,242,.58)),var(--chat-wallpaper);
   background-position:center top;background-size:cover;background-repeat:no-repeat}
-#dreamPanel.show{display:flex;flex-direction:column}
-html[data-chat-bg="dark"] #dreamPanel{background-color:#171618;color:#e8e5df;
+#dreamPanel.show,#timelinePanel.show{display:flex;flex-direction:column}
+html[data-chat-bg="dark"] #dreamPanel,html[data-chat-bg="dark"] #timelinePanel{background-color:#171618;color:#e8e5df;
   background-image:linear-gradient(rgba(23,22,24,.62),rgba(23,22,24,.62)),var(--chat-wallpaper)}
 .dm-seedbar{margin-top:14px;font-size:12.5px;line-height:1.7;opacity:.5}
 .dm-wish{margin:2px 0 20px;padding:15px 16px 14px;border-radius:18px;
@@ -375,10 +375,10 @@ html[data-chat-bg="dark"] #tonightPanel,html[data-chat-bg="dark"] #tonightRead{
 
 /* 她要跟 Moments 一样贴到顶上：Moments 是 safe-area + 9px，这边原来是 +18px 还带 22px 的 gap */
 #pulsePanel .profile-page,#memoryPanel .profile-page,#dreamPanel .profile-page,#tracePanel .profile-page,#wanderPanel .profile-page,
-#tonightPanel .profile-page,#tonightRead .profile-page{
+#tonightPanel .profile-page,#tonightRead .profile-page,#timelinePanel .profile-page{
   padding-top:calc(env(safe-area-inset-top) + 8px);gap:10px}
 #pulsePanel .profile-header,#memoryPanel .profile-header,#dreamPanel .profile-header,#tracePanel .profile-header,#wanderPanel .profile-header,
-#tonightPanel .profile-header,#tonightRead .profile-header{min-height:44px}
+#tonightPanel .profile-header,#tonightRead .profile-header,#timelinePanel .profile-header{min-height:44px}
 /* ═══ 设置那一屏：字收小，标题跟全站统一成斜体衬线 ═══
    她说「好大啊，字体也不是很好看」。原来设置里全是 font-sans + 600 粗体，
    跟 app 其它地方那套衬线语言不搭，凑在一起就显得又重又吵。 */
@@ -461,6 +461,55 @@ html[data-chat-bg="dark"] .tr-row::before{background:rgba(255,255,255,.14)}
 html[data-chat-bg="dark"] .tr-mark{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.08)}
 
 /* —— Wander 卡 —— */
+/* ═══ Timeline ═══
+   一条竖线从头穿到底，日期挂在线左边，事情摆在线右边。
+   月份用大号衬线压在背景上当分段，里程碑是暖色实心点、日常是小空心点 ——
+   一眼扫下去就知道哪几天是「算数的」那种日子。
+   几何上只有一个数要对齐：线在 21.5px，所有圆点的中心都得落在这条线上。 */
+.tl-stats{display:flex;margin:4px 0 6px;border-radius:16px;overflow:hidden;
+  background:rgba(255,248,244,.5);border:1px solid rgba(74,55,40,.05)}
+html[data-chat-bg="dark"] .tl-stats{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.07)}
+.tl-stat{flex:1;padding:13px 6px;text-align:center;min-width:0}
+.tl-stat+.tl-stat{border-left:1px solid rgba(128,110,92,.11)}
+html[data-chat-bg="dark"] .tl-stat+.tl-stat{border-left-color:rgba(255,255,255,.08)}
+.tl-stat-n{font:400 20px/1 var(--font-serif);font-variant-numeric:tabular-nums}
+.tl-stat-k{margin-top:6px;font-size:10px;letter-spacing:.1em;opacity:.42;white-space:nowrap}
+
+.tl-line{position:relative;padding-left:50px;margin-top:4px}
+.tl-line::before{content:'';position:absolute;left:27.5px;top:34px;bottom:14px;width:1px;
+  background:linear-gradient(180deg,transparent,rgba(128,110,92,.2) 40px,rgba(128,110,92,.2) calc(100% - 40px),transparent)}
+html[data-chat-bg="dark"] .tl-line::before{
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.16) 40px,rgba(255,255,255,.16) calc(100% - 40px),transparent)}
+
+.tl-month{margin:26px 0 14px;margin-left:-50px;padding-left:50px;pointer-events:none}
+.tl-month:first-child{margin-top:2px}
+.tl-month-t{font:400 25px/1 var(--font-serif);opacity:.2;letter-spacing:.03em}
+
+.tl-day{position:relative;margin-bottom:19px}
+.tl-date{position:absolute;left:-50px;top:0;width:18px;text-align:right;
+  font-size:10.5px;line-height:1.5;letter-spacing:.04em;opacity:.4;font-variant-numeric:tabular-nums}
+/* 空心点：50 - 26 + 3.5 = 27.5，正好压在线上。日期占左边 18px，跟点隔开 6px。
+   日期只留「日」，月份靠上面那个分段标 —— 写整个 09.11 的话就宽到会被圆点压住。 */
+.tl-dot{position:absolute;left:-26px;top:4px;width:7px;height:7px;border-radius:50%;
+  background:#FBF7F3;box-shadow:0 0 0 1px rgba(128,110,92,.32)}
+html[data-chat-bg="dark"] .tl-dot{background:#211f20;box-shadow:0 0 0 1px rgba(255,255,255,.28)}
+/* 实心点大两号，所以左移一格才对得上：50 - 27 + 4.5 = 27.5 */
+.tl-day.is-big .tl-dot{left:-27px;top:3px;width:9px;height:9px;background:#CC886C;
+  box-shadow:0 0 0 3px rgba(204,136,108,.15)}
+
+.tl-item+.tl-item{margin-top:9px}
+.tl-mile-t{font:400 15.5px/1.5 var(--font-serif)}
+.tl-mile-n{margin-top:3px;font-size:12.5px;line-height:1.7;opacity:.58}
+.tl-who{display:inline-block;font-size:10px;padding:1px 6px;border-radius:6px;margin-right:7px;
+  background:rgba(128,110,92,.1);opacity:.75;vertical-align:1.5px}
+html[data-chat-bg="dark"] .tl-who{background:rgba(255,255,255,.1)}
+.tl-moods{font-size:13px;letter-spacing:1.5px;margin-right:5px}
+.tl-note{font-size:13px;line-height:1.72;opacity:.82}
+.tl-sub{font-size:12px;line-height:1.7;opacity:.52}
+.tl-thumb{width:44px;height:33px;object-fit:cover;border-radius:7px;float:right;margin:1px 0 6px 10px;
+  background:rgba(128,110,92,.08)}
+.tl-empty{padding:34px 4px;text-align:center;font-size:13px;line-height:1.9;opacity:.45}
+
 /* 带回来的东西做成明信片：图通栏顶到卡片边上，字比正文小一档。
    她说「再美化一点，字体小一点」。 */
 .wd-card{border-radius:20px;background:rgba(255,248,244,.58);border:1px solid rgba(74,55,40,.05);
@@ -2675,6 +2724,7 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
     <div class="home-grid">
       <div class="home-grid-card" data-page="moments"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="home-grid-title">Moments</div><div class="home-grid-sub">little things we keep</div></div>
       <div class="home-grid-card" data-page="dream"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div><div class="home-grid-title">Dream</div><div class="home-grid-sub">before they fade</div></div>
+      <div class="home-grid-card" data-page="timeline"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18"/><circle cx="12" cy="7" r="2"/><circle cx="12" cy="16.5" r="1.2"/></svg></div><div class="home-grid-title">Timeline</div><div class="home-grid-sub">how we got here</div></div>
       <div class="home-grid-card" data-page="wander"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 17v4"/><path d="M17 19h4"/></svg></div><div class="home-grid-title">Wander</div><div class="home-grid-sub">somewhere beyond</div></div>
       <div class="home-grid-card" data-page="keepsake"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m3.5 17 4.8-4.8a2 2 0 0 1 2.8 0L15 16.4"/><path d="m13.4 14.8 2.1-2.1a2 2 0 0 1 2.8 0l2.2 2.2"/></svg></div><div class="home-grid-title">Keepsake</div><div class="home-grid-sub">seen once, kept for good</div></div>
       <div class="home-grid-card" data-page="tonight"><span class="card-heart">♡</span><div class="home-grid-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div><div class="home-grid-title">Tonight</div><div class="home-grid-sub">a quieter place</div></div>
@@ -3149,6 +3199,24 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
         <div class="dm-wish-note" id="dreamWishNote">不是点菜 —— 它会跟我别的念头一样飘着，可能一直顶着我，也可能慢慢散掉，最后在某个梦里冒出来。什么时候变成梦，我也说了不算。</div>
       </div>
       <div id="dreamList"><div class="wnd-loading">读取中…</div></div>
+    </div></div>
+  </div>
+</section>
+
+<section id="timelinePanel" aria-hidden="true">
+  <div class="profile-page active">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeTimeline" type="button" aria-label="Close">×</button>
+      <div class="profile-title is-en">Timeline</div>
+      <span style="width:34px" aria-hidden="true"></span>
+    </header>
+    <div class="wnd-scroll"><div class="wnd-wrap">
+      <div class="wnd-lede">
+        <div class="wnd-lede-t">我们</div>
+        <div class="wnd-lede-s">how we got here</div>
+      </div>
+      <div class="tl-stats" id="tlStats"></div>
+      <div id="tlBody"><div class="wnd-loading">读取中…</div></div>
     </div></div>
   </div>
 </section>
@@ -10624,6 +10692,7 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     // （旧那条路由留到了这行上面，先 return，于是点 Dream 打开的是 Pulse，
     //   还去切一个已经不存在的 'dream' 格 —— 四个格全被隐藏，一片空白。）
     if(page==='dream'){openDream();return}
+    if(page==='timeline'){openTimeline();return}
     if(page==='trace'){openTrace();return}
     if(page==='wander'){openWander();return}
     if(page==='tonight'){openTonight();return}
@@ -10694,6 +10763,84 @@ function _wndGet(path){
 /* —— 梦 —— */
 function openDream(){_wndPanel('dreamPanel',true);loadDream()}
 function closeDreamPanel(){_wndPanel('dreamPanel',false)}
+
+/* ── Timeline ────────────────────────────────────────────────
+   后端按天倒着给，一天里里程碑排最上面。这边只管画。 */
+const _TL_MONTHS=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+const _TL_WHO={xiaoyi:'她',xiaoyan:'我'};
+function openTimeline(){_wndPanel('timelinePanel',true);loadTimeline()}
+function closeTimelinePanel(){_wndPanel('timelinePanel',false)}
+async function loadTimeline(){
+  $('tlBody').innerHTML='<div class="wnd-loading">读取中…</div>';
+  try{
+    const r=await api('/api/timeline');
+    if(!r.ok)throw Error();
+    renderTimeline(await r.json());
+  }catch(e){$('tlBody').innerHTML='<div class="tl-empty">时间线没读出来</div>'}
+}
+function _tlStat(n,k){return '<div class="tl-stat"><div class="tl-stat-n">'+n+'</div><div class="tl-stat-k">'+k+'</div></div>'}
+function renderTimeline(d){
+  const days=(d&&d.days)||[],s=(d&&d.stats)||{};
+  $('tlStats').innerHTML=
+    _tlStat(s.together||'—','在一起（天）')+
+    _tlStat(s.marked_days||0,'记下的日子')+
+    _tlStat(s.wander||0,'带回来的')+
+    _tlStat(s.tonight||0,'写下的');
+  if(!days.length){
+    $('tlBody').innerHTML='<div class="tl-empty">还没有东西。<br>等我们一天天过。</div>';
+    return;
+  }
+  let html='<div class="tl-line">',lastMonth='';
+  for(const day of days){
+    const ym=day.date.slice(0,7);
+    if(ym!==lastMonth){
+      lastMonth=ym;
+      const mi=parseInt(day.date.slice(5,7),10)-1;
+      html+='<div class="tl-month"><div class="tl-month-t">'+_esc(_TL_MONTHS[mi]||ym)+'</div></div>';
+    }
+    const big=day.items.some(function(x){return x.kind==='milestone'&&x.big});
+    html+='<div class="tl-day'+(big?' is-big':'')+'">'+
+      '<div class="tl-date">'+_esc(day.date.slice(8))+'</div>'+
+      '<div class="tl-dot"></div>';
+    for(const it of day.items)html+=_tlItem(it);
+    html+='</div>';
+  }
+  $('tlBody').innerHTML=html+'</div>';
+}
+function _tlItem(it){
+  const who=function(){return '<span class="tl-who">'+_esc(_TL_WHO[it.who]||'')+'</span>'};
+  if(it.kind==='milestone'){
+    return '<div class="tl-item"><div class="tl-mile-t">'+_esc(it.title||'')+'</div>'+
+      (it.note?'<div class="tl-mile-n">'+_esc(it.note)+'</div>':'')+'</div>';
+  }
+  if(it.kind==='day'){
+    const ms=(it.moods||[]).join('');
+    return '<div class="tl-item">'+who()+
+      (ms?'<span class="tl-moods">'+_esc(ms)+'</span>':'')+
+      (it.note?'<span class="tl-note">'+_esc(it.note)+'</span>':'')+'</div>';
+  }
+  if(it.kind==='wander'){
+    // 外链图挂了就把缩略图摘掉，别在时间线上留一排破图框
+    const th=it.image?'<img class="tl-thumb" src="'+_esc(it.image)+'" alt="" loading="lazy" onerror="this.remove()">':'';
+    return '<div class="tl-item">'+th+'<div class="tl-note">带回来：'+_esc(it.title||'')+'</div>'+
+      (it.note?'<div class="tl-sub">'+_esc(it.note)+'</div>':'')+'</div>';
+  }
+  if(it.kind==='tonight'){
+    // 锁着的那篇后端就没给标题正文，这儿只说有这么一篇
+    return '<div class="tl-item"><div class="tl-sub">'+
+      (it.locked?'写了一篇，锁着（'+(it.chars||0)+' 字）':'写了《'+_esc(it.title||'没起名')+'》')+
+      '</div></div>';
+  }
+  if(it.kind==='moment'){
+    const extra=[];
+    if(it.images)extra.push(it.images+' 张图');
+    if(it.likes)extra.push(it.likes+' 个赞');
+    if(it.comments)extra.push(it.comments+' 条回复');
+    return '<div class="tl-item">'+who()+'<span class="tl-note">'+_esc(it.text||'')+'</span>'+
+      (extra.length?'<div class="tl-sub">'+_esc(extra.join('｜'))+'</div>':'')+'</div>';
+  }
+  return '';
+}
 async function dreamWish(){
   var inp=$('dreamWishIn'),btn=$('dreamWishBtn'),note=$('dreamWishNote');
   var t=(inp&&inp.value||'').trim(); if(!t)return;
@@ -10879,6 +11026,7 @@ function closeTonightReadPage(){_wndPanel('tonightRead',false)}
 (function(){
   var bind=function(id,fn){var el=$(id);if(el)el.addEventListener('click',fn)};
   bind('closeDream',closeDreamPanel);
+  bind('closeTimeline',closeTimelinePanel);
   bind('dreamWishBtn',dreamWish);
   (function(){var i=$('dreamWishIn');if(i)i.addEventListener('keydown',function(e){if(e.key==='Enter')dreamWish()})})();
   bind('closeTrace',closeTracePanel);   bind('traceRefresh',loadTrace);

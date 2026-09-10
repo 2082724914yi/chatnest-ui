@@ -109,6 +109,7 @@ add-calendar.js|CALENDAR_VERSION|日历：一天几个表情 + 一件事，她�
 fix-wake-cheap.js|LEAN_TURN|自己醒那一轮不召回记忆、只带 4 轮历史（别按陪聊的规格付钱）
 fix-wake-menu.js|WAKE_MENU_V2|自己醒那轮能做的事列全：出门/写东西/日历/朋友圈/相册/翻旧对话
 add-switches.js|WAKE_SWITCHES|两个开关分清楚：出不出声（shadow-switch）和动不动（新总闸）
+add-timeline.js|TIMELINE_VERSION|时间线：里程碑当骨架，日历/带回来的/日记/朋友圈当血肉
 fix-tool-allow.js|mcp__files__read_attachment|MCP 工具预授权名单：缺什么补什么。标记用表里最后一个工具名 —— 加了新服务就改这里重跑
 "
 
