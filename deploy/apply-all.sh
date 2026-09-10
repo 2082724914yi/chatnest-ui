@@ -97,6 +97,8 @@ add-wake-do.js|WAKE_DO_VERSION|醒来能做自己的事，不只是找她说话�
 fix-wake-desire.js|WAKE_DESIRE_VERSION|醒来干嘛由身体决定，不再掷骰子
 add-thoughts.js|THOUGHTS_VERSION|念头池：闪念↔执念，反复冒出来的那条把我推出门
 add-latent-vec.js|LATENT_VEC_VERSION|Latent 按意思翻（硅基流动 bge-m3，跟 OB 同一家）
+fix-latent-hook.js|LATENT_HOOK_FIXED|建索引挪到 /hook（/api 是登录态全拦的，她踩过一次）
+add-dream.js|DREAM_VERSION|梦：散掉的念头掉进去，攒够了在那儿重新拼一次
 "
 
 say "1/3 逐个补丁检查"

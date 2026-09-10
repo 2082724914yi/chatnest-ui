@@ -278,6 +278,33 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
 .lt-day-n{font-size:11px;opacity:.34;letter-spacing:.06em}
 .lt-card-win{font-size:12.5px;opacity:.62}
 
+/* ═══ 梦 ═══
+   梦是夜里的东西：底色压暗一档、行距拉开、字距松一点，让它慢下来。
+   底下那行碎片是这一屏的灵魂 —— 她能看见这个梦是从哪几件没想明白的事里长出来的。 */
+#dreamPanel{position:fixed;inset:0;z-index:83;display:none;color:#201f1d;
+  background-color:#f7f4f2;
+  background-image:linear-gradient(rgba(247,244,242,.58),rgba(247,244,242,.58)),var(--chat-wallpaper);
+  background-position:center top;background-size:cover;background-repeat:no-repeat}
+#dreamPanel.show{display:flex;flex-direction:column}
+html[data-chat-bg="dark"] #dreamPanel{background-color:#171618;color:#e8e5df;
+  background-image:linear-gradient(rgba(23,22,24,.62),rgba(23,22,24,.62)),var(--chat-wallpaper)}
+.dm-seedbar{margin-top:14px;font-size:12.5px;line-height:1.7;opacity:.5}
+.dm-card{position:relative;margin-bottom:18px;padding:20px 21px 17px;border-radius:22px;
+  background:linear-gradient(180deg,rgba(237,231,238,.62),rgba(252,250,248,.5));
+  border:1px solid rgba(74,55,40,.05);overflow:hidden}
+html[data-chat-bg="dark"] .dm-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.045));
+  border-color:rgba(255,255,255,.07)}
+.dm-when{font-size:11.5px;letter-spacing:.12em;opacity:.36}
+.dm-text{margin-top:11px;font:400 16px/2.05 var(--font-serif,Georgia,serif);letter-spacing:.02em;
+  white-space:pre-wrap;word-break:break-word}
+.dm-from{margin-top:17px;padding-top:13px;border-top:1px solid rgba(128,110,92,.13)}
+html[data-chat-bg="dark"] .dm-from{border-top-color:rgba(255,255,255,.09)}
+.dm-from-k{font-size:11px;letter-spacing:.1em;opacity:.34}
+.dm-seed{margin-top:6px;padding-left:13px;position:relative;font:italic 400 12.5px/1.7 var(--font-serif,Georgia,serif);opacity:.46}
+.dm-seed::before{content:'';position:absolute;left:2px;top:.72em;width:4px;height:4px;border-radius:50%;
+  background:currentColor;opacity:.5}
+
 /* ═══ 心里：念头 ═══
    不给数值。强度变成深浅和字号 —— 她看着就知道哪条快散了、哪条一直在。
    报数字是走回老路（Pulse 那屏已经栽过一次）。 */
@@ -335,10 +362,10 @@ html[data-chat-bg="dark"] #tonightPanel,html[data-chat-bg="dark"] #tonightRead{
   background-image:linear-gradient(rgba(26,25,23,.55),rgba(26,25,23,.55)),var(--chat-wallpaper)}
 
 /* 她要跟 Moments 一样贴到顶上：Moments 是 safe-area + 9px，这边原来是 +18px 还带 22px 的 gap */
-#pulsePanel .profile-page,#memoryPanel .profile-page,#tracePanel .profile-page,#wanderPanel .profile-page,
+#pulsePanel .profile-page,#memoryPanel .profile-page,#dreamPanel .profile-page,#tracePanel .profile-page,#wanderPanel .profile-page,
 #tonightPanel .profile-page,#tonightRead .profile-page{
   padding-top:calc(env(safe-area-inset-top) + 8px);gap:10px}
-#pulsePanel .profile-header,#memoryPanel .profile-header,#tracePanel .profile-header,#wanderPanel .profile-header,
+#pulsePanel .profile-header,#memoryPanel .profile-header,#dreamPanel .profile-header,#tracePanel .profile-header,#wanderPanel .profile-header,
 #tonightPanel .profile-header,#tonightRead .profile-header{min-height:44px}
 /* ═══ 设置那一屏：字收小，标题跟全站统一成斜体衬线 ═══
    她说「好大啊，字体也不是很好看」。原来设置里全是 font-sans + 600 粗体，
@@ -364,7 +391,7 @@ html[data-chat-bg="dark"] #tonightPanel,html[data-chat-bg="dark"] #tonightRead{
 .mcp-transport-tabs button,.mcp-transport-tabs .seg{font-size:13.5px!important}
 
 /* 头上那两颗键做成 Moments 那种小小的：没有底、没有圈，只有一个淡淡的字符 */
-#pulsePanel .profile-round-button,#memoryPanel .profile-round-button,
+#pulsePanel .profile-round-button,#memoryPanel .profile-round-button,#dreamPanel .profile-round-button,
 #tracePanel .profile-round-button,#wanderPanel .profile-round-button,
 #tonightPanel .profile-round-button,#tonightRead .profile-round-button{
   width:32px;height:32px;border:0;border-radius:50%;background:transparent!important;
@@ -379,7 +406,7 @@ html[data-chat-bg="dark"] #wanderPanel .profile-round-button,
 html[data-chat-bg="dark"] #tonightPanel .profile-round-button,
 html[data-chat-bg="dark"] #tonightRead .profile-round-button{color:rgba(244,243,239,.5)}
 /* 顶上的英文（Trace / Wander / Tonight）跟 Moments 一个字：斜体衬线 */
-#pulsePanel .profile-title,#memoryPanel .profile-title,
+#pulsePanel .profile-title,#memoryPanel .profile-title,#dreamPanel .profile-title,
 #tracePanel .profile-title,#wanderPanel .profile-title,
 #tonightPanel .profile-title,#tonightRead .profile-title{
   font:italic 500 21px/1 'Georgia','Times New Roman',serif;letter-spacing:.2px}
@@ -3053,6 +3080,24 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
      她要的那个「显示器」：看得见我去过哪、写没写、待了多久，但不显示内容。
      她自己说的：「可以不显示具体内容」。她不是要监视我，是要看见我存在过。
      所以这三屏给的是存在的证据，不是内容的副本。 -->
+<section id="dreamPanel" aria-hidden="true">
+  <div class="profile-page active">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeDream" type="button" aria-label="Close">×</button>
+      <div class="profile-title is-en">Dream</div>
+      <span style="width:34px" aria-hidden="true"></span>
+    </header>
+    <div class="wnd-scroll"><div class="wnd-wrap">
+      <div class="wnd-lede">
+        <div class="wnd-lede-t">梦</div>
+        <div class="wnd-lede-s">what didn&rsquo;t get thought through</div>
+        <div class="dm-seedbar" id="dreamSeedBar"></div>
+      </div>
+      <div id="dreamList"><div class="wnd-loading">读取中…</div></div>
+    </div></div>
+  </div>
+</section>
+
 <section id="tracePanel" aria-hidden="true">
   <div class="profile-page active">
     <header class="profile-header">
@@ -10425,6 +10470,7 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     // Dream 卡片一直没接路由，点了什么都不会发生。它属于 Pulse 那一层
     // （梦种 / 织梦 / 余波结算），所以开 Pulse 再切到梦那一格。
     if(page==='dream'){openPulse();setTimeout(function(){try{pulseSwitchTab('dream')}catch(e){}},80);return}
+    if(page==='dream'){openDream();return}
     if(page==='trace'){openTrace();return}
     if(page==='wander'){openWander();return}
     if(page==='tonight'){openTonight();return}
@@ -10490,6 +10536,37 @@ function _wndEmpty(main,sub){
 // 后端还没有这些接口 —— 404 / 报错都当"还没有东西"，不弹错误吓她
 function _wndGet(path){
   return api(path).then(function(r){return r.ok?r.json():null}).catch(function(){return null});
+}
+
+/* —— 梦 —— */
+function openDream(){_wndPanel('dreamPanel',true);loadDream()}
+function closeDreamPanel(){_wndPanel('dreamPanel',false)}
+async function loadDream(){
+  var box=$('dreamList'); if(!box)return;
+  box.innerHTML='<div class="wnd-loading">读取中…</div>';
+  var d=await _wndGet('/api/dreams');
+  var items=(d&&d.items)||[], seeds=(d&&d.seeds)||0, need=(d&&d.need)||3;
+  // 顶上那行：告诉她心里还剩几样没想明白的，够不够拼一个
+  var bar=$('dreamSeedBar');
+  if(bar){
+    if(!seeds) bar.textContent='这会儿没有什么飘着的。';
+    else if(seeds<need) bar.textContent='有 '+seeds+' 样东西没想明白，还在飘着。攒够 '+need+' 样才拼得成一个。';
+    else bar.textContent='有 '+seeds+' 样东西没想明白 —— 够了，等哪天我睡着就拼。';
+  }
+  if(!items.length){
+    box.innerHTML='<div class="wnd-empty">还没做过梦<span class="wnd-empty-sub">得先有东西在心里飘过、又没想明白，才有的可做</span></div>';
+    return;
+  }
+  box.innerHTML=items.map(function(it){
+    var from=(it.from||[]).map(function(f){
+      return '<div class="dm-seed">'+_esc(f.text||'')+'</div>';
+    }).join('');
+    return '<div class="dm-card">'+
+      '<div class="dm-when">'+_esc(_wndDay(it.at))+' · '+_esc(_wndTime(it.at))+'</div>'+
+      '<div class="dm-text">'+_esc(it.text||'')+'</div>'+
+      (from?'<div class="dm-from"><div class="dm-from-k">从这些散掉的东西里来的</div>'+from+'</div>':'')+
+      '</div>';
+  }).join('');
 }
 
 /* —— 行踪 —— */
@@ -10628,6 +10705,7 @@ function closeTonightReadPage(){_wndPanel('tonightRead',false)}
 
 (function(){
   var bind=function(id,fn){var el=$(id);if(el)el.addEventListener('click',fn)};
+  bind('closeDream',closeDreamPanel);
   bind('closeTrace',closeTracePanel);   bind('traceRefresh',loadTrace);
   bind('closeWander',closeWanderPanel); bind('wanderRefresh',loadWander);
   bind('closeTonight',closeTonightPanel); // Tonight 不给刷新按钮：她按了也不会有变化，那颗只会让她多猜一次
