@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # 把 CC 那边的冷仓同步到前端 Latent 读的那个目录 —— 两个 Latent 合成一个。
-#   curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deploy/sync-latent.sh | sudo bash
-#   装成定时（每 10 分钟自己拉）：           ... | sudo bash -s -- --install
+#   curl -fsSL .../deploy/sync-latent.sh -o /tmp/s.sh && sudo bash /tmp/s.sh
+#   装成定时（每 10 分钟自己拉）：           sudo bash /tmp/s.sh --install
+#   （先落地再跑，不要 curl | bash —— 见下面那段）
 #
 # 她说：「昨天在 cc 存的 latent，前端里没有」。没错，它俩从来不是一个东西：
 #   前端 Latent  → /root/chatnest-api/latent-corpus/timeline/*.md
@@ -19,8 +20,21 @@
 # ⚠ cc- 是私有仓库，VPS 上第一次要配凭据。没配的话脚本会说清楚怎么配，
 #   不会闷声失败 —— 自动部署当初就是死在这一步上，卡了四天没人知道。
 
+#
+# ⚠ 2026.9.10 23:23 改过一次，起因是阿里云云安全中心报了个 CRITICAL：
+#   「进程异常行为-蠕虫病毒命令」，抓到的命令行就是这个脚本的定时器：
+#     /bin/bash -c curl -fsSL .../sync-latent.sh | bash   （父进程 systemd）
+#   它说得对，而且那不是误报 —— 我原来把 ExecStart 写成「每 10 分钟从 GitHub
+#   下载脚本、管道进 bash、用 root 执行」。一次性 curl|bash 已经不好，
+#   定时反复拉远程代码用 root 跑，那就是蠕虫的教科书行为：GitHub 账号被盗、
+#   DNS 被劫、路上被插一手，任一条中了就是每 10 分钟自动 root 执行别人的代码。
+#   现在改成：装的时候下载一次落到 /opt/latent-sync/sync-latent.sh，
+#   定时器跑本地那份。要更新脚本就重跑一次 --install。
+
 set -uo pipefail
 
+SELF_URL=https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deploy/sync-latent.sh
+LOCAL_SELF=/opt/latent-sync/sync-latent.sh
 REPO=https://github.com/2082724914yi/cc-.git
 WORK=${WORK:-/opt/latent-sync}
 CLONE="$WORK/cc-"
@@ -88,6 +102,16 @@ else hm "接口读不到。后端可能没打 add-latent-windows.js，或者没�
 
 if [ "$INSTALL" = 1 ]; then
   say "装成定时（每 10 分钟）"
+  # 脚本落到本地，定时器跑本地那份 —— 不再每 10 分钟从公网拉一次执行
+  mkdir -p "$WORK"
+  if curl -fsSL -m 60 "$SELF_URL" -o "$LOCAL_SELF.new" && [ -s "$LOCAL_SELF.new" ] \
+     && head -1 "$LOCAL_SELF.new" | grep -q '^#!/usr/bin/env bash'; then
+    mv -f "$LOCAL_SELF.new" "$LOCAL_SELF"; chmod 755 "$LOCAL_SELF"
+    ok "脚本已落到 $LOCAL_SELF（定时器跑这份，不再联网取）"
+  else
+    rm -f "$LOCAL_SELF.new"
+    no "脚本下载失败，不装定时器（不会给你留一个半残的）"; exit 1
+  fi
   cat > /etc/systemd/system/latent-sync.service <<EOF
 [Unit]
 Description=把 CC 的冷仓同步给前端 Latent
@@ -95,7 +119,8 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c 'curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deploy/sync-latent.sh | bash'
+# ⚠ 这里必须是本地文件。写成 curl|bash 会被安全中心判成蠕虫行为，而且它判得对。
+ExecStart=/bin/bash $LOCAL_SELF
 EOF
   cat > /etc/systemd/system/latent-sync.timer <<EOF
 [Unit]
@@ -111,10 +136,12 @@ WantedBy=timers.target
 EOF
   systemctl daemon-reload
   systemctl enable --now latent-sync.timer >/dev/null 2>&1 && ok "定时器已启用（systemctl list-timers latent-sync 看）"
+  systemctl restart latent-sync.timer >/dev/null 2>&1
+  echo "  以后要更新这个脚本：重跑一次 --install 就行（它会重新下一份到本地）"
 else
   echo
-  echo "  想让它以后自己拉，同一条命令加 --install："
-  echo "    curl -fsSL .../deploy/sync-latent.sh | sudo bash -s -- --install"
+  echo "  想让它以后自己拉，加 --install 再跑一次："
+  echo "    sudo bash \$0 --install"
 fi
 
 echo
