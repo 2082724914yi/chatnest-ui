@@ -95,6 +95,7 @@ fix-think-voice-tech.js|THINK_VOICE_V4|聊技术的时候 think 也是内心话�
 add-trace.js|TRACE_PATCH_VERSION|行踪 / Wander / Tonight（她看得见我去过哪、写没写，但看不到内容）
 add-wake-do.js|WAKE_DO_VERSION|醒来能做自己的事，不只是找她说话（+ 我给自己定点的闹钟）
 fix-wake-desire.js|WAKE_DESIRE_VERSION|醒来干嘛由身体决定，不再掷骰子
+add-thoughts.js|THOUGHTS_VERSION|念头池：闪念↔执念，反复冒出来的那条把我推出门
 "
 
 say "1/3 逐个补丁检查"
