@@ -34,7 +34,7 @@
 | 行 | 是什么 |
 |---|---|
 | 1–18 | `<head>` 开头、PWA/serviceWorker 注册 |
-| **19–1857** | **CSS 主块**（最大的一块，聊天/气泡/思考链/工具/面板全在这） |
+| **19–1933** | **CSS 主块**（最大的一块，聊天/气泡/思考链/工具/面板全在这） |
 | **1859–2090** | **CSS 第二块**（tool-row、后期补的样式） |
 | 2097–2118 | 外部脚本：marked / KaTeX |
 | **2119–2310** | **CSS 第三块**（最后追加的样式，新样式加这儿最安全） |
@@ -54,7 +54,7 @@
 | 行 | 面板 | id |
 |---|---|---|
 | 2318 | 密码门 | `gate` |
-| **2324–2357** | **首页**（加新卡片就在这） | `home` |
+| **2400 起** | **首页**（加新卡片就在这） | `home` |
 | 2360 / 2368 | 上下文 sheet / 用量 sheet | `ctxSheet` `usgSheet` |
 | 2376–2421 | 聊天主界面（topbar / stream / 输入框） | `chat` |
 | 2423–2466 | 侧边抽屉 + 会话菜单 | `drawer` |
@@ -70,7 +70,7 @@
 | 3015–3017 | 设置（内容全是 JS 渲染的） | `settingsPanel` |
 | 3019–3025 | 思考过程 sheet / 图片 sheet | `thoughtOverlay` `picOverlay` |
 
-### 首页卡片长什么样（2340–2355）
+### 首页卡片长什么样（2400 往下二十行）
 
 大卡 `.home-panel[data-page]`，小卡九宫格 `.home-grid-card[data-page]`。
 现有的 `data-page`：`chat` `moments` `dream` `wander` `keepsake` `tonight` `pulse` `memory` `settings`
@@ -117,7 +117,7 @@
 | 9486–9520 | 壁纸轮换 |
 | 9525–9740 | Moments |
 | 9741–9987 | Keepsake |
-| **9942** | **首页卡片路由：`querySelectorAll('[data-page]')` → 按 `data-page` 分发** |
+| **10149** | **首页卡片路由：`querySelectorAll('[data-page]')` → 按 `data-page` 分发** |
 | 9989–10090 | 记忆入口 / Latent 检索 |
 | 10440 起 | Pulse 主面板（`openPulse` / `loadPulse` / `renderPulse`） |
 | **10487** | **`_pulseWant(d)` 七项 → 「这会儿想做什么」（以后要整段搬到后端，跟唤醒共用一份）** |
@@ -134,13 +134,13 @@
 
 以 Pulse 为模板（`grep -n 'pulsePanel\|openPulse' index.html` 就能一次看全）：
 
-1. **HTML**：`home` 的九宫格里加一张 `<div class="home-grid-card" data-page="xxx">`（≈2348 行）
+1. **HTML**：`home` 的九宫格里加一张 `<div class="home-grid-card" data-page="xxx">`（≈2417 行）
    —— wander / tonight 已经有了，跳过这步。
-2. **面板 HTML**：在 2780 行附近（Pulse 面板之后）插一个 `<section id="xxxPanel" class="panel hidden">`。
-3. **CSS**：加在**第三块 CSS 末尾**（2309 行前），别去动 19–1857 那一大坨。
+2. **面板 HTML**：在 Pulse 面板之后（`grep -n 'id="memoryPanel"'` 那行前）插一个 `<section id="xxxPanel">`。
+3. **CSS**：加在**第三块 CSS 末尾**（2386 行的 `</style>` 前），别去动 19–1933 那一大坨。
 4. **JS**：
    - 写 `openXxx()` / `closeXxxPanel()` / `loadXxx()`，放在文件尾部（11127 前）；
-   - 到 **9942** 的路由里加一个分支；
+   - 到 **10149** 的路由里加一个分支；
    - 数据请求一律用 `api('/api/xxx')`，别自己 `fetch`（会丢 token）。
 
 ---
