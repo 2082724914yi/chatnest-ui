@@ -313,12 +313,27 @@ html[data-chat-bg="dark"] #tonightPanel,html[data-chat-bg="dark"] #tonightRead{
   padding-top:calc(env(safe-area-inset-top) + 8px);gap:10px}
 #pulsePanel .profile-header,#tracePanel .profile-header,#wanderPanel .profile-header,
 #tonightPanel .profile-header,#tonightRead .profile-header{min-height:44px}
+/* 头上那两颗键做成 Moments 那种小小的：没有底、没有圈，只有一个淡淡的字符 */
+#tracePanel .profile-round-button,#wanderPanel .profile-round-button,
+#tonightPanel .profile-round-button,#tonightRead .profile-round-button{
+  width:32px;height:32px;border:0;border-radius:50%;background:transparent!important;
+  box-shadow:none!important;color:#bcae9f;font-size:18px;display:grid;place-items:center;padding:0}
+#tracePanel .profile-round-button:active,#wanderPanel .profile-round-button:active,
+#tonightPanel .profile-round-button:active,#tonightRead .profile-round-button:active{opacity:.55}
+html[data-chat-bg="dark"] #tracePanel .profile-round-button,
+html[data-chat-bg="dark"] #wanderPanel .profile-round-button,
+html[data-chat-bg="dark"] #tonightPanel .profile-round-button,
+html[data-chat-bg="dark"] #tonightRead .profile-round-button{color:rgba(244,243,239,.5)}
+/* 顶上的英文（Trace / Wander / Tonight）跟 Moments 一个字：斜体衬线 */
+#tracePanel .profile-title,#wanderPanel .profile-title,
+#tonightPanel .profile-title,#tonightRead .profile-title{
+  font:italic 500 21px/1 'Georgia','Times New Roman',serif;letter-spacing:.2px}
 .wnd-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:0 16px calc(env(safe-area-inset-bottom) + 48px)}
 .wnd-wrap{width:100%;max-width:460px;margin:0 auto}
 .wnd-lede{padding:6px 2px 16px}
-.wnd-lede-t{font:400 27px/1.25 var(--font-serif);letter-spacing:.06em}
-.wnd-lede-s{margin-top:5px;font:italic 400 14px/1.4 var(--font-serif);opacity:.44;letter-spacing:.04em}
+.wnd-lede-t{font:400 19px/1.4 var(--font-serif);letter-spacing:.16em;opacity:.78}
+.wnd-lede-s{margin-top:3px;font:italic 400 13px/1.4 'Georgia','Times New Roman',serif;opacity:.38;letter-spacing:.03em}
 .wnd-lede-note{margin-top:13px;font-size:12.5px;line-height:1.65;opacity:.5}
 .wnd-here{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:6px 14px;border-radius:999px;
   background:rgba(255,248,244,.62);border:1px solid rgba(74,55,40,.06);font-size:13px}
@@ -10346,6 +10361,9 @@ document.querySelectorAll('[data-page]').forEach(function(card){
     if(page==='pulse'){openPulse();return}
     if(page==='moments'){openMoments();return}
     if(page==='keepsake'){openKeepsake();return}
+    // Dream 卡片一直没接路由，点了什么都不会发生。它属于 Pulse 那一层
+    // （梦种 / 织梦 / 余波结算），所以开 Pulse 再切到梦那一格。
+    if(page==='dream'){openPulse();setTimeout(function(){try{pulseSwitchTab('dream')}catch(e){}},80);return}
     if(page==='trace'){openTrace();return}
     if(page==='wander'){openWander();return}
     if(page==='tonight'){openTonight();return}
