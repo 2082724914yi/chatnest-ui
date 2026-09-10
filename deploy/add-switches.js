@@ -71,9 +71,12 @@ const edits = [
       "    const _quiet = !shadowSwitchOn();\n" +
       mid + "if (wakeDueNow() && !_quiet) {" },
 
+  // ⚠ 线上不是 if (wakeDecideMode() === 'do')：fix-wake-desire.js 把它拆成了
+  //   const _wd = wakeDecideMode() 再判 _wd.mode，还在前面插了一条 rest 分支。
+  //   rest（累了歇着）要留在前面不动 —— 不出声不等于该硬找事做。
   { name: '不出声的那一轮拿去做自己的事', required: true,
-    find: /if \(wakeDecideMode\(\) === 'do'\) \{/,
-    replace: () => "if (wakeDecideMode() === 'do' || _quiet) {" },
+    find: /if \(_wd\.mode === 'do'\) \{/,
+    replace: () => "if (_wd.mode === 'do' || _quiet) {" },
 ];
 
 let out = src;

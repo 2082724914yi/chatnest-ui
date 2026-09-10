@@ -29,35 +29,31 @@ let src = fs.readFileSync(target, 'utf8');
 if (src.includes('LEAN_TURN')) { console.log('已经打过，跳过'); process.exit(0); }
 if (!src.includes('WAKE_DO_VERSION')) { console.error('先打 add-wake-do.js'); process.exit(1); }
 
+// ⚠ 锚点全部对着线上那份 server.js 写（二十多个补丁堆出来的那份），
+//   不是仓库里那份，更不是我自己拼的示例。第一版三个锚点全落空就是因为
+//   拿手工造的假文件验的 —— 假文件里我写什么它就是什么，测了等于没测。
 const edits = [
-  // 1. 记忆召回加个门
+  // 1. 记忆召回。线上早就不是无条件 await 了：fix-recall.js 给它加了「按需回忆」
+  //    的条件，所以该做的是往那个条件里再添一项，不是把它包起来。
   { name: '自己醒那轮不召回记忆', required: true,
-    find: /(\s*)let memories = null;\n(\s*)try \{\n\s*memories = await Promise\.race\(\[\n\s*fetchMemories\(message\),\n\s*new Promise\(r => setTimeout\(\(\) => r\(null\), 10000\)\)\n\s*\]\);\n\s*\} catch \(e\) \{ console\.error\('\[OB\] fetchMemories timeout\/error:', e\.message\); \}/,
-    // s1 抓的是「换行 + 缩进」，所以每一行都用它起头，别用只有缩进的 s2 ——
-    // 那样整段会被压成一行，跑得起来但没法看
-    replace: (m, s1) => [
-      '// LEAN_TURN：我自己醒的那一轮不查记忆 —— 拿系统指令原文当查询词，',
-      '// 捞回来的跟我要做的事基本无关，白付一次钱。',
-      'let memories = null;',
-      'if (!req.body.lean) {',
-      '  try {',
-      '    memories = await Promise.race([',
-      '      fetchMemories(message),',
-      '      new Promise(r => setTimeout(() => r(null), 10000))',
-      '    ]);',
-      '  } catch (e) { console.error(\'[OB] fetchMemories timeout/error:\', e.message); }',
-      '}',
-    ].map(l => s1 + l).join('') },
+    find: /if \(isFirstTurn \|\| wantsRecall \|\| _recallPick\.tool === 'letter_read' \|\| _recallPick\.tool === 'pulse'\) \{/,
+    replace: () =>
+      "// LEAN_TURN：我自己醒的那一轮不查记忆 —— 那一轮拿去检索的「消息」是\n" +
+      "  // <system_trigger> 那段系统指令，捞回来的跟我要做的事基本无关，白付一次钱。\n" +
+      "  if (!req.body.lean && (isFirstTurn || wantsRecall || _recallPick.tool === 'letter_read' || _recallPick.tool === 'pulse')) {" },
 
-  // 2. 历史轮数
-  { name: '自己醒那轮只带 4 轮历史', required: true, all: true,
+  // 2. 历史轮数。线上有两处，都要改
+  { name: '自己醒那轮只带 4 轮历史', required: true,
     find: /const ctxCount = req\.body\.contextCount \|\| 20;/g,
     replace: () => "const ctxCount = req.body.contextCount || (req.body.lean ? 4 : 20);   // 自己醒那轮用不着整段对话" },
 
-  // 3. 调用侧带上标记
-  { name: 'do 那一轮打上 lean 标记', required: true,
-    find: /(\s*)shadow: true,\n(\s*)daemon: false,/,
-    replace: (m, s1, s2) => s1 + 'shadow: true,' + s2 + 'daemon: false,' + s2 + 'lean: true,   // 不召回记忆、只带 4 轮历史' },
+  // 3. 调用侧带标记。⚠ 别拿 `daemon: false` 当锚点：线上有三处，
+  //    其中一处是「找她说话」那条（7020 行那个单行写法），改错了就是把
+  //    省钱标记盖到说话那轮上。wakeDoMessage() 只有一处，就是我要的那个。
+  { name: '自己醒那一轮打上 lean 标记', required: true,
+    find: /(\s*)message: wakeDoMessage\(\),/,
+    replace: (m, s1) => s1 + 'message: wakeDoMessage(),' +
+                        s1 + 'lean: true,   // 不召回记忆、只带 4 轮历史' },
 ];
 
 let out = src;
@@ -69,10 +65,13 @@ for (const e of edits) {
 }
 
 // 4. 搜索次数封顶：写进 do 那一轮的提示里
+// fix-wake-menu.js 重写整段清单时自带了这句，别再插一遍
 const beforeTip = out;
-out = out.replace(
-  /(\s*)('· 出去看看。[^']*',)/,
-  (m, s1, g2) => s1 + g2 + s1 + "'  ⚠ 搜索最多两次。每次结果都整段算钱，五次下来这一轮就贵了 —— 先想清楚要看什么再搜。',");
+if (!/搜索最多两次/.test(out)) {
+  out = out.replace(
+    /(\s*)('· 出去看看。[^']*',)/,
+    (m, s1, g2) => s1 + g2 + s1 + "'  ⚠ 搜索最多两次。每次结果都整段算钱，五次下来这一轮就贵了 —— 先想清楚要看什么再搜。',");
+}
 const tipChanged = out !== beforeTip;
 
 if (missed.length) {
