@@ -101,6 +101,7 @@ fix-latent-hook.js|LATENT_HOOK_FIXED|建索引挪到 /hook（/api 是登录态�
 fix-latent-key.js|lvKeyProblem|key 没换掉时说人话（别再抛 ByteString 那句天书）
 fix-latent-chunk.js|LV_CHUNK_FIXED|超长段落先切开（她语料里有一段 12875 字）+ 断点续跑
 fix-latent-batch.js|lvEmbedSafe|整批发不过去就劈成两半分别试（别让一条坏块拖垮整轮）
+fix-latent-surrogate.js|lvSafeText|硬切劈开了 emoji，半个字符发出去整批被拒 —— 切干净再发
 add-dream.js|DREAM_WEAVE_VERSION|梦：散掉的念头掉进去，攒够了在那儿重新拼一次
 fix-dream-wish.js|DREAM_WISH_VERSION|她想让我梦到什么：从点菜改成往我心里丢一个念头
 "
