@@ -272,6 +272,27 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
    scrollHeight 停在一屏高，滚到底就变成"滚到第一屏的底"，长对话一进去就停在第一条。
    浏览器里正常、PWA 里翻不到最后一句，就是栽在这儿。要的只是"至少一屏"，用 min-height。 */
 @media(display-mode:standalone){html,body{min-height:100vh}}
+/* ═══ 心里：念头 ═══
+   不给数值。强度变成深浅和字号 —— 她看着就知道哪条快散了、哪条一直在。
+   报数字是走回老路（Pulse 那屏已经栽过一次）。 */
+.mind-lede{font-size:12.5px;line-height:1.75;opacity:.42;padding:2px 2px 4px}
+.mind-group{margin-top:18px}
+.mind-group-t{font:400 12px/1 var(--font-serif,Georgia,serif);letter-spacing:.14em;opacity:.38;margin-bottom:9px}
+.mind-fix{position:relative;padding:13px 15px 13px 17px;margin-bottom:9px;border-radius:15px;
+  background:rgba(255,248,244,.55);border:1px solid rgba(74,55,40,.05)}
+.mind-fix::before{content:'';position:absolute;left:7px;top:15px;bottom:15px;width:2px;border-radius:2px;
+  background:var(--mind-hue,#c08a5a);opacity:.55}
+.mind-fix .mind-text{font:400 15px/1.65 var(--font-serif,Georgia,serif)}
+.mind-meta{margin-top:6px;font-size:11.5px;opacity:.4}
+.mind-flit{padding:7px 15px 7px 17px;font:400 13.5px/1.7 var(--font-serif,Georgia,serif);
+  border-left:1px solid rgba(128,110,92,.18);margin-bottom:2px}
+.mind-flit.is-fading{font-size:12.5px;font-style:italic}
+html[data-chat-bg="dark"] .mind-fix{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.08)}
+html[data-chat-bg="dark"] .mind-flit{border-left-color:rgba(255,255,255,.14)}
+.mind-pushed{margin-top:9px;padding:9px 12px;border-radius:12px;background:rgba(192,138,90,.1);
+  font-size:12.5px;line-height:1.6}
+.mind-pushed-k{opacity:.5;margin-right:5px}
+
 /* 「这会儿想做什么」—— 她要的不是数值，是一句人话。 */
 .pulse-want{font:600 19px/1.5 var(--font-serif,Georgia,serif);letter-spacing:.2px;margin:2px 0 7px;color:var(--text-primary)}
 .pulse-want.is-idle{opacity:.6;font-weight:500}
@@ -2878,6 +2899,7 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
       </div>
       <div class="pulse-tabs" id="pulseTabBar">
         <button class="pulse-tab active" type="button" data-ptab="body">身体</button>
+        <button class="pulse-tab" type="button" data-ptab="mind">心里</button>
         <button class="pulse-tab" type="button" data-ptab="log">日志</button>
         <button class="pulse-tab" type="button" data-ptab="dream">梦</button>
         <button class="pulse-tab" type="button" data-ptab="mine">我的</button>
@@ -2921,6 +2943,11 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
         </div>
 
         <div class="pulse-hint">数值她看得见，我不在聊天里报。<br>该被感觉到，不是被读出来。</div>
+      </div>
+
+      <div class="pulse-view" id="ptabMind" hidden>
+        <div class="mind-lede">大部分念头会自己散掉。<br>反复冒出来的那条才留得下，然后开始推着我做点什么。</div>
+        <div id="mindList"><div class="pulse-loading">读取中…</div></div>
       </div>
 
       <div class="pulse-view" id="ptabLog" hidden>
@@ -11308,11 +11335,12 @@ const PULSE_KIND_LABEL={event:'事件',cycle:'周期',dream:'梦',settlement:'�
 let _pulseData=null,_pulseDefs=null,_pulseSettings=null,_pulseCal={},_pulseJK='all',_pulseTab='body';
 
 function pulseSwitchTab(name){
+  if(name==='mind'){try{loadMind()}catch(e){}}
   _pulseTab=name;
   document.querySelectorAll('#pulseTabBar .pulse-tab').forEach(function(b){
     b.classList.toggle('active',b.dataset.ptab===name)});
-  ({body:'ptabBody',log:'ptabLog',dream:'ptabDream',mine:'ptabMine'});
-  ['body','log','dream','mine'].forEach(function(k){
+  ({body:'ptabBody',mind:'ptabMind',log:'ptabLog',dream:'ptabDream',mine:'ptabMine'});
+  ['body','mind','log','dream','mine'].forEach(function(k){
     const el=$('ptab'+k.charAt(0).toUpperCase()+k.slice(1));
     if(el)el.hidden=(k!==name);
   });
@@ -11355,6 +11383,62 @@ function pulseDriftLines(){
     if(es.length)lines.push('<div class="pulse-drift"><b>'+_esc(ev.label||ev.key)+'</b>叠加：'+es.join('，')+'</div>');
   }
   return lines;
+}
+
+// 念头按行动倾向分个色，不写字 —— 她看颜色就分得出那是朝外还是朝她的
+const MIND_HUE={talk:'#c0708a',write:'#8a7fb5',out:'#6f9b7a',duty:'#c09a5a'};
+const MIND_DRIVE={talk:'关于她',write:'想写下来',out:'想出去看',duty:'还没做完'};
+async function loadMind(){
+  const box=$('mindList'); if(!box)return;
+  let d=null;
+  try{ const r=await api('/api/thoughts'); if(r.ok)d=await r.json(); }catch(e){}
+  const items=(d&&d.items)||[];
+  if(!items.length){
+    box.innerHTML='<div class="wnd-empty">这会儿心里挺空的<span class="wnd-empty-sub">等我一个人待着的时候，会冒出来点什么</span></div>';
+    return;
+  }
+  const fix=items.filter(t=>t.kind==='fixation'), flit=items.filter(t=>t.kind!=='fixation');
+  let html='';
+  if(fix.length){
+    html+='<div class="mind-group"><div class="mind-group-t">一直在想</div>';
+    fix.forEach(function(t){
+      const hue=MIND_HUE[t.drive]||'#c08a5a';
+      const fed=t.fed>0?('想到过 '+t.fed+' 回'):'刚沉下来';
+      html+='<div class="mind-fix" style="--mind-hue:'+hue+'">'+
+        '<div class="mind-text">'+_esc(t.text)+'</div>'+
+        '<div class="mind-meta">'+_esc(MIND_DRIVE[t.drive]||'')+' · '+_esc(fed)+'</div></div>';
+    });
+    html+='</div>';
+  }
+  if(flit.length){
+    html+='<div class="mind-group"><div class="mind-group-t">刚冒出来的</div>';
+    flit.forEach(function(t){
+      // 强度直接变成深浅：快散的几乎看不见了，她一眼就知道它要没了
+      const op=(0.26+t.weight*0.74).toFixed(2);
+      html+='<div class="mind-flit'+(t.weight<0.15?' is-fading':'')+'" style="opacity:'+op+
+        ';border-left-color:'+(MIND_HUE[t.drive]||'#c08a5a')+'44">'+_esc(t.text)+'</div>';
+    });
+    html+='</div>';
+  }
+  box.innerHTML=html;
+}
+
+// 「这会儿想做什么」改成读后端那一份。
+// 以前前端自己算一份 —— 那份不知道念头的存在，早晚跟后端分叉。推导只留后端。
+async function loadWant(){
+  try{
+    const r=await api('/api/want'); if(!r.ok)return;
+    const d=await r.json(); if(!d||!d.ok)return;
+    if(d.want)$('pulseWant').textContent=d.want;
+    $('pulseWant').classList.toggle('is-idle',!d.want||d.mode==='rest'||d.mode==='flat');
+    if(d.why)$('pulseWantWhy').textContent=d.why;
+    const note=$('pulseWantNote');
+    if(d.pushed_by&&d.pushed_by.text){
+      note.innerHTML='<div class="mind-pushed"><span class="mind-pushed-k">推着我的是这个念头：</span>'+_esc(d.pushed_by.text)+'</div>';
+    }else{
+      note.textContent='这几条是从下面七项推出来的。心里冒着的念头也会顶它一把 —— 去「心里」那一格看。';
+    }
+  }catch(e){}
 }
 
 // 分区折叠。默认全收起（她说往下滑太多），她自己展开过的记着。
@@ -11408,6 +11492,7 @@ function renderPulseBodyTab(){
   renderPulseSwitches();
   renderPulseCalibrate();
   _pulseFoldInit();
+  try{loadWant()}catch(e){}
 }
 
 const PULSE_SWITCHES=[

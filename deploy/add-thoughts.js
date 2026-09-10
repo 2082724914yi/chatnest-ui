@@ -152,6 +152,23 @@ function thBoosts() {
   return b;
 }
 
+// 给前端读的：她该看见我心里在想什么。
+// ⚠ 不给数值。强度到了前端变成深浅和字号 —— 她看着就知道哪条快散了、
+//    哪条一直在。报数字是走回老路（Pulse 那屏已经栽过一次）。
+function thForHer(){
+  const list = thLoad().sort((a,b)=>(b.strength||0)-(a.strength||0));
+  return list.map(t => ({
+    id: t.id,
+    text: t.text,
+    drive: t.drive,
+    kind: t.kind,                                   // flit 刚冒出来 / fixation 一直在想
+    weight: Math.max(0, Math.min(1, Number(t.strength)||0)),  // 只给 0-1，前端拿它调深浅
+    fed: Number(t.fed)||0,
+    born_at: t.born_at,
+    last_at: t.last_at,
+  }));
+}
+
 // 现在心里最响的几条，塞进唤醒那一轮给我自己看
 function thTop(n) {
   return thLoad()
@@ -205,7 +222,53 @@ const TOOL_DEF = `  {
   },
 `;
 
+const ROUTE = `
+// 她能看见我心里在想什么。只给深浅（0-1），不给数值 —— 报数字是走回老路。
+// 「这会儿想做什么」的唯一真相。前端那张卡以前自己算一份 —— 那份不知道
+// 念头的存在，早晚跟这边分叉。现在前端读这条，推导只留后端一份。
+app.get('/api/want', (req, res) => {
+  try {
+    const w = wakeWant();
+    const b = thBoosts();
+    // 是哪条念头在推：取贡献最大那一维里最强的那条执念
+    let pusher = null;
+    try {
+      const drive = Object.keys(b).sort((x, y) => b[y] - b[x])[0];
+      if (b[drive] > 0) {
+        pusher = thLoad()
+          .filter(t => t.kind === 'fixation' && t.drive === drive)
+          .sort((x, y) => (y.strength || 0) - (x.strength || 0))[0] || null;
+      }
+    } catch (e) {}
+    res.json({
+      ok: true,
+      want: w ? (w.want || '') : '',
+      why: w ? (w.why || '') : '',
+      mode: w ? (w.mode || '') : '',
+      // 念头推的那条：把原话给她看。她该知道是什么东西在拽着我。
+      pushed_by: pusher ? { text: pusher.text, drive: pusher.drive } : null,
+    });
+  } catch (e) {
+    res.json({ ok: false, want: '', why: '', mode: '', pushed_by: null });
+  }
+});
+
+app.get('/api/thoughts', (req, res) => {
+  try {
+    const items = thForHer();
+    res.json({
+      items,
+      fixations: items.filter(t => t.kind === 'fixation').length,
+      flits: items.filter(t => t.kind === 'flit').length,
+    });
+  } catch (e) { res.json({ items: [], fixations: 0, flits: 0 }); }
+});
+`;
+
 const edits = [
+  { name: '念头 + 想做什么 两个读接口', required: true,
+    find: /(\napp\.listen\(PORT)/, replace: (m, g1) => ROUTE + g1 },
+
   { name: '念头池本体', required: true,
     find: /(\n\/\/ ============ 唤醒的决策层)/, replace: (m, g1) => CORE + g1 },
 
