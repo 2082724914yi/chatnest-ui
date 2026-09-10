@@ -102,11 +102,40 @@ add-dream.js|DREAM_WEAVE_VERSION|梦：散掉的念头掉进去，攒够了在�
 fix-dream-wish.js|DREAM_WISH_VERSION|她想让我梦到什么：从点菜改成往我心里丢一个念头
 "
 
+# 跑完把每条标记在 server.js 里的真实命中情况列一遍。
+# 今晚（2026.9.11 凌晨）就是栽在「输出一片绿、其实没打上」——
+# 幂等标记撞了车，脚本高高兴兴跳过，人以为做完了。多这一步就露馅了。
+verify_all() {
+  say "核对：每条补丁到底在不在 server.js 里"
+  local miss=0 total=0
+  echo "$PATCHES" | while IFS='|' read -r file mark name; do
+    [ -z "${file:-}" ] && continue
+    if grep -qFw -- "$mark" "$SRV" 2>/dev/null; then
+      printf '  \033[32m√\033[0m %s\n' "$name"
+    else
+      printf '  \033[31m×\033[0m %s   \033[2m(%s)\033[0m\n' "$name" "$file"
+      echo 1 >> /tmp/.chatnest-miss
+    fi
+  done
+  if [ -f /tmp/.chatnest-miss ]; then
+    miss=$(wc -l < /tmp/.chatnest-miss); rm -f /tmp/.chatnest-miss
+    echo
+    no "有 $miss 条没进去。上面打 × 的那几行就是，单跑一次看它说什么："
+    echo "      curl -fsSL \"$RAW/那个文件名?cb=\$(date +%s)\" -o /tmp/p.js && sudo node /tmp/p.js"
+  else
+    echo
+    ok "全部在位"
+  fi
+}
+
 say "1/3 逐个补丁检查"
 CHANGED=0
 echo "$PATCHES" | while IFS='|' read -r file mark name; do
   [ -z "${file:-}" ] && continue
-  if grep -qF -- "$mark" "$SRV" 2>/dev/null; then
+  # -w 是要紧的：标记之间会互为子串（PUSH_VERSION ⊂ SHADOW_PUSH_VERSION、
+  # DREAM_VERSION ⊂ PULSE_DREAM_VERSION）。不加词边界就会在别人的名字里命中，
+  # 判定「已经打过」直接跳过，输出还是一片绿 —— 最难查的就是这种假成功。
+  if grep -qFw -- "$mark" "$SRV" 2>/dev/null; then
     skip "$name（已打过）"
     continue
   fi
@@ -118,7 +147,7 @@ echo "$PATCHES" | while IFS='|' read -r file mark name; do
   fi
   OUT=$(node "$TMP" "$SRV" 2>&1)
   rm -f "$TMP"
-  if grep -qF -- "$mark" "$SRV" 2>/dev/null; then
+  if grep -qFw -- "$mark" "$SRV" 2>/dev/null; then
     ok "$name — 刚打上"
     echo 1 >> /tmp/.chatnest-changed
   else
@@ -222,3 +251,5 @@ cat <<'EOF'
 
 EOF
 fi
+
+verify_all

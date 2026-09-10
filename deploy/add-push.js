@@ -26,7 +26,10 @@ if (!fs.existsSync(target)) { console.error('找不到', target); process.exit(1
 const API_DIR = path.dirname(target);
 
 let src = fs.readFileSync(target, 'utf8');
-if (src.includes('PUSH_VERSION')) { console.log('已经打过，跳过'); process.exit(0); }
+// ⚠ 认 'const PUSH_VERSION' 不认 'PUSH_VERSION' —— 后者是 SHADOW_PUSH_VERSION
+// 的子串，光认它的话：影子推送打过之后，这个补丁自己会误判「已经打过」直接退出，
+// 于是推送通道永远装不上，而且输出看着一切正常。（2026.9.11 凌晨扫出来的）
+if (src.includes('const PUSH_VERSION')) { console.log('已经打过，跳过'); process.exit(0); }
 
 // ---- 1) 依赖 ----
 let hasWebPush = false;
