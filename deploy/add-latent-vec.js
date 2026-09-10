@@ -45,8 +45,23 @@ const LV_OVER  = 120;    // 块之间重叠多少字 —— 不重叠的话，�
 const LV_BATCH = 24;     // 一次送多少块去 embed
 
 function lvKey() {
-  return process.env.SILICONFLOW_API_KEY || process.env.SILICONFLOW_KEY ||
-         process.env.SF_API_KEY || process.env.EMBED_API_KEY || '';
+  const k = String(process.env.SILICONFLOW_API_KEY || process.env.SILICONFLOW_KEY ||
+                   process.env.SF_API_KEY || process.env.EMBED_API_KEY || '').trim();
+  if (!k) return '';
+  // 占位符没换掉的情况要当场认出来。直接塞进 Authorization 头的话，
+  // fetch 会抛「Cannot convert argument to a ByteString because the character
+  // at index 10 has a value of 20320」—— 20320 就是「你」，来自 sk-你的key。
+  // 那句报错谁也看不懂，还得反查码点才知道是占位符没改。
+  if (/[^\x20-\x7E]/.test(k)) return '__PLACEHOLDER_NONASCII__';
+  if (/你的|your[-_ ]?key|xxx+|<.*>|sk-abc/i.test(k)) return '__PLACEHOLDER__';
+  return k;
+}
+function lvKeyProblem() {
+  const k = lvKey();
+  if (!k) return '没配 key。在 /root/chatnest-api/.env 里加一行 SILICONFLOW_API_KEY=（你的真 key），然后 pm2 restart chatnest-api';
+  if (k === '__PLACEHOLDER_NONASCII__') return '.env 里那行 key 还是示例没换掉（里面有中文，多半是 sk-你的key）。换成真 key 再重启后端';
+  if (k === '__PLACEHOLDER__') return '.env 里那行 key 看着还是占位符，换成真的那串再重启后端';
+  return '';
 }
 
 function lvLoad() {
@@ -107,8 +122,9 @@ function lvChunks(text) {
 }
 
 async function lvEmbed(texts) {
+  const bad = lvKeyProblem();
+  if (bad) throw new Error(bad);
   const key = lvKey();
-  if (!key) throw new Error('没有硅基流动的 key');
   const r = await obFetch(LV_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
@@ -133,7 +149,7 @@ async function lvBuild() {
   if (lvJob.running) return;
   lvJob = { running: true, done: 0, total: 0, msg: '看看有哪些新的', at: Date.now() };
   try {
-    if (!lvKey()) throw new Error('没配 key：把硅基流动的 key 写进 /root/chatnest-api/.env 的 SILICONFLOW_API_KEY，然后重启后端');
+    { const bad = lvKeyProblem(); if (bad) throw new Error(bad); }
     if (!fs.existsSync(LV_DIR)) throw new Error('语料目录不在：' + LV_DIR + '（先跑 sync-latent.sh）');
 
     const db = lvLoad() || { model: LV_MODEL, dim: 0, files: {}, chunks: [], vecs: '' };
@@ -236,7 +252,7 @@ app.get('/api/latent/index/status', (req, res) => {
   res.json({ ok: true, ...lvJob,
     indexed_chunks: db ? db.chunks.length : 0,
     indexed_files: db ? Object.keys(db.files || {}).length : 0,
-    has_key: !!lvKey(), model: LV_MODEL });
+    has_key: !lvKeyProblem(), key_problem: lvKeyProblem() || undefined, model: LV_MODEL });
 });
 app.get('/api/latent/vsearch', async (req, res) => {
   const q = String(req.query.q || '').trim();
@@ -275,7 +291,9 @@ console.log('  看进度：');
 console.log('    curl -s localhost:3000/api/latent/index/status');
 console.log('  试搜（前端那个搜索框也会用这条）：');
 console.log('    curl -s "localhost:3000/api/latent/vsearch?q=她哭的那天晚上"');
-console.log('\n  ⚠ 要硅基流动的 key。没配就写进 /root/chatnest-api/.env：');
-console.log('      SILICONFLOW_API_KEY=sk-你的key');
-console.log('    然后 pm2 restart chatnest-api');
+console.log('\n  ⚠ 要硅基流动的 key。别直接 echo 一行带占位符的进去 ——');
+console.log('    那样会把「sk-你的key」几个字原样存进 .env（踩过）。手输：');
+console.log('      sudo sed -i \'/^SILICONFLOW_API_KEY=/d\' /root/chatnest-api/.env');
+console.log('      sudo bash -c \'read -p "粘贴 key: " k && echo "SILICONFLOW_API_KEY=$k" >> /root/chatnest-api/.env\'');
+console.log('      sudo pm2 restart chatnest-api');
 console.log('\n  备份: ' + backup);

@@ -41,7 +41,7 @@ app.get('/hook/latent/index/status', (req, res) => {
     ok: true, running: lvJob.running, done: lvJob.done, total: lvJob.total, msg: lvJob.msg,
     indexed_chunks: db ? db.chunks.length : 0,
     indexed_files: db ? Object.keys(db.files || {}).length : 0,
-    has_key: !!lvKey(), model: LV_MODEL,
+    has_key: !lvKeyProblem(), key_problem: lvKeyProblem() || undefined, model: LV_MODEL,
   });
 });
 // 搜一句试试，也不用登录态 —— 她在服务器上想验一下的时候用
