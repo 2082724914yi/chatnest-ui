@@ -720,6 +720,19 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 .thinking-row{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;color:var(--text-secondary);font-size:var(--text-sm)}.thinking-row.hidden{display:none}.thinking-status-line{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.thinking-clock-icon{width:14px;height:14px;flex:none}.thinking-status-line>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 /* === Trail logo:跟随 row 末尾,永远在最后内容下方一行 === */
 .claude-trail-logo{width:26px;height:26px;margin:13px 0 0;color:#D97757;display:block;position:relative;overflow:hidden}.claude-trail-logo.cat{width:30px;height:30px;overflow:visible}.cat-roll{width:100%;height:100%;display:block;animation:cat-roll 1.15s linear infinite;transform-origin:50% 50%}@keyframes cat-roll{to{transform:rotate(360deg)}}.claude-logo-inner{width:100%;height:100%;display:block;will-change:transform}.claude-logo-track{width:100%;will-change:transform}.claude-logo-track svg{display:block;width:100%;height:auto;fill:currentColor}.claude-trail-logo[data-mode="tool"] .claude-logo-inner{animation:claudeToolPulse 1800ms cubic-bezier(.2,.8,.2,1) infinite;transform-origin:center}@keyframes claudeToolPulse{0%{transform:scale(1) rotate(0deg);opacity:1}38%{transform:scale(.16) rotate(80deg);opacity:.85}52%{transform:scale(.16) rotate(180deg);opacity:.85}100%{transform:scale(1) rotate(360deg);opacity:1}}
+/* 正文出来之前，猫底下写一行「在忙什么」。她说过等着的时候屏幕上什么都没有。
+   三个点用 opacity 轮着亮 —— keyframes 里改 content 在 iOS Safari 上不保准。 */
+.live-hint{display:flex;align-items:center;gap:2px;margin:7px 0 0 3px;color:var(--text-secondary);font-family:var(--font-sans);font-size:var(--text-sm);opacity:.9;animation:live-hint-in .28s ease both}
+/* display:flex 是作者样式，会盖掉浏览器给 [hidden] 的 display:none —— 不写这条，
+   el.hidden=true 根本藏不住，那行字会一直挂在正文底下 */
+.live-hint[hidden]{display:none}
+.live-hint-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.live-hint i{font-style:normal;animation:live-hint-dot 1.4s ease-in-out infinite}
+.live-hint i:nth-child(2){animation-delay:.18s}
+.live-hint i:nth-child(3){animation-delay:.36s}
+@keyframes live-hint-dot{0%,62%,100%{opacity:.22}30%{opacity:1}}
+@keyframes live-hint-in{from{opacity:0;transform:translateY(2px)}to{opacity:.9;transform:none}}
+@media(prefers-reduced-motion:reduce){.live-hint,.live-hint i{animation:none}}
 .claude-spinner{width:24px;height:24px;display:inline-block;animation:claude-spin 1.8s linear infinite}.claude-spinner svg{width:100%;height:100%;fill:var(--text-primary);display:block}@keyframes claude-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.thinking-rotate{animation:rotate 4s linear infinite}.thinking-pulse{display:block;animation:pulse 1.6s ease-in-out infinite alternate}@keyframes rotate{to{transform:rotate(360deg)}}@keyframes pulse{from{transform:scale(.85)}to{transform:scale(1.1)}}
 .thinking-live{max-height:3.4em;overflow:hidden;margin-bottom:var(--space-4);color:var(--text-secondary);font-size:var(--text-sm);white-space:pre-wrap}.thinking-summary{width:100%;display:none;align-items:center;gap:6px;margin:0;color:var(--text-secondary);font-family:var(--font-sans);font-size:15px;font-weight:400;text-align:left}.thinking-summary.show{display:flex}
 /* 非消息列里的思考摘要（如 sheet）仍可保留上下间距 */
@@ -5657,7 +5670,24 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
   // trailLogo(独立元素,永远挂内容列末尾,流式中跟随增长)
   const trailLogo=document.createElement('div');trailLogo.className='claude-trail-logo cat';window.__lastTrailLogo=trailLogo;
   trailLogo.innerHTML=_CAT_ROLL_SVG;
-  col.append(bubble,trailLogo);
+  // 正文出来之前，猫底下写一行「在忙什么」。工具串着跑的时候（比如连搜五次）
+  // 正文一个字都还没有，她那边看着就是空的，只能干等。
+  // 不包进 flex 跟猫并排，是因为 4582 行那处用的是 :scope > .claude-trail-logo，
+  // 包一层就找不着了。独立一行，反而看得更清楚。
+  const liveHint=document.createElement('div');liveHint.className='live-hint';liveHint.hidden=true;
+  col.append(bubble,trailLogo,liveHint);
+  // 一个工具刚完、下一个马上就开的时候，中间那句「想想怎么说」只闪一下，很晃眼。
+  // 所以工具收尾先压 450ms，期间有新工具接上就直接盖过去。
+  let _hintIdle=0;
+  function setLiveHint(t){
+    // 正文一开口就撤：那之后她看得见我在说什么了，不用再报进度
+    if(!t||started||row.dataset.phase==='complete'){clearTimeout(_hintIdle);liveHint.hidden=true;return}
+    const s=document.createElement('span');s.className='live-hint-text';s.textContent=t;
+    liveHint.innerHTML='';   // 老一点的 iOS Safari 没有 replaceChildren，别用
+    liveHint.append(s);
+    for(let i=0;i<3;i++){const d=document.createElement('i');d.textContent='·';liveHint.append(d)}
+    liveHint.hidden=false;
+  }
   // 时间轴永远挂在正文气泡之上
   const timeline=createTimeline(el=>bubble.before(el));
   row.append(col);
@@ -5675,6 +5705,7 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
       setClaudeLogoMode(trailLogo,'writing');
     }else if(p==='complete'){
       clearClaudeLogo(trailLogo);trailLogo.remove();
+      clearTimeout(_hintIdle);liveHint.remove();
       status.classList.add('hidden');
     }
   }
@@ -5785,6 +5816,9 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
     trace(d){
       if(!d||!d.action)return;
       if(row.dataset.phase==='submitted')setPhase('thinking');
+      // 名字后端已经美化过了（"搜一下 · 网络"这种），直接摆出来就是人话
+      if(d.action==='start'){clearTimeout(_hintIdle);setLiveHint(d.type==='thinking'?'想事情':(d.name||'忙一下'))}
+      else if(d.action==='end'||d.action==='result'){clearTimeout(_hintIdle);_hintIdle=setTimeout(()=>setLiveHint('想想怎么说'),450)}
       const fn=timeline[d.action];
       if(typeof fn==='function')fn(d);
     },
@@ -5817,6 +5851,7 @@ function beginClaude(userText,userAttachments=[]){document.querySelector('.strea
       }
       if(!started){
         started=true;
+        setLiveHint(null);
         setPhase('streaming');
         if(_toolToRow.size){
           // 有工具：不删 summary 节点，finish 时 fold 进气泡；先隐藏避免重影
@@ -7341,6 +7376,7 @@ function _finishDanglingStreamingRows(){
     row.classList.remove('streaming');
     row.dataset.phase='complete';
     row.querySelector('.claude-trail-logo')?.remove();
+    row.querySelector('.live-hint')?.remove();
     row.querySelector('.thinking-row')?.classList.add('hidden');
     const raw=row.dataset.raw||row.querySelector('.md')?.textContent||'';
     actions(row,raw,'',[]);
