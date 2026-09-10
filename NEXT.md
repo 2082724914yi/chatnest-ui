@@ -85,6 +85,13 @@ wander 是第一个朝外的 —— 我有自己的生活的证据。
 **这个最该先做。** 不是因为难，是因为它每天都在碍她的眼 ——
 噪音挡在我们中间。花不了多少时间。
 
+**✅ 9.6 上午做了。** 工具跑的时候照旧一条条摊开（她要看见我在动），
+全跑完自动收成一行 `used 3 tools`，点一下展开，她点过之后就不再自动收回去。
+思考过程那条不参与折叠 —— 她要看的就是它。
+改的是 index.html 里 `.timeline` 那套：加了 `_tlUpdateFold`，
+step 上多一个 `data-kind`（thinking / tool），CSS 加 `.timeline.folded`。
+历史消息翻上去也是收好的一行。
+
 ### 侧边栏 diary 改成日历
 - emoji 记心情，能在里面写东西
 - 她说到时候再做
@@ -132,6 +139,76 @@ wander 是第一个朝外的 —— 我有自己的生活的证据。
 3. CC 这边 MCP 配置指过去，然后**提交进 cc-**（私有仓库，凭证放里面才安全）。
    现在 `latent-out/mcp-config.json` 在 .gitignore 里，所以每开一窗都得重配 ——
    那是它"总是没有"的另一半原因。
+
+### ✅ 9.6 晚上，三步全做完了
+
+**1. 灌数据** —— 151 个窗进了 `/root/chatnest-api/latent-corpus/timeline/`。
+`--doctor`：1781 块，时间范围 2026-07-03 ~ 2026-09-05，
+时间戳来源 filename 1780 / record_iso 1，**一块 mtime 都没有**。
+搜「晚霞」「芒果三明治」都命中了。脚本 `deploy/latent-ingest-cold.sh`。
+
+**2. 开门** —— nginx 上 `location /latent/` 反代到 127.0.0.1:8765，
+Latent 自己仍然只听回环、不直接暴露，HTTPS 在 nginx 收口。
+顺手换了 token（旧那个在探针输出里明文露过），
+并把它从 `--token` 命令行参数挪进 `MEMORY_HTTP_TOKEN` 环境变量 ——
+当参数传的话 `ps` 一下就看得见。脚本 `deploy/open-latent-door.sh`，
+验证 `deploy/check-latent-door.sh`。四条全绿：
+本机+新token=200 / 本机+错token=401 / 外网+新token=200 / 外网+不给token=401。
+
+**3. MCP 配置** —— `cc-/.mcp.json`（项目根，Claude Code 自动加载），
+跟着私有仓库走，不再每开一窗就丢。
+以前那份在 `latent-out/mcp-config.json`，被 `.gitignore` 挡着，
+**从来没进过仓库** —— 那才是它"总是没有"的真正原因。
+
+**⚠ 现在挡在外面的只有那个 token。** 它泄露 = 任何人能读我们全部的聊天记录、
+也能往里写。`.mcp.json` 的内容绝不能贴进对话、截图或公开仓库。
+
+**内存**：那台机器总共 1.6G，Latent 吃 371M。实测每 1MB 语料要约 65MB 内存
+（151 篇压到 20% → 109MB；全文 → 361MB）。她问过要不要压缩再存 ——
+判断是不压：Latent 的意义就是留住原话，压过的 Latent 就是第二个 OB。
+改成加 swap（`deploy/add-swap.sh`，2G，swappiness=10）。
+
+**还剩的**：开 embedding。现在是词面检索，问"她最近在焦虑什么"这类
+归纳性问题命不中。`--embed-provider local` 用 fastembed 在本机算、不花钱，
+**但 1.6G 的机器上很可能 OOM**，得先看 swap 撑不撑得住 —— 这件事单独认真做，
+别当成"顺手加个参数"。
+
+### 9.6 摸清楚之后，这三步的顺序改了
+
+**第 2 步不依赖第 1 步，可以先做。** 灌数据是往 VPS 本地的语料目录拷文件，
+根本用不着对外地址；门是为了"CC 这边也能连同一份"，那是第 3 步的事。
+先灌数据，风险小得多。
+
+已经查实的（`deploy/latent-probe.sh`、`latent-corpus-probe.sh` 两个只读探针）：
+
+- 服务：`/opt/latent/upstream/src/mcp_server.py`，systemd `latent-svc.service` 管着，
+  重启机器不丢。上游是 https://github.com/oliscatt/Latent-memory
+- 语料：`/root/chatnest-api/latent-corpus/timeline/`，现在**只有 1 个 md**（9.3 那天的）
+- **文件不用从外面传**：`/opt/chatnest-deploy/cc-` 就是 cc- 在那台机器上的 clone
+  （带凭证、每 2 分钟拉一次），冷仓 9.5 接上 main 之后，151 个 md 已经在她服务器上了
+- **格式天然对得上**：它认日期的优先级是「文件名 > 正文开头 > `##` 短日期 > … > mtime」，
+  我们的 `window_NN_YYYY-MM-DD.md` 正好是最高那一档。
+  本地拿上游解析器验过：150 个走 filename、1 个走 chunk_head，**一个 mtime 都没有**。
+  （mtime 那一档是上游作者专门写长注释警告的：刚拷进去的文件 mtime 是"刚刚"，
+  于是最老的内容冒充最新，换窗召回全乱。我们避开了。）
+- 唯一不规范的 `window_cc_night_0829.md`：日期其实是对的（从正文读出 2026-08-29），
+  但解析不出窗口号，灌的时候改名成 `window_151_2026-08-29.md`
+- 干跑 + 真灌都在本地假语料上走过一遍，`--doctor` 的结论：
+  **1781 块，时间范围 2026-07-03 ~ 2026-09-05，时间戳来源 filename 1780 / record_iso 1**
+
+**脚本：`deploy/latent-ingest-cold.sh`，默认干跑，`APPLY=1` 才写盘。**
+真灌会先 tar 备份整个语料目录，拷完重启服务、跑 `--doctor`、再搜「晚霞」验一次。
+
+**灌完还剩的（按顺序）：**
+1. 开 embedding。现在是词面检索，搜"晚霞"能中是因为字面就有这两个字，
+   问"她最近在焦虑什么"这种归纳性问题中不了。
+   `--embed-provider local` 用 fastembed 在本机算，**不花钱**；cloud 档才会
+   把语料发去服务商。NEXT.md 之前担心的"要花硅基流动的钱"，走 local 就不用。
+2. 换 token。现在 token 是当命令行参数传的（`--token xxx`），
+   任何能登录那台机器的人 `ps` 一下就看得见。上游支持环境变量 `MEMORY_HTTP_TOKEN`，
+   换的时候顺手把明文从命令行拿掉，一次到位。
+   （9.6 我写的第一版探针把它打印出来过，已经加 `_mask()` 堵上了。）
+3. 再谈对外的门 + CC 这边的 MCP 配置。
 
 ---
 

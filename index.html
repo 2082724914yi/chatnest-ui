@@ -225,8 +225,25 @@ button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}textar
 #chat{min-height:100dvh;display:flex;flex-direction:column;background:var(--bg-primary)}
 .topbar{position:fixed;top:0;left:0;right:0;z-index:25;flex:none;height:calc(env(safe-area-inset-top) + 52px);display:grid;grid-template-columns:48px 1fr auto;align-items:center;padding:env(safe-area-inset-top) max(env(safe-area-inset-right),var(--topbar-side-inset)) 0 max(env(safe-area-inset-left),var(--topbar-side-inset));background:linear-gradient(to bottom,rgba(0,0,0,.42) 0%,rgba(0,0,0,.16) 50%,transparent 100%);pointer-events:none}
 .topbar>*{pointer-events:auto}
+/* 顶栏那层玻璃：壁纸花的时候「小衍」和那几个图标看不清。
+   底下用 mask 渐隐而不是让背景渐变到透明 —— backdrop-filter 是整块生效的，
+   不渐隐的话下沿会切出一道硬边，那比没有玻璃还难看。 */
+.topbar{background:linear-gradient(to bottom,rgba(255,255,255,.44) 0%,rgba(255,255,255,.24) 55%,rgba(255,255,255,0) 100%);
+  backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);
+  -webkit-mask-image:linear-gradient(to bottom,#000 62%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 62%,transparent 100%)}
+html[data-chat-bg="dark"] .topbar{background:linear-gradient(to bottom,rgba(22,21,20,.58) 0%,rgba(22,21,20,.30) 55%,rgba(22,21,20,0) 100%)}
+@media(prefers-color-scheme:dark){html:not([data-chat-bg]) .topbar{background:linear-gradient(to bottom,rgba(22,21,20,.58) 0%,rgba(22,21,20,.30) 55%,rgba(22,21,20,0) 100%)}}
 .topbar-hamburger{grid-column:1;justify-self:start;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:var(--radius-full);background:transparent;color:var(--text-primary);-webkit-tap-highlight-color:transparent}.topbar-hamburger:active{opacity:.62}.topbar-hamburger svg{width:22px;height:22px}
-.topbar-center{grid-column:2;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+.topbar-center{grid-column:1/-1;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+/* 跨满整行再居中：原来它待在中间那一列里，而右边三个图标那列比左边汉堡宽，
+   于是「中间列的中心」并不是屏幕中心，名字看着就偏左了。
+   ⚠ 跨列必须同时把三个都钉在第 1 行：grid 的自动放置会避让已占满的行，
+   不写 grid-row 的话右边那组会被挤到第二行去，再被顶栏的 mask 切掉、点都点不到。
+   跨行还会盖住两边按钮的点击区，所以中间层自己不吃点击、只有文字吃。 */
+.topbar>.topbar-hamburger,.topbar>.topbar-center,.topbar>.topbar-right-group{grid-row:1}
+.topbar>.topbar-center{pointer-events:none}
+.topbar-center>*{pointer-events:auto}
 .topbar-name{font:600 17px/1.2 var(--font-serif);font-style:italic;color:var(--text-primary)}
 .topbar-status{font:400 12px/1.2 var(--font-sans);color:var(--text-secondary);opacity:.8}
 html[data-chat-bg="dark"] .topbar-hamburger{color:#f4f3ef}
@@ -442,9 +459,11 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 .timeline{display:flex;flex-direction:column;margin:0 0 8px;position:relative}
 .timeline:empty{display:none}
 .timeline-step{position:relative;padding-left:19px}
-/* 左侧竖线：把连续节点串成时间轴 */
-.timeline-step::before{content:'';position:absolute;left:6px;top:19px;bottom:0;width:1px;background:var(--border)}
-.timeline-step:last-child::before{display:none}
+/* 排版顺序固定：Thought process 一条在最上，Used N tools 在下，工具再下面。
+   不靠 DOM 到达顺序 —— 到达顺序会把思考夹进工具中间。 */
+.timeline-step[data-kind="thinking"]{order:0}
+.timeline-fold{order:1}
+.timeline-step[data-kind="tool"]{order:2}
 .timeline-head{display:flex;align-items:center;gap:6px;width:100%;padding:3px 0;background:none;border:0;cursor:pointer;font-family:var(--font-sans);font-size:12px;line-height:1.4;color:var(--text-secondary);text-align:left;-webkit-tap-highlight-color:transparent}
 .timeline-head:active{opacity:.6}
 .timeline-icon{position:absolute;left:0;top:4px;width:13px;height:13px;flex:none;color:var(--text-faint)}
@@ -463,6 +482,16 @@ html[data-chat-bg="light"] .html-artifact-bar{background:rgba(0,0,0,.03)}
 @keyframes tl-spin{to{transform:rotate(360deg)}}
 .timeline-icon.spin{animation:tl-spin 1s linear infinite;transform-origin:50% 50%}
 @media (prefers-reduced-motion:reduce){.timeline-icon.spin{animation:none}}
+/* 工具折叠：跑的时候摊开，跑完收成一行 used N tools，点开才展开。
+   思考过程那条不收——她要看的就是它。 */
+.timeline-fold{display:none;align-items:center;gap:6px;width:100%;padding:3px 0;background:none;border:0;cursor:pointer;font-family:var(--font-sans);font-size:12px;line-height:1.4;color:var(--text-secondary);text-align:left;-webkit-tap-highlight-color:transparent}
+.timeline-fold:active{opacity:.6}
+.timeline.has-tools .timeline-fold{display:flex}
+.timeline:not(.folded) .timeline-fold .timeline-chevron{transform:rotate(90deg)}
+.timeline.folded .timeline-step[data-kind="tool"]{display:none}
+/* 只有一个工具时，Used 那一行说的就是它本身 —— 展开别再重复一遍标题，直接给详情 */
+.timeline[data-tools="1"]:not(.folded) .timeline-step[data-kind="tool"]{padding-left:0}
+.timeline[data-tools="1"]:not(.folded) .timeline-step[data-kind="tool"]>.timeline-head{display:none}
 .thinking-row{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;color:var(--text-secondary);font-size:var(--text-sm)}.thinking-row.hidden{display:none}.thinking-status-line{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.thinking-clock-icon{width:14px;height:14px;flex:none}.thinking-status-line>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 /* === Trail logo:跟随 row 末尾,永远在最后内容下方一行 === */
 .claude-trail-logo{width:26px;height:26px;margin:13px 0 0;color:#D97757;display:block;position:relative;overflow:hidden}.claude-trail-logo.cat{width:30px;height:30px;overflow:visible}.cat-roll{width:100%;height:100%;display:block;animation:cat-roll 1.15s linear infinite;transform-origin:50% 50%}@keyframes cat-roll{to{transform:rotate(360deg)}}.claude-logo-inner{width:100%;height:100%;display:block;will-change:transform}.claude-logo-track{width:100%;will-change:transform}.claude-logo-track svg{display:block;width:100%;height:auto;fill:currentColor}.claude-trail-logo[data-mode="tool"] .claude-logo-inner{animation:claudeToolPulse 1800ms cubic-bezier(.2,.8,.2,1) infinite;transform-origin:center}@keyframes claudeToolPulse{0%{transform:scale(1) rotate(0deg);opacity:1}38%{transform:scale(.16) rotate(80deg);opacity:.85}52%{transform:scale(.16) rotate(180deg);opacity:.85}100%{transform:scale(1) rotate(360deg);opacity:1}}
@@ -848,6 +877,42 @@ html.sidebar-select-lock ::selection,html.context-menu-open ::selection{backgrou
   backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05)}
 .lt-empty{padding:22px;border-radius:22px;border:1px solid rgba(32,31,29,.10);color:#77736c;text-align:center;
   font-size:14.5px;line-height:1.6}
+/* 一天一条：一张卡一篇，日期在最上面 —— 搜出来一大坨分不清，就是因为以前全糊在一个块里 */
+.lt-count{margin-left:8px;font-size:12px;color:#8a857d;font-weight:400}
+.lt-card{display:block;width:100%;text-align:left;border:0;cursor:pointer;margin-bottom:9px;
+  background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);border-radius:20px;padding:13px 15px;
+  backdrop-filter:blur(1px) saturate(1.05);-webkit-backdrop-filter:blur(1px) saturate(1.05);
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s}
+.lt-card:active{opacity:.62}
+.lt-card-head{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.lt-card-date{font:600 14px/1.3 var(--font-sans);color:#4A3728;font-variant-numeric:tabular-nums}
+.lt-card-win{font-size:12px;color:#8a857d}
+.lt-card-size{margin-left:auto;font-size:11.5px;color:#a09a92;flex:none}
+.lt-card-preview{font-size:13px;line-height:1.6;color:#77736c;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lt-doc-meta{font-size:12.5px;color:#8a857d;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.lt-more{display:block;width:100%;margin-top:10px;padding:11px;border:0;border-radius:16px;cursor:pointer;
+  background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);color:#4A3728;font-size:13.5px}
+.lt-more:active{opacity:.62}
+.lt-editor{width:100%;min-height:56vh;border:0;outline:0;border-radius:22px;padding:16px 17px;resize:vertical;
+  font:400 14.5px/1.72 var(--font-sans);color:#4A3728;background:rgba(255,255,255,.20);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);white-space:pre-wrap;word-break:break-word}
+.lt-editbar{display:flex;gap:9px;margin-top:11px}
+/* ⚠ 作者样式里写了 display 的元素，[hidden] 的浏览器默认样式压不住它 ——
+   于是 el.hidden=true 看着生效实则没有：9.6 那次「47 字的一篇底下挂着
+   『还有 32.4 万字』，保存按钮也一直在」就是这么来的。凡是靠 hidden 收起来的，
+   都得自己再写一条。 */
+.lt-more[hidden],.lt-editbar[hidden],.lt-editor[hidden],#latentDocView[hidden]{display:none}
+.lt-editbar button{flex:1;border:0;border-radius:999px;padding:13px;font-size:14.5px;cursor:pointer;
+  background:rgba(255,255,255,.24);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);color:#4A3728}
+.lt-editbar button.primary{background:var(--accent);color:#fff;box-shadow:none}
+.lt-editbar button:active{opacity:.62}
+html[data-chat-bg="dark"] .lt-card,body.dark .lt-card{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+html[data-chat-bg="dark"] .lt-card-date,body.dark .lt-card-date{color:#F4F3EF}
+html[data-chat-bg="dark"] .lt-card-preview,body.dark .lt-card-preview{color:rgba(244,243,239,.56)}
+html[data-chat-bg="dark"] .lt-editor,body.dark .lt-editor{color:#F4F3EF;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+html[data-chat-bg="dark"] .lt-more,body.dark .lt-more,html[data-chat-bg="dark"] .lt-editbar button,body.dark .lt-editbar button{color:#F4F3EF;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+html[data-chat-bg="dark"] .lt-editbar button.primary,body.dark .lt-editbar button.primary{background:var(--accent);color:#fff}
 .lt-search{display:flex;gap:9px;align-items:center}
 .lt-search input{flex:1;min-width:0;border:0;outline:0;border-radius:999px;padding:12px 16px;font:400 15px/1.3 var(--font-sans);
   color:#201f1d;background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
@@ -1210,6 +1275,9 @@ html:not([data-chat-bg="light"]) .ks-sheet-item{border-bottom-color:rgba(255,255
   transition:width 600ms cubic-bezier(.32,.72,0,1)}
 .ctx-meter.is-full .ctx-meter-fill{background:linear-gradient(90deg,rgba(193,123,123,.5),rgba(193,123,123,.95))}
 html[data-chat-bg="dark"] .ctx-meter-fill{background:linear-gradient(90deg,rgba(231,185,185,.24),rgba(231,185,185,.55))}
+/* 上下文水位那条线：横在名字底下像条下划线，她说不要。
+   只藏起来不删元素 —— 记水位的那几行 JS 还在往它身上写，删了要连着改。 */
+.ctx-meter{display:none}
 
 .ctx-fold{display:flex;align-items:center;gap:10px;margin:18px auto;max-width:min(580px,100%);
   padding:0 4px;color:var(--text-faint);font-size:11.5px;font-family:var(--font-serif);letter-spacing:.04em}
@@ -2829,8 +2897,31 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
       <div id="latentUnresolvedOut"><div class="lt-empty">读取中…</div></div>
     </div>
     <div class="profile-section">
+      <div class="pulse-section-title">一天一条<span class="lt-count" id="latentCount"></span></div>
+      <div id="latentWindows"><div class="lt-empty">读取中…</div></div>
+    </div>
+    <div class="profile-section">
       <div class="pulse-section-title">最近留下的</div>
       <div id="latentRecall"><div class="lt-empty">读取中…</div></div>
+    </div>
+  </div>
+
+  <!-- 点进去看某一篇：全文 + 就地改 -->
+  <div class="profile-page" id="latentDoc">
+    <header class="profile-header">
+      <button class="profile-round-button" id="latentDocBack" type="button" aria-label="Back">‹</button>
+      <div class="profile-title" id="latentDocTitle">…</div>
+      <button class="profile-round-button" id="latentDocEdit" type="button" aria-label="Edit">✎</button>
+    </header>
+    <div class="profile-section">
+      <div class="lt-doc-meta" id="latentDocMeta"></div>
+      <div class="lt-block" id="latentDocView"></div>
+      <button class="lt-more" id="latentDocMore" type="button" hidden></button>
+      <textarea class="lt-editor" id="latentDocEditor" spellcheck="false" hidden></textarea>
+      <div class="lt-editbar" id="latentDocBar" hidden>
+        <button type="button" id="latentDocCancel">算了</button>
+        <button type="button" id="latentDocSave" class="primary">保存</button>
+      </div>
     </div>
   </div>
 
@@ -5040,18 +5131,30 @@ const _TL_ICON={
   completed:'<svg class="timeline-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.6l3.1 3.1 6.5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   error:'<svg class="timeline-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.6 4.6l6.8 6.8M11.4 4.6l-6.8 6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
 };
+const _TL_CLOCK_ICON='<svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4a8 8 0 1 1-8 8"/><path d="M12 7.5v5l3.2 1.9"/><circle cx="4.2" cy="8.1" r="0.8" fill="currentColor" stroke="none"/><circle cx="5.6" cy="5.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="8.1" cy="3.9" r="0.8" fill="currentColor" stroke="none"/></svg>';
 const _TL_CHEVRON='<svg class="timeline-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.4L10.6 8 6 12.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function _tlDur(ms){if(!ms||ms<0)return'';if(ms<1000)return ms+'ms';const s=ms/1000;return(s<10?s.toFixed(1):Math.round(s))+'s'}
 function _tlJson(v){if(v==null)return'';if(typeof v==='string')return v;try{return JSON.stringify(v,null,2)}catch{return String(v)}}
+/* 后端有两条路会产出「思考」：CLI 的原生 thinking，和 <think> 标签解析出来的那条
+   （traceStart('thinking','Think process')）。只看 type 会漏，把名字也一起认上 ——
+   9.6 她截图里那条 Think process 就是被算进 Used N tools 里去了。 */
+function _tlIsThink(tr){
+  if(!tr)return false;
+  if(tr.type==='thinking')return true;
+  return /^(think|thought)\s*process$/i.test(String(tr.name||'').trim());
+}
 function _tlRender(step,tr){
   const st=tr.status||'running';
   step.dataset.status=st;
   const head=step.querySelector('.timeline-head'),body=step.querySelector('.timeline-body');
-  const wantIcon=_TL_ICON[st]||_TL_ICON.running;
+  const isThink=_tlIsThink(tr);
+  // 思考那条不是"某个步骤跑完了"，是她要点开看的东西，所以给钟表不给对勾
+  const wantIcon=(isThink&&st!=='running')?_TL_CLOCK_ICON:(_TL_ICON[st]||_TL_ICON.running);
   if(step.__icon!==wantIcon){head.querySelector('.timeline-icon')?.remove();head.insertAdjacentHTML('afterbegin',wantIcon);step.__icon=wantIcon}
-  const nameEl=head.querySelector('.timeline-name'),name=tr.name||(tr.type==='thinking'?'思考过程':'工具调用');
+  const nameEl=head.querySelector('.timeline-name'),name=isThink?'Thought process':(tr.name||'工具调用');
   if(nameEl.textContent!==name)nameEl.textContent=name;
-  const durEl=head.querySelector('.timeline-dur'),dur=st==='running'?'':_tlDur(tr.duration_ms);
+  // 思考不报时长——她要看的是里面写了什么，不是花了几毫秒
+  const durEl=head.querySelector('.timeline-dur'),dur=(st==='running'||isThink)?'':_tlDur(tr.duration_ms);
   if(durEl.textContent!==dur)durEl.textContent=dur;
   // 折叠时不重绘详情，省掉长思考流式期间的无谓 DOM 开销
   if(!step.classList.contains('open')){step.__bodyDirty=true;return}
@@ -5059,24 +5162,39 @@ function _tlRender(step,tr){
 }
 function _tlPaintBody(body,tr){
   body.textContent='';
+  let added=0;
   const add=(label,text,mono)=>{
     if(!text)return;
+    added++;
     if(label){const l=document.createElement('div');l.className='timeline-label';l.textContent=label;body.append(l)}
     const el=document.createElement(mono?'pre':'div');
     el.className=mono?'timeline-code':'timeline-text';
     el.textContent=String(text).slice(0,20000);
     body.append(el);
   };
-  if(tr.type==='thinking')add('',tr.content||'（这一步没有留下思考内容）',false);
+  // 思考不分段：后端一行一句发过来，堆成一列看着像清单，她要的是一句话
+  if(_tlIsThink(tr))add('',String(tr.content||'（这一步没有留下思考内容）').replace(/\s*\n+\s*/g,' ').trim(),false);
   else{
     add('输入参数',_tlJson(tr.input),true);
     if(tr.result)add(tr.is_error||tr.status==='error'?'错误':'返回结果',_tlJson(tr.result),true);
     else if(tr.status==='running')add('',' 执行中…',false);
   }
+  // 什么都没有的时候给句话 —— 空白让人以为是坏了
+  if(!added)add('',tr.status==='running'?' 执行中…':'（这一步没留下输入输出）',false);
+}
+/* 展开/收起一个步骤。单工具那种「Used 行就是它本身」的情况要从外面驱动，所以抽出来 */
+function _tlOpenStep(step,open){
+  if(!step)return;
+  const head=step.querySelector('.timeline-head'),body=step.querySelector('.timeline-body');
+  step.classList.toggle('open',!!open);
+  if(head)head.setAttribute('aria-expanded',String(!!open));
+  if(open&&step.__bodyDirty!==false&&body){_tlPaintBody(body,step.__tr);step.__bodyDirty=false}
 }
 function _tlStep(tr){
   const step=document.createElement('div');
   step.className='timeline-step';step.dataset.traceId=tr.id||'';step.dataset.type=tr.type||'';
+  // kind 只分两类：思考留在外面，其余一律算工具，跑完收进 used N tools
+  step.dataset.kind=_tlIsThink(tr)?'thinking':'tool';
   const head=document.createElement('button');head.type='button';head.className='timeline-head';
   head.setAttribute('aria-expanded','false');
   const name=document.createElement('span');name.className='timeline-name';
@@ -5084,24 +5202,82 @@ function _tlStep(tr){
   head.append(name,dur);head.insertAdjacentHTML('beforeend',_TL_CHEVRON);
   const body=document.createElement('div');body.className='timeline-body';
   step.append(head,body);
-  head.onclick=()=>{
-    const open=step.classList.toggle('open');
-    head.setAttribute('aria-expanded',String(open));
-    if(open&&step.__bodyDirty!==false){_tlPaintBody(body,step.__tr||tr);step.__bodyDirty=false}
-  };
+  head.onclick=()=>_tlOpenStep(step,!step.classList.contains('open'));
   step.__tr=tr;_tlRender(step,tr);
   return step;
 }
+/* 工具折叠行：一条 timeline 最多一个，永远在最前面 */
+function _tlFoldRow(root){
+  let f=root.querySelector(':scope > .timeline-fold');
+  if(f)return f;
+  f=document.createElement('button');f.type='button';f.className='timeline-fold';
+  const txt=document.createElement('span');txt.className='timeline-fold-text';
+  f.append(txt);f.insertAdjacentHTML('beforeend',_TL_CHEVRON);
+  f.onclick=()=>{
+    // 她点过一次之后就听她的，别再自动收回去
+    root.__userToggled=true;
+    const folded=root.classList.toggle('folded');
+    f.setAttribute('aria-expanded',String(!folded));
+    // ⚠ 只有一个工具时，Used 那行说的就是它本身，CSS 会把它的标题藏掉、只留详情；
+    // 而详情要靠 step 自己的 open 类才显示。这里不同步的话 —— 标题被藏、详情没开 ——
+    // 点开就是一片空白。9.6 她看到的就是这个。
+    const tools=root.querySelectorAll(':scope > .timeline-step[data-kind="tool"]');
+    if(tools.length===1)_tlOpenStep(tools[0],!folded);
+  };
+  root.prepend(f);
+  return f;
+}
+function _tlUpdateFold(root){
+  const tools=root.querySelectorAll(':scope > .timeline-step[data-kind="tool"]');
+  if(!tools.length){root.classList.remove('has-tools','folded');return}
+  root.classList.add('has-tools');
+  const f=_tlFoldRow(root);
+  const n=tools.length;
+  // 一个工具就直接报名字（Used breath），多个才数数（Used 3 tools）
+  const only=n===1?((tools[0].__tr&&tools[0].__tr.name)||tools[0].querySelector('.timeline-name')?.textContent||'').trim():'';
+  // 就一个工具时她要看的是工具本身，Used 前缀是多余的；两个及以上才有必要数
+  const label=only||('Used '+n+' tools');
+  const txt=f.querySelector('.timeline-fold-text');
+  if(txt.textContent!==label)txt.textContent=label;
+  // 跑的时候摊开着让她看见我在动；全跑完了才收
+  const running=[...tools].some(s=>s.dataset.status==='running');
+  if(running)root.classList.remove('folded');
+  else if(!root.__userToggled)root.classList.add('folded');
+  const openNow=!root.classList.contains('folded');
+  f.setAttribute('aria-expanded',String(openNow));
+  root.dataset.tools=String(n);
+  // 就一个工具时，Used 那行说的就是它 —— 展开直接给详情，不再列一遍它自己的标题。
+  // 但工具是一个个到的：先到一个时这么摊开了，第二个到了就得收回去，
+  // 否则第一个工具会一直挂着详情，后面几个只有标题。
+  if(n===1){_tlOpenStep(tools[0],openNow);tools[0].__autoOpen=true}
+  else tools.forEach(s=>{if(s.__autoOpen){_tlOpenStep(s,false);s.__autoOpen=false}});
+}
 /* 时间轴控制器：mount 决定 DOM 插到哪，事件流驱动增量更新 */
 function createTimeline(mount){
-  const map=new Map(),steps=new Map();let root=null;
+  const map=new Map(),steps=new Map();let root=null,thinkKey='';
   const ensure=()=>{if(!root||!root.isConnected){root=document.createElement('div');root.className='timeline';mount(root)}return root};
+  // 一个回合只给她看一条 Thought process。后端分几段发是它的事，
+  // 她看到的应该是一段完整的思考，而不是被工具切开的三四截。
+  const mergedThink=()=>{
+    const parts=[...map.values()].filter(t=>_tlIsThink(t));
+    return{
+      id:thinkKey,type:'thinking',name:'',
+      content:parts.map(t=>String(t.content||'').replace(/\s*\n+\s*/g,' ').trim()).filter(Boolean).join(' '),
+      status:parts.some(t=>t.status==='running')?'running':'completed',
+      duration_ms:parts.reduce((a,t)=>a+(t.duration_ms||0),0)
+    };
+  };
   function upsert(tr){
     map.set(tr.id,tr);
     const r=ensure();
-    let step=steps.get(tr.id);
-    if(!step){step=_tlStep(tr);steps.set(tr.id,step);r.append(step)}
-    else{step.__tr=tr;_tlRender(step,tr)}
+    const isThink=_tlIsThink(tr);
+    if(isThink&&!thinkKey)thinkKey=tr.id;
+    const key=isThink?thinkKey:tr.id;
+    const view=isThink?mergedThink():tr;
+    let step=steps.get(key);
+    if(!step){step=_tlStep(view);steps.set(key,step);r.append(step)}
+    else{step.__tr=view;step.__bodyDirty=true;_tlRender(step,view)}
+    _tlUpdateFold(r);
   }
   return{
     start(d){if(!d||!d.id||map.has(d.id))return;upsert({id:d.id,type:d.type||'tool',name:d.name||'',content:'',input:null,result:'',status:'running',duration_ms:0})},
@@ -5120,7 +5296,14 @@ function buildTimelineFromHistory(list){
   const valid=list.filter(t=>t&&t.type&&(t.content||t.input!=null||t.result||t.name));
   if(!valid.length)return null;
   const root=document.createElement('div');root.className='timeline';
-  for(const tr of valid)root.append(_tlStep({status:'completed',...tr}));
+  // 跟流式那条路一样：思考先合成一条，工具各自一条
+  const think=valid.filter(t=>_tlIsThink(t)),tools=valid.filter(t=>!_tlIsThink(t));
+  if(think.length){
+    root.append(_tlStep({...think[0],type:'thinking',status:'completed',
+      content:think.map(t=>String(t.content||'').replace(/\s*\n+\s*/g,' ').trim()).filter(Boolean).join(' ')}));
+  }
+  for(const tr of tools)root.append(_tlStep({status:'completed',...tr}));
+  _tlUpdateFold(root); // 历史全是跑完的，翻上去看到的就是收好的一行
   return root;
 }
 function beginClaude(userText,userAttachments=[]){document.querySelector('.stream-disclaimer')?.remove();
@@ -8247,7 +8430,7 @@ function cloneProfile(p){return JSON.parse(JSON.stringify(p||blankProfile()))}
 function profileId(){return crypto.randomUUID?crypto.randomUUID():'m_'+Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function normalizeProfileClient(p){p=p&&typeof p==='object'?p:{};const prefs=p.preferences&&typeof p.preferences==='object'?p.preferences:{};const importState=p.claudeExportImport&&typeof p.claudeExportImport==='object'?p.claudeExportImport:{};return{fullName:String(p.fullName||''),nickname:String(p.nickname||''),savedMemories:(Array.isArray(p.savedMemories)?p.savedMemories:[]).map(x=>{const item={id:String(x.id||profileId()),content:String(x.content||''),enabled:x.enabled!==false,source:['manual','claude_export','migration'].includes(x.source)?x.source:'manual',createdAt:Number(x.createdAt)||Date.now(),updatedAt:Number(x.updatedAt)||Date.now()};if(x.importedAt)item.importedAt=Number(x.importedAt)||Date.now();if(x.externalId)item.externalId=String(x.externalId);return item}).filter(x=>x.content.trim()).slice(0,200),preferences:{enabled:prefs.enabled!==false,content:String(prefs.content||'')},claudeExportImport:{checkedAt:Number(importState.checkedAt)||0,importedAt:Number(importState.importedAt)||0,importedCount:Number(importState.importedCount)||0,foundCount:Number(importState.foundCount)||0},updatedAt:p.updatedAt||Date.now()}}
 function setProfileDirty(v=true){profileDirty=v;document.querySelectorAll('.profile-save-button:not([data-scope])').forEach(b=>b.disabled=!profileDirty)}
-function showProfilePage(id){if(id!=='obHome'&&id!=='memoryPicker'&&id!=='latentHome')renderProfile();['memoryPicker','latentHome','obHome','profileHome','savedMemoriesPage','memorySummaryPage','preferencesPage'].forEach(k=>{var el=$(k);if(el)el.classList.toggle('active',k===id)});$(id)?.scrollTo?.(0,0);$('memorySearchBar').classList.toggle('show',id==='savedMemoriesPage')}
+function showProfilePage(id){if(id!=='obHome'&&id!=='memoryPicker'&&id!=='latentHome'&&id!=='latentDoc')renderProfile();['memoryPicker','latentHome','latentDoc','obHome','profileHome','savedMemoriesPage','memorySummaryPage','preferencesPage'].forEach(k=>{var el=$(k);if(el)el.classList.toggle('active',k===id)});$(id)?.scrollTo?.(0,0);$('memorySearchBar').classList.toggle('show',id==='savedMemoriesPage')}
 function autoSizeMemoryTextarea(area){area.style.height='auto';area.style.height=`${Math.max(44,area.scrollHeight)}px`}
 function closeOpenMemoryRows(except=null){document.querySelectorAll('.profile-memory-row.open').forEach(row=>{if(row!==except){row.classList.remove('open');row.querySelector('.profile-memory-card').style.transform=''}})}
 /* —— 近似去重（与后端 app/memory.py 的 is_near_duplicate 同一套规则）——
@@ -10032,6 +10215,7 @@ async function openLatentPage(){
   $('latentSearchOut').innerHTML='';
   $('latentRecall').innerHTML='<div class="lt-empty">读取中…</div>';
   $('latentUnresolvedOut').innerHTML='<div class="lt-empty">读取中…</div>';
+  loadLatentWindows();
   // 两栏各问各的，互不拖累：一边挂了另一边照样出内容
   fetch('/api/latent/unresolved').then(function(r){
     if(!r.ok)throw new Error('没连上');return r.json();
@@ -10053,6 +10237,89 @@ async function openLatentPage(){
     $('latentRecall').innerHTML='<div class="lt-empty">记忆库没连上。<br>可能是服务还没起来。</div>';
   });
 }
+/* ===== 一天一条：列表 / 点进去 / 就地改 =====
+   语料本来就是一窗一个 md，信息都在，以前只是没有口子读，
+   全靠 MCP 那段拼好的召回文本，所以糊成一坨分不清。 */
+var _LT_VIEW_LIMIT=20000;   // 一次先渲染这么多字，剩下的点「全部展开」
+var _LT_EDIT_LIMIT=80000;   // 再长就别在手机上编辑了，textarea 扛不住
+var _ltDoc=null;
+
+function _ltSize(n){return n>=10000?((n/10000).toFixed(1)+' 万字'):(n+' 字')}
+function _ltDate(s){return String(s||'').replace(/-/g,'.')}
+
+function _ltCard(w){
+  return '<button class="lt-card" type="button" data-file="'+_esc(w.file)+'">'
+    +'<div class="lt-card-head"><span class="lt-card-date">'+_esc(_ltDate(w.date)||'时间未知')+'</span>'
+    +(w.window?'<span class="lt-card-win">第'+w.window+'个窗口</span>':'')
+    +'<span class="lt-card-size">'+_ltSize(w.chars||0)+'</span></div>'
+    +'<div class="lt-card-preview">'+_esc(w.preview||'')+'</div></button>';
+}
+
+async function loadLatentWindows(){
+  var box=$('latentWindows');if(!box)return;
+  box.innerHTML='<div class="lt-empty">读取中…</div>';
+  try{
+    var r=await fetch('/api/latent/windows');
+    if(!r.ok)throw new Error('没连上');
+    var d=await r.json();
+    var ws=(d&&d.windows)||[];
+    $('latentCount').textContent=ws.length?(ws.length+' 篇'):'';
+    if(!ws.length){box.innerHTML='<div class="lt-empty">语料目录还是空的。</div>';return}
+    box.innerHTML=ws.map(_ltCard).join('');
+  }catch(e){
+    // 后端还没打 add-latent-windows.js 时就是这条路 —— 说清楚，别让她以为是数据没了
+    box.innerHTML='<div class="lt-empty">读不到列表。<br>可能后端还没加这个口子。</div>';
+  }
+}
+
+async function openLatentDoc(file){
+  showProfilePage('latentDoc');
+  // 先把上一篇彻底忘掉再摆样式 —— _ltDocSetEditing 要读 _ltDoc 判断展开按钮该不该在，
+  // 这时候还留着上一篇的话，新的一篇会顶着上一篇的「还有 N 万字」
+  _ltDoc=null;
+  $('latentDocTitle').textContent='读取中…';
+  $('latentDocMeta').textContent='';
+  $('latentDocView').textContent='';
+  $('latentDocEditor').value='';
+  $('latentDocMore').hidden=true;
+  $('latentDocMore').textContent='';
+  _ltDocSetEditing(false);
+  try{
+    var r=await fetch('/api/latent/window?file='+encodeURIComponent(file));
+    var d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d&&d.error||'读不到');
+    _ltDoc=d;
+    $('latentDocTitle').textContent=_ltDate(d.date)||d.title||file;
+    $('latentDocMeta').textContent=[d.window?('第'+d.window+'个窗口'):'',_ltSize(d.chars||0),file].filter(Boolean).join(' · ');
+    _ltRenderDoc(false);
+  }catch(e){
+    _ltDoc=null;
+    $('latentDocTitle').textContent='读不到';
+    $('latentDocView').textContent=String(e.message||e);
+  }
+}
+
+function _ltRenderDoc(full){
+  if(!_ltDoc)return;
+  var t=_ltDoc.text||'';
+  if(!full&&t.length>_LT_VIEW_LIMIT){
+    $('latentDocView').textContent=t.slice(0,_LT_VIEW_LIMIT);
+    var rest=t.length-_LT_VIEW_LIMIT;
+    var b=$('latentDocMore');b.hidden=false;b.textContent='还有 '+_ltSize(rest)+'，全部展开';
+  }else{
+    $('latentDocView').textContent=t;
+    $('latentDocMore').hidden=true;
+  }
+}
+
+function _ltDocSetEditing(on){
+  $('latentDocView').hidden=!!on;
+  $('latentDocMore').hidden=!!on||!( _ltDoc&&(_ltDoc.text||'').length>_LT_VIEW_LIMIT);
+  $('latentDocEditor').hidden=!on;
+  $('latentDocBar').hidden=!on;
+  $('latentDocEdit').textContent=on?'✕':'✎';
+}
+
 async function latentDoSearch(){
   var q=($('latentQuery').value||'').trim();
   if(!q){$('latentSearchOut').innerHTML='';return}
@@ -10061,15 +10328,83 @@ async function latentDoSearch(){
     var r=await fetch('/api/latent/search?q='+encodeURIComponent(q));
     if(!r.ok){$('latentSearchOut').innerHTML='<div class="lt-empty">记忆库没连上</div>';return}
     var d=await r.json();
-    $('latentSearchOut').innerHTML=d.text?('<div class="lt-block">'+_esc(d.text)+'</div>')
-      :'<div class="lt-empty">没找到。<br>换个更具体的说法再试试。</div>';
+    var t=(d&&d.text)||'';
+    if(!t){$('latentSearchOut').innerHTML='<div class="lt-empty">没找到。<br>换个更具体的说法再试试。</div>';return}
+    var hits=_ltSplitHits(t);
+    if(!hits.length){
+      // 切不出条目（多半是「没有可靠命中」那段说明），原样给她看
+      $('latentSearchOut').innerHTML='<div class="lt-block">'+_esc(t)+'</div>';return;
+    }
+    $('latentSearchOut').innerHTML=hits.map(function(h){
+      var f=/\.md$/.test(h.src)?h.src:'';
+      return '<button class="lt-card" type="button"'+(f?' data-file="'+_esc(f)+'"':'')+'>'
+        +'<div class="lt-card-head"><span class="lt-card-date">'+_esc(_ltDate(h.date))+'</span>'
+        +(h.src?'<span class="lt-card-win">'+_esc(h.src.replace(/\.md$/,''))+'</span>':'')
+        +'</div><div class="lt-card-preview">'+_esc(h.body)+'</div></button>';
+    }).join('');
   }catch(e){$('latentSearchOut').innerHTML='<div class="lt-empty">'+_esc(String(e.message||e))+'</div>'}
+}
+
+/* 召回文本里每条片段的抬头长这样： - [2026.07.18·window_63_2026-07-18.md] 正文…
+   按这个把一坨切成一条条。切不出来就说明不是命中列表（比如「没有可靠命中」那段）。*/
+function _ltSplitHits(text){
+  var re=/[-–—•]\s*\[(\d{4}[.\-\/]\d{1,2}[.\-\/]\d{1,2})[^\]]*?(?:·([^\]]*))?\]/g;
+  var out=[],m,last=null,s=String(text||'');
+  while((m=re.exec(s))){
+    if(last)last.body=s.slice(last.end,m.index).trim();
+    last={date:m[1].replace(/[.\/]/g,'-'),src:(m[2]||'').trim(),end:re.lastIndex};
+    out.push(last);
+  }
+  if(last)last.body=s.slice(last.end).trim();
+  return out;
 }
 (function(){
   var c=$('closeMemoryPicker'); if(!c)return;
   c.addEventListener('click',closeMemoryPanel);
   $('gateOB').addEventListener('click',function(){showProfilePage('obHome');loadOBData()});
   $('gateLatent').addEventListener('click',openLatentPage);
+  // 卡片用事件委托：列表和搜索结果都是后画出来的，逐个绑会漏
+  ['latentWindows','latentSearchOut'].forEach(function(id){
+    var el=$(id);if(!el)return;
+    el.addEventListener('click',function(ev){
+      var card=ev.target.closest('.lt-card[data-file]');
+      if(card)openLatentDoc(card.getAttribute('data-file'));
+    });
+  });
+  // 退出前先退出编辑：不然编辑状态会跟着带到下一篇去
+  $('latentDocBack').addEventListener('click',function(){_ltDocSetEditing(false);showProfilePage('latentHome')});
+  $('latentDocMore').addEventListener('click',function(){_ltRenderDoc(true)});
+  $('latentDocEdit').addEventListener('click',function(){
+    if(!_ltDoc)return;
+    if(!$('latentDocEditor').hidden){_ltDocSetEditing(false);return}   // 已在编辑 → 退出
+    if((_ltDoc.text||'').length>_LT_EDIT_LIMIT){
+      toast('这篇 '+_ltSize(_ltDoc.text.length)+'，太长了，在手机上改不动');return;
+    }
+    $('latentDocEditor').value=_ltDoc.text||'';
+    _ltDocSetEditing(true);
+  });
+  $('latentDocCancel').addEventListener('click',function(){_ltDocSetEditing(false)});
+  $('latentDocSave').addEventListener('click',async function(){
+    // 不在编辑状态就绝不写盘 —— 这颗按钮要是因为别的毛病露在外面，
+    // 点下去会把编辑框里剩的上一篇内容盖到这一篇上，那是真丢东西
+    if(!_ltDoc||$('latentDocEditor').hidden)return;
+    var t=$('latentDocEditor').value;
+    if(!t.trim()){toast('正文不能空');return}
+    if(t===_ltDoc.text){_ltDocSetEditing(false);return}
+    var btn=this;btn.disabled=true;btn.textContent='保存中…';
+    try{
+      var r=await fetch('/api/latent/window',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({file:_ltDoc.file,text:t})});
+      var d=await r.json();
+      if(!r.ok||!d.ok)throw new Error(d&&d.error||'保存失败');
+      _ltDoc.text=t;_ltDoc.chars=t.length;
+      _ltDocSetEditing(false);_ltRenderDoc(false);
+      $('latentDocMeta').textContent=[_ltDoc.window?('第'+_ltDoc.window+'个窗口'):'',_ltSize(t.length),_ltDoc.file].filter(Boolean).join(' · ');
+      toast('存好了，旧的备份在服务器上');
+      loadLatentWindows();
+    }catch(e){toast(String(e.message||e))}
+    btn.disabled=false;btn.textContent='保存';
+  });
   // 以前这个是「退回那个门」。门没了，就让它直接关掉整个记忆页。
   $('latentBack').addEventListener('click',closeMemoryPanel);
   // 顶上那条切换。两个页各有一条，各自的 active 是写死在 HTML 里的，不用同步。
