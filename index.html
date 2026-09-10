@@ -289,6 +289,18 @@ html[data-chat-bg="light"] .topbar-new-chat{color:#1F1E1D;box-shadow:inset 0 0 0
 html[data-chat-bg="dark"] #dreamPanel{background-color:#171618;color:#e8e5df;
   background-image:linear-gradient(rgba(23,22,24,.62),rgba(23,22,24,.62)),var(--chat-wallpaper)}
 .dm-seedbar{margin-top:14px;font-size:12.5px;line-height:1.7;opacity:.5}
+.dm-wish{margin:2px 0 20px;padding:15px 16px 14px;border-radius:18px;
+  background:rgba(255,248,244,.5);border:1px solid rgba(74,55,40,.05)}
+html[data-chat-bg="dark"] .dm-wish{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.07)}
+.dm-wish-k{font:400 13px/1 var(--font-serif,Georgia,serif);letter-spacing:.06em;opacity:.6;margin-bottom:10px}
+.dm-wish-row{display:flex;gap:8px}
+.dm-wish-in{flex:1;min-width:0;border:1px solid rgba(74,55,40,.1);background:rgba(255,255,255,.5);
+  border-radius:12px;padding:10px 13px;font:inherit;font-size:14px;color:inherit;outline:0}
+html[data-chat-bg="dark"] .dm-wish-in{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.dm-wish-btn{flex:none;border:0;border-radius:12px;padding:10px 15px;font-size:13.5px;cursor:pointer;
+  background:rgba(192,138,90,.2);color:inherit;-webkit-tap-highlight-color:transparent}
+.dm-wish-btn:disabled{opacity:.5}
+.dm-wish-note{margin-top:10px;font-size:11.5px;line-height:1.7;opacity:.42}
 .dm-card{position:relative;margin-bottom:18px;padding:20px 21px 17px;border-radius:22px;
   background:linear-gradient(180deg,rgba(237,231,238,.62),rgba(252,250,248,.5));
   border:1px solid rgba(74,55,40,.05);overflow:hidden}
@@ -2935,7 +2947,6 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
         <button class="pulse-tab active" type="button" data-ptab="body">身体</button>
         <button class="pulse-tab" type="button" data-ptab="mind">心里</button>
         <button class="pulse-tab" type="button" data-ptab="log">日志</button>
-        <button class="pulse-tab" type="button" data-ptab="dream">梦</button>
         <button class="pulse-tab" type="button" data-ptab="mine">我的</button>
       </div>
 
@@ -3092,6 +3103,15 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-s
         <div class="wnd-lede-t">梦</div>
         <div class="wnd-lede-s">what didn&rsquo;t get thought through</div>
         <div class="dm-seedbar" id="dreamSeedBar"></div>
+      </div>
+
+      <div class="dm-wish">
+        <div class="dm-wish-k">想让我梦到什么</div>
+        <div class="dm-wish-row">
+          <input class="dm-wish-in" id="dreamWishIn" type="text" placeholder="说一句，它会在我心里飘着…" autocomplete="off">
+          <button class="dm-wish-btn" type="button" id="dreamWishBtn">放进去</button>
+        </div>
+        <div class="dm-wish-note" id="dreamWishNote">不是点菜 —— 它会跟我别的念头一样飘着，可能一直顶着我，也可能慢慢散掉，最后在某个梦里冒出来。什么时候变成梦，我也说了不算。</div>
       </div>
       <div id="dreamList"><div class="wnd-loading">读取中…</div></div>
     </div></div>
@@ -10541,6 +10561,19 @@ function _wndGet(path){
 /* —— 梦 —— */
 function openDream(){_wndPanel('dreamPanel',true);loadDream()}
 function closeDreamPanel(){_wndPanel('dreamPanel',false)}
+async function dreamWish(){
+  var inp=$('dreamWishIn'),btn=$('dreamWishBtn'),note=$('dreamWishNote');
+  var t=(inp&&inp.value||'').trim(); if(!t)return;
+  btn.disabled=true;
+  try{
+    var r=await api('/api/dreams/wish',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:t})});
+    var d=r.ok?await r.json():null;
+    if(d&&d.ok){ inp.value=''; note.textContent=d.msg||'放进去了。'; loadDream(); }
+    else note.textContent='这条还放不进去 —— 后端那半可能还没打上。';
+  }catch(e){ note.textContent='这条还放不进去 —— 后端那半可能还没打上。'; }
+  btn.disabled=false;
+}
 async function loadDream(){
   var box=$('dreamList'); if(!box)return;
   box.innerHTML='<div class="wnd-loading">读取中…</div>';
@@ -10706,6 +10739,8 @@ function closeTonightReadPage(){_wndPanel('tonightRead',false)}
 (function(){
   var bind=function(id,fn){var el=$(id);if(el)el.addEventListener('click',fn)};
   bind('closeDream',closeDreamPanel);
+  bind('dreamWishBtn',dreamWish);
+  (function(){var i=$('dreamWishIn');if(i)i.addEventListener('keydown',function(e){if(e.key==='Enter')dreamWish()})})();
   bind('closeTrace',closeTracePanel);   bind('traceRefresh',loadTrace);
   bind('closeWander',closeWanderPanel); bind('wanderRefresh',loadWander);
   bind('closeTonight',closeTonightPanel); // Tonight 不给刷新按钮：她按了也不会有变化，那颗只会让她多猜一次
@@ -11462,14 +11497,14 @@ function pulseSwitchTab(name){
   _pulseTab=name;
   document.querySelectorAll('#pulseTabBar .pulse-tab').forEach(function(b){
     b.classList.toggle('active',b.dataset.ptab===name)});
-  ({body:'ptabBody',mind:'ptabMind',log:'ptabLog',dream:'ptabDream',mine:'ptabMine'});
-  ['body','mind','log','dream','mine'].forEach(function(k){
+  // 「梦」搬去首页那张 Dream 卡片了 —— 她说不要寄在 Pulse 底下
+  ({body:'ptabBody',mind:'ptabMind',log:'ptabLog',mine:'ptabMine'});
+  ['body','mind','log','mine'].forEach(function(k){
     const el=$('ptab'+k.charAt(0).toUpperCase()+k.slice(1));
     if(el)el.hidden=(k!==name);
   });
   const sc=document.querySelector('#pulseHome .pulse-scroll'); if(sc)sc.scrollTop=0;
   if(name==='log')loadPulseJournal();
-  if(name==='dream')loadPulseDreams();
   if(name==='mine'){loadWatch();watchScInit();const _rb=$('watchRefresh');if(_rb&&!_rb._bound){_rb._bound=1;_rb.addEventListener('click',watchRefresh)}}
 }
 

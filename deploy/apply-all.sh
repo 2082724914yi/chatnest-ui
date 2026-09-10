@@ -99,6 +99,7 @@ add-thoughts.js|THOUGHTS_VERSION|念头池：闪念↔执念，反复冒出来�
 add-latent-vec.js|LATENT_VEC_VERSION|Latent 按意思翻（硅基流动 bge-m3，跟 OB 同一家）
 fix-latent-hook.js|LATENT_HOOK_FIXED|建索引挪到 /hook（/api 是登录态全拦的，她踩过一次）
 add-dream.js|DREAM_VERSION|梦：散掉的念头掉进去，攒够了在那儿重新拼一次
+fix-dream-wish.js|DREAM_WISH_VERSION|她想让我梦到什么：从点菜改成往我心里丢一个念头
 "
 
 say "1/3 逐个补丁检查"
