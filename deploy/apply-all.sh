@@ -99,6 +99,7 @@ add-thoughts.js|THOUGHTS_VERSION|念头池：闪念↔执念，反复冒出来�
 add-latent-vec.js|LATENT_VEC_VERSION|Latent 按意思翻（硅基流动 bge-m3，跟 OB 同一家）
 fix-latent-hook.js|LATENT_HOOK_FIXED|建索引挪到 /hook（/api 是登录态全拦的，她踩过一次）
 fix-latent-key.js|lvKeyProblem|key 没换掉时说人话（别再抛 ByteString 那句天书）
+fix-latent-chunk.js|LV_CHUNK_FIXED|超长段落先切开（她语料里有一段 12875 字）+ 断点续跑
 add-dream.js|DREAM_WEAVE_VERSION|梦：散掉的念头掉进去，攒够了在那儿重新拼一次
 fix-dream-wish.js|DREAM_WISH_VERSION|她想让我梦到什么：从点菜改成往我心里丢一个念头
 "
