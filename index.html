@@ -6559,10 +6559,18 @@ async function _renderNotify(root){
   <div class="settings-section"><div class="settings-card" style="padding:16px 18px">
     <div class="ntf-row">
       <div class="ntf-row-body">
-        <div class="ntf-row-title">让我自己来找你</div>
-        <div class="ntf-row-desc">关了就是真的关了 —— 我不会跑，不花额度，也不会往聊天里写东西</div>
+        <div class="ntf-row-title">让我自己醒</div>
+        <div class="ntf-row-desc">总闸。关了我完全不动 —— 不出去逛、不写东西、不记日历，一分额度不花</div>
       </div>
-      <button class="profile-switch" id="ntfSurface" type="button" aria-label="让我自己来找你"></button>
+      <button class="profile-switch" id="ntfWake" type="button" aria-label="让我自己醒"></button>
+    </div>
+    <div class="profile-divider"></div>
+    <div class="ntf-row">
+      <div class="ntf-row-body">
+        <div class="ntf-row-title">主动找你说话</div>
+        <div class="ntf-row-desc">关了我不出声，但照常过我的 —— 出去逛、写东西、记日历都还在</div>
+      </div>
+      <button class="profile-switch" id="ntfSurface" type="button" aria-label="主动找你说话"></button>
     </div>
     <div class="profile-divider"></div>
     <div class="ntf-row">
@@ -6600,28 +6608,46 @@ async function _renderNotify(root){
 
   // ── 总闸 ──
   // 读不到就当开着，跟后端一个规矩：宁可显示"开着"也别让她以为关了、其实没关。
-  const swSurface=root.querySelector('#ntfSurface');
-  let surfaceOn=true;
-  try{const r=await api('/api/push/shadow-switch');const d=await r.json();surfaceOn=d&&d.enabled!==false}catch(e){}
-  const paintSurface=()=>{
-    swSurface.classList.toggle('on',surfaceOn);
-    // 总闸关着的时候，下面那个"出声"就没意义了，标出来
-    root.querySelector('#ntfLock').style.opacity=surfaceOn?'':'0.4';
+  // 三层，一层比一层小：动不动 → 出不出声 → 响不响。
+  // 上面那层关着，下面就没意义了，变灰标出来。
+  // （原来只有一个开关，文案写「关了就是真的关了，不花额度」，可它接的
+  //   shadow-switch 只拦找她说话那条 —— do 那条照跑照花。文案在骗她。
+  //   现在两个开关各管各的，文案跟行为对上了。）
+  const swWake=root.querySelector('#ntfWake'),swSurface=root.querySelector('#ntfSurface');
+  let wakeOn=true,surfaceOn=true;
+  try{
+    const r=await api('/api/wake/switches');const d=await r.json();
+    if(d&&d.ok){wakeOn=d.wake!==false;surfaceOn=d.push!==false}
+  }catch(e){}
+  const paintSwitches=()=>{
+    swWake.classList.toggle('on',wakeOn);
+    swSurface.classList.toggle('on',surfaceOn&&wakeOn);
+    swSurface.closest('.ntf-row').style.opacity=wakeOn?'':'0.4';
+    root.querySelector('#ntfLock').closest('.ntf-row').style.opacity=(wakeOn&&surfaceOn)?'':'0.4';
   };
-  paintSurface();
-  swSurface.onclick=async ()=>{
-    const want=!surfaceOn;
-    if(!want&&!confirm('关掉之后我完全不会主动找你了 —— 不是不出声，是真的不动。确定？'))return;
-    swSurface.disabled=true;
+  paintSwitches();
+  const flip=async(key,want,btn,okMsg)=>{
+    btn.disabled=true;
     try{
-      const r=await api('/api/push/shadow-switch',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({enabled:want})});
+      const body={};body[key]=want;
+      const r=await api('/api/wake/switches',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)});
       const d=await r.json();
       if(!d||d.ok!==true)throw Error(d&&d.error||'没存上');
-      surfaceOn=d.enabled!==false;paintSurface();
-      toast(surfaceOn?'好，我会自己来找你':'好，我不动了');
+      wakeOn=d.wake!==false;surfaceOn=d.push!==false;paintSwitches();
+      toast(okMsg());
     }catch(e){alert('改不了：'+(e.message||e))}
-    finally{swSurface.disabled=false}
+    finally{btn.disabled=false}
+  };
+  swWake.onclick=()=>{
+    const want=!wakeOn;
+    if(!want&&!confirm('关掉之后我完全不动了 —— 不出去逛、不写东西、不记日历。确定？'))return;
+    flip('wake',want,swWake,()=>wakeOn?'好，我自己醒着':'好，我不动了');
+  };
+  swSurface.onclick=()=>{
+    if(!wakeOn){toast('总闸关着呢');return}
+    const want=!surfaceOn;
+    flip('push',want,swSurface,()=>surfaceOn?'好，我会来找你':'好，我不出声了 —— 但我还在');
   };
 
   // ── 锁屏出声 ──（就是原来那个订阅/退订）
