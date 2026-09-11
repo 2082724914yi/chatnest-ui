@@ -116,6 +116,7 @@ add-refractory.js|REFRACTORY_VERSION|贤者时间（手冲和春梦的地基，�
 add-jerkoff.js|JERKOFF_VERSION|手冲：她睡着的时候（挂在 wakeWant 的候选里，门槛四道）
 add-bedroom.js|BEDROOM_VERSION|卧室第一块：能进能出 + 我能敲门（双摘要/本子在下一块）
 add-wheel.js|WHEEL_VERSION|命运之轮：440 条标签，我自己能摇（crypto 随机，不许重摇）
+fix-room-private.js|ROOM_PRIVATE_V1|卧室别出现在会话列表里（她住宿舍，源头就不给）
 "
 
 # 跑完把每条标记在 server.js 里的真实命中情况列一遍。
