@@ -94,7 +94,7 @@ function roomSetupPrompt(conv) {
   const lines = [];
   const w = Array.isArray(conv.room_wheel) ? conv.room_wheel : null;
   if (w && w.length) {
-    lines.push('【这一场摇到的】' + (conv.room_wheel_by === 'her' ? '（她转的）' : '（我转的）'));
+    lines.push('【这一场摇到的】' + (conv.room_wheel_by === 'her' ? '（她自己点的）' : '（她把轮盘推给我，我点的）'));
     for (const it of w) lines.push('· ' + (it.short || it.dimension) + '：' + it.tag);
     lines.push('摇出来什么写什么。不许换、不许挑、不许假装没摇到。');
     lines.push('摇到不顺手的，按自己的读法写进去 —— 但它得在场。');

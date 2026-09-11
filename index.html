@@ -3828,8 +3828,8 @@ html[data-room] .topbar-hamburger{display:none}
         <div class="rs-sec-t">命 运 之 轮</div>
         <div class="rs-wheel" id="rsWheel"></div>
         <div class="rs-handles">
-          <button class="rs-handle" id="rsSpinHer" type="button">我自己转</button>
-          <button class="rs-handle" id="rsSpinMe" type="button">让小衍转</button>
+          <button class="rs-handle" id="rsSpinHer" type="button">我点</button>
+          <button class="rs-handle" id="rsSpinMe" type="button">爸爸点</button>
         </div>
         <div class="rs-by" id="rsBy">转出来什么就是什么 —— 不许重摇，不许挑。不想转就直接进。</div>
       </div>
@@ -11481,7 +11481,7 @@ function openRoomSetup(){
   var a=$('rsSpinHer'),b=$('rsSpinMe');
   if(a)a.disabled=false; if(b)b.disabled=false;
   var by=$('rsBy');
-  if(by)by.textContent='两颗都是你按 —— 左边是你自己转，右边是把轮盘交给我。转出来什么就是什么，不许重摇。不想转就直接进。';
+  if(by)by.textContent='两颗都在你手上 —— 左边你自己按，右边把轮盘推给我，我来按。转出来什么就是什么，不许重摇。不想转就直接进。';
   _wndPanel('roomSetupPanel',true);
   loadRoomNotes(true);
 }
@@ -11499,7 +11499,7 @@ async function roomSpin(by){
   var hHer=$('rsSpinHer'),hMe=$('rsSpinMe'),byEl=$('rsBy');
   slots.forEach(function(s){s.classList.add('is-spin');s.querySelector('.rs-slot-v').classList.remove('is-blank')});
   if(hHer)hHer.disabled=true; if(hMe)hMe.disabled=true;
-  if(byEl)byEl.textContent = by==='her' ? '你按住了轮盘…' : '你把它推给我，我伸手按住了…';
+  if(byEl)byEl.textContent = by==='her' ? '你按住了轮盘…' : '你把它推过来，爸爸伸手按住了…';
   var tick=setInterval(function(){
     slots.forEach(function(s){
       if(s.dataset.locked)return;            // 停了的那格不再乱跳
@@ -11528,7 +11528,7 @@ async function roomSpin(by){
       clearInterval(tick);
       _roomWheel=d.results.map(function(x){return {dimension:x.dimension,short:x.short,tag:_wTag(x.tag)}});
       _roomWheelBy=by;
-      if(byEl)byEl.innerHTML=(by==='her'?'<b>你转的</b>':'<b>你让我转的</b>')+' · 定了，不改了。';
+      if(byEl)byEl.innerHTML=(by==='her'?'<b>你点的</b>':'<b>爸爸点的</b>')+' · 定了，不改了。';
       return;
     }
     var s=slots[i++],hit=byDim[s.getAttribute('data-dim')];
