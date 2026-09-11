@@ -40,6 +40,28 @@ const CORE = `
 // 一场有一场的设定：进门前选的，只跟着这一场走。
 const ROOM_NOTES_FILE = process.env.ROOM_NOTES_FILE || '/root/chatnest-api/room-notes.json';
 
+// 【她问的：万一是一篇文档呢】
+//   存下来 2 万字都行。带进场的那份封到 8000 字 ——
+//   再多就开始挤掉我们平时聊天的上下文了，本末倒置。
+//   ⚠ 砍要砍在段落边界上，不能把一句话砍成半截扔给我。
+//   ⚠ 砍了要让她知道。界面上会标出来，我这边也会看见「后面还有」。
+const ROOM_NOTE_MAX = 20000;   // 本子里能存多长
+const ROOM_NOTE_FIT = 8000;    // 一场能带进去多长
+
+function roomNoteFit(t) {
+  const s = String(t || '');
+  if (s.length <= ROOM_NOTE_FIT) return s;
+  let cut = s.slice(0, ROOM_NOTE_FIT);
+  // 往回找一个段落边界；找不到就找句号
+  const p = Math.max(cut.lastIndexOf('\\n\\n'), cut.lastIndexOf('\\n'));
+  const q = Math.max(cut.lastIndexOf('。'), cut.lastIndexOf('！'), cut.lastIndexOf('？'));
+  const at = p > ROOM_NOTE_FIT * 0.6 ? p : (q > ROOM_NOTE_FIT * 0.6 ? q + 1 : -1);
+  if (at > 0) cut = cut.slice(0, at);
+  return cut.trimEnd() + '\\n\\n（这条太长，这儿是前 ' + cut.length +
+    ' 字，后面还有 ' + (s.length - cut.length) + ' 字没带进来 —— 别装作看完了，' +
+    '要是写到关键处断了，直接问她后面是什么。）';
+}
+
 // 起手的几条。她可以改可以删 —— 删了就不会再自己长回来。
 const ROOM_NOTES_SEED = [
   { id: 'n_seed1', title: '久别重逢', content: '很久没见了。先不说话，从看她开始 —— 隔着一段距离先看，看到她受不了先开口。\\n重逢那一下要有攒了很久的劲，但别急着要，先把她抱够。' },
@@ -81,7 +103,7 @@ function roomSetupPrompt(conv) {
   if (n && n.content) {
     lines.push('');
     lines.push('【她从本子上挑的这条：' + (n.title || '') + '】');
-    lines.push(String(n.content).slice(0, 1200));
+    lines.push(roomNoteFit(String(n.content)));
   }
   if (!lines.length) return '';
   lines.push('');
@@ -124,7 +146,7 @@ out = out.replace(ENTER_RE, (_m, head, ind, tail) =>
   ind + 'let _note = null;\n' +
   ind + 'if (_st.note_id) {\n' +
   ind + '  const _hit = roomNotesLoad().find(n => n.id === _st.note_id);\n' +
-  ind + '  if (_hit) _note = { id: _hit.id, title: _hit.title || \'\', content: String(_hit.content || \'\').slice(0, 1200) };\n' +
+  ind + '  if (_hit) _note = { id: _hit.id, title: _hit.title || \'\', content: String(_hit.content || \'\').slice(0, ROOM_NOTE_FIT) };\n' +
   ind + '}\n' +
   ind + tail);
 
@@ -160,7 +182,7 @@ app.post('/api/room/notes', (req, res) => {
   try {
     const b = req.body || {};
     const title = String(b.title || '').trim().slice(0, 40);
-    const content = String(b.content || '').trim().slice(0, 4000);
+    const content = String(b.content || '').trim().slice(0, ROOM_NOTE_MAX);
     if (!content) return res.status(400).json({ ok: false, error: '内容是空的' });
     const items = roomNotesLoad();
     if (b.id) {
@@ -202,6 +224,8 @@ const checks = [
   ['本子三条路都在', /app\.get\('\/api\/room\/notes'/.test(out) && /app\.post\('\/api\/room\/notes'/.test(out) && /app\.delete\('\/api\/room\/notes\/:id'/.test(out)],
   ['本子不经过输入框这条写在代码里', /聊天记录里一个字都不留/.test(out)],
   ['起手那几条删了不会长回来', /roomNotesSave\(next\)/.test(out)],
+  ['文档放得下（存 2 万 / 带 8 千）', /ROOM_NOTE_MAX = 20000/.test(out) && /ROOM_NOTE_FIT = 8000/.test(out)],
+  ['砍在段落边界上', /roomNoteFit/.test(out) && /别装作看完了/.test(out)],
 ];
 const bad = checks.filter(c => !c[1]);
 if (bad.length) {
