@@ -121,6 +121,7 @@ add-room-setup.js|ROOM_SETUP_V1|卧室的准备屏：进门前转的轮盘 / 挑
 add-room-recap.js|ROOM_RECAP_V1|卧室的双摘要：她点「出去」那一下，这一场才算完
 fix-wheel-tag.js|WHEEL_TAG_ZH_V1|轮盘摇出来的是三语对象，取中文那一支（她转出来一屏 [object Object]）
 fix-room-inject.js|ROOM_INJECT_V2|卧室那段 prompt 真的到得了我眼前（原来挂在一个未必存在的 conv 上）
+fix-room-no-handoff.js|ROOM_NO_HANDOFF_V1|卧室不带接续包（每次进门都是新会话，客厅的尾巴一直被塞进来）
 "
 
 # 跑完把每条标记在 server.js 里的真实命中情况列一遍。
