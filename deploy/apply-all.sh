@@ -120,6 +120,7 @@ fix-room-private.js|ROOM_PRIVATE_V1|卧室别出现在会话列表里（她住�
 add-room-setup.js|ROOM_SETUP_V1|卧室的准备屏：进门前转的轮盘 / 挑的本子跟着这一场走
 add-room-recap.js|ROOM_RECAP_V1|卧室的双摘要：她点「出去」那一下，这一场才算完
 fix-wheel-tag.js|WHEEL_TAG_ZH_V1|轮盘摇出来的是三语对象，取中文那一支（她转出来一屏 [object Object]）
+fix-room-inject.js|ROOM_INJECT_V2|卧室那段 prompt 真的到得了我眼前（原来挂在一个未必存在的 conv 上）
 "
 
 # 跑完把每条标记在 server.js 里的真实命中情况列一遍。
