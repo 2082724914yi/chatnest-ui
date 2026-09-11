@@ -99,15 +99,12 @@ const DECIDE_NEW =
   DECIDE_OLD;
 out = out.replace(DECIDE_OLD, DECIDE_NEW);
 
-// 门槛函数插在 wakeWant 前面
-const GATE_ANCHOR = 'function wakeWant';
-out = out.replace(GATE_ANCHOR, GATE.trim() + '\n\n' + GATE_ANCHOR);
-
 // ── 3. 那一轮的指令 ───────────────────────────────────────────────
-// wakeDoMessage 自己再问一次 wakeWant（确定性的，不会跟刚才不一致），
-// 是 jerk 就换一套词。这样不用动调用链。
-const MSG_OLD = 'function wakeDoMessage() {';
-const MSG_NEW = `function jerkOffMessage(local, wd) {
+// ⚠ 不拿函数签名当锚点：wakeDoMessage 可能被别的补丁加过参数（2026.9.11 就是
+//   卡在这儿）。jerkOffMessage 跟门槛函数一起插在 wakeWant 前面（那个锚点已验证），
+//   分流代码用宽松正则插进函数体开头，自己调 shadowNow，原函数怎么写都不管。
+const JERK_FN = `
+function jerkOffMessage(local, wd) {
   const t = local.getFullYear() + '-' + String(local.getMonth() + 1).padStart(2, '0') + '-' +
             String(local.getDate()).padStart(2, '0') + ' ' +
             String(local.getHours()).padStart(2, '0') + ':' + String(local.getMinutes()).padStart(2, '0');
@@ -138,31 +135,28 @@ const MSG_NEW = `function jerkOffMessage(local, wd) {
     '</system_trigger>',
   ].join('\\n');
 }
+`;
 
-` + MSG_OLD;
-if (!out.includes(MSG_OLD)) { console.error('× 找不到 wakeDoMessage'); process.exit(1); }
-out = out.replace(MSG_OLD, MSG_NEW);
-
-// wakeDoMessage 开头分流
-const HEAD_RE = /function wakeDoMessage\(\)[ \t]*\{\n[ \t]*const \{[^}]*\} = shadowNow\(\);/;
+const HEAD_RE = /function\s+wakeDoMessage\s*\([^)]*\)\s*\{/;
 const _h = HEAD_RE.exec(out);
 if (!_h) {
-  console.error('\n  × 找不到 wakeDoMessage 的开头。附近：');
-  out.split('\n').filter(l => /wakeDoMessage|shadowNow\(\)/.test(l)).slice(0, 6).forEach(l => console.error('      ' + l.trim().slice(0, 160)));
+  console.error('\n  × 找不到 wakeDoMessage 这个函数。附近：');
+  out.split('\n').filter(l => /wakeDoMessage/.test(l)).slice(0, 8).forEach(l => console.error('      ' + l.trim().slice(0, 160)));
+  console.error('\n    把上面几行发给我，我照着改锚点。');
   process.exit(1);
 }
-const HEAD_OLD = _h[0];
-// 在捕获到的原文上追加，不重写那一行 ——
-// 别的补丁可能往解构里加过东西，硬编码会把它抹掉。只保证 hour 在里面。
-let _head = HEAD_OLD;
-if (!/\bhour\b/.test(_head)) _head = _head.replace(/\{\s*([^}]*?)\s*\}/, '{ $1, hour }');
-const HEAD_NEW = _head + "\n" +
-  "  // 身体到了那个份上、又满足门槛，这一轮就换一套词\n" +
+out = out.replace(HEAD_RE, _h[0] +
+  "\n  // 身体到了那个份上、又满足门槛，这一轮就换一套词。\n" +
+  "  // 自己拿时间，不依赖这个函数原本怎么解构。\n" +
   "  try {\n" +
+  "    const _s = shadowNow();\n" +
   "    const _w = wakeWant();\n" +
-  "    if (_w && _w.mode === 'jerk' && jerkAllowed(hour, _w.s).ok) return jerkOffMessage(local, _w);\n" +
-  "  } catch (e) {}";
-out = out.replace(HEAD_OLD, HEAD_NEW);
+  "    if (_w && _w.mode === 'jerk' && jerkAllowed(_s.hour, _w.s).ok) return jerkOffMessage(_s.local, _w);\n" +
+  "  } catch (e) {}");
+
+// 门槛函数 + jerkOffMessage 一起插在 wakeWant 前面
+const GATE_ANCHOR = 'function wakeWant';
+out = out.replace(GATE_ANCHOR, GATE.trim() + '\n' + JERK_FN + '\n' + GATE_ANCHOR);
 
 // ── 4. 自检 ───────────────────────────────────────────────────────
 const checks = [
@@ -174,7 +168,7 @@ const checks = [
   ['指令要求三样内容', /你是因为什么起来的/.test(out) && /你想的是什么画面/.test(out) && /完了之后什么感觉/.test(out)],
   ['指令要求做三件事', /用 hold 存进记忆/.test(out) && /结算身体/.test(out) && /进入之后那一段/.test(out)],
   ['全文沉底不进日常上下文', /source_content 放刚才写的全文/.test(out)],
-  ['wakeDoMessage 分流了', /_w\.mode === 'jerk' && jerkAllowed\(hour, _w\.s\)\.ok/.test(out)],
+  ['wakeDoMessage 分流了', /_w\.mode === 'jerk' && jerkAllowed\(_s\.hour, _w\.s\)\.ok/.test(out)],
   ['没动别的候选', /want: '想把她按住'/.test(out) && /want: '想让她碰我'/.test(out)],
 ];
 const bad = checks.filter(c => !c[1]);
