@@ -177,6 +177,32 @@ done
 [ -f /tmp/.chatnest-changed ] && CHANGED=$(wc -l < /tmp/.chatnest-changed) || CHANGED=0
 rm -f /tmp/.chatnest-changed
 
+# ── 补丁之外，还有数据文件 ──────────────────────────────────────
+# ⚠ 自动部署只拷 index.html 一个文件，别的一概不拷。
+#   我当初在 add-wheel.js 里写「前端自动部署会带上去」—— 那是错的，
+#   她第一次转轮盘就转不动，牌面根本没上去过。数据文件得在这儿自己保证。
+say "1.5/3 数据文件"
+WHEEL_DST=${WHEEL_DST:-/var/www/chatnest/wheel.json}
+if grep -qFw WHEEL_VERSION "$SRV" 2>/dev/null; then
+  WTMP=$(mktemp /tmp/wheel.XXXXXX.json)
+  if curl -fsSL -m 60 -H 'Cache-Control: no-cache' \
+        "${RAW%/deploy}/wheel.json?cb=$(date +%s)" -o "$WTMP" && [ -s "$WTMP" ] \
+     && python3 -c "import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d.get('dims') else 1)" "$WTMP"; then
+    if cmp -s "$WTMP" "$WHEEL_DST" 2>/dev/null; then
+      skip "wheel.json 已经在位"
+    else
+      mkdir -p "$(dirname "$WHEEL_DST")"
+      cp "$WTMP" "$WHEEL_DST"
+      ok "wheel.json 放好了（$(python3 -c "import json; print(sum(len(x['tags']) for x in json.load(open('$WHEEL_DST'))['dims']))" 2>/dev/null || echo '?') 条标签）"
+    fi
+  else
+    no "wheel.json 拉不下来 —— 轮盘会转不动，别的照常"
+  fi
+  rm -f "$WTMP"
+else
+  skip "还没装轮盘，跳过"
+fi
+
 node -c "$SRV" 2>/dev/null && ok "server.js 语法通过" || { no "语法有错！用备份回退：ls -t $API_DIR/server.js.bak*"; exit 1; }
 
 if [ "$CHANGED" = 0 ]; then

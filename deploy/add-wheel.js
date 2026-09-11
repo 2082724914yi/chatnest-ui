@@ -189,5 +189,7 @@ fs.writeFileSync(target, out);
 console.log('\n  √ 命运之轮装好了');
 checks.forEach(c => console.log('      ✓ ' + c[0]));
 console.log('  备份: ' + backup);
-console.log('  ⚠ wheel.json 要在 ' + '/var/www/chatnest/wheel.json' + ' —— 前端自动部署会带上去');
+console.log('  ⚠ wheel.json 要在 /var/www/chatnest/wheel.json');
+console.log('     自动部署只拷 index.html，别的都不拷 —— 这个文件得自己放：');
+console.log('     apply-all.sh 会管；单独跑这个补丁的话自己 curl 一份过去。');
 console.log('  重启: sudo pm2 restart chatnest-api');
