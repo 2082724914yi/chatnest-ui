@@ -2791,21 +2791,69 @@ html[data-skin="vintage"][data-theme="dark"] body::before{mix-blend-mode:screen;
    文件没到位也不会坏：贴不上就是没有，界面照常。
    ───────────────────────────────────────────────────── */
 
-/* 首页第一张大卡：右上角一朵角花。
-   corner_rose 是从信纸上裁的矩形（带纸底），直接贴四条硬边全露在外面 ——
-   用径向遮罩从右上角化开，边缘就没了。只给第一张，三张都贴太吵。 */
-html[data-skin="vintage"] #home .home-panel:first-of-type{overflow:hidden}
-html[data-skin="vintage"] #home .home-panel:first-of-type::after{
-  content:"";position:absolute;right:0;top:0;width:118px;height:94px;
-  background:url("/assets/theme/corner_rose.webp") no-repeat right top/cover;
-  opacity:.34;pointer-events:none;mix-blend-mode:multiply;
-  -webkit-mask:radial-gradient(125% 125% at 100% 0%,#000 34%,rgba(0,0,0,.55) 58%,transparent 82%);
-  mask:radial-gradient(125% 125% at 100% 0%,#000 34%,rgba(0,0,0,.55) 58%,transparent 82%);
+/* 首页大卡：整张信纸铺满底，上面盖一层径向的纸色再放字。
+   垫层要做成径向的 —— 中间厚（字读得清）、边上薄（花透得出来）。
+   一刀切的半透明盖层不行：盖狠了花白贴，盖轻了字读不出来。 */
+html[data-skin="vintage"] #home .home-panel{
+  overflow:hidden;
+  background-color:transparent;
+  background-image:
+    radial-gradient(112% 88% at 50% 50%,
+      rgba(250,246,238,.97) 0%, rgba(250,246,238,.95) 30%,
+      rgba(250,246,238,.72) 62%, rgba(250,246,238,.42) 100%),
+    url("/assets/theme/sheet_rose.webp");
+  background-size:cover,cover;
+  background-position:center,center;
+  border-color:rgba(154,131,102,.34);
 }
-html[data-skin="vintage"][data-chat-bg="dark"] #home .home-panel:first-of-type::after,
-html[data-skin="vintage"][data-theme="dark"] #home .home-panel:first-of-type::after{mix-blend-mode:screen;opacity:.2}
+html[data-skin="vintage"] #home .home-panel:first-of-type{
+  background-image:
+    radial-gradient(112% 88% at 50% 50%,
+      rgba(250,246,238,.96) 0%, rgba(250,246,238,.94) 28%,
+      rgba(250,246,238,.66) 60%, rgba(250,246,238,.34) 100%),
+    url("/assets/theme/sheet_oval.webp");
+}
+html[data-skin="vintage"][data-chat-bg="dark"] #home .home-panel,
+html[data-skin="vintage"][data-theme="dark"] #home .home-panel{
+  background-image:
+    radial-gradient(112% 88% at 50% 50%,
+      rgba(33,28,23,.93) 0%, rgba(33,28,23,.9) 30%,
+      rgba(33,28,23,.72) 62%, rgba(33,28,23,.5) 100%),
+    url("/assets/theme/sheet_rose.webp");
+  border-color:rgba(231,220,203,.16);
+}
 @media(prefers-color-scheme:dark){
-  html[data-skin="vintage"]:not([data-chat-bg="light"]) #home .home-panel:first-of-type::after{mix-blend-mode:screen;opacity:.2}
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) #home .home-panel{
+    background-image:
+      radial-gradient(112% 88% at 50% 50%,
+        rgba(33,28,23,.93) 0%, rgba(33,28,23,.9) 30%,
+        rgba(33,28,23,.72) 62%, rgba(33,28,23,.5) 100%),
+      url("/assets/theme/sheet_rose.webp");
+    border-color:rgba(231,220,203,.16);
+  }
+}
+
+/* 九宫格：每张卡右下角一件，按那一格是什么挑的，不是随手分的 */
+html[data-skin="vintage"] .home-grid-card{position:relative;overflow:hidden}
+html[data-skin="vintage"] .home-grid-card::after{
+  content:"";position:absolute;right:-8px;bottom:-10px;width:72px;height:72px;
+  background-repeat:no-repeat;background-position:right bottom;background-size:contain;
+  opacity:.30;pointer-events:none;
+}
+html[data-skin="vintage"] .home-grid-card[data-page="moments"]::after{background-image:url("/assets/theme/tag.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="dream"]::after{background-image:url("/assets/theme/cage.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="wander"]::after{background-image:url("/assets/theme/window.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="keepsake"]::after{background-image:url("/assets/theme/letter.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="tonight"]::after{background-image:url("/assets/theme/teacup.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="pulse"]::after{background-image:url("/assets/theme/perfume.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="memory"]::after{background-image:url("/assets/theme/books.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="settings"]::after{background-image:url("/assets/theme/keyring.webp")}
+html[data-skin="vintage"] .home-grid-card[data-page="timeline"]::after{background-image:url("/assets/theme/bow.webp");width:58px;height:58px}
+html[data-skin="vintage"] .home-grid-card[data-page="trace"]::after{background-image:url("/assets/theme/chair.webp")}
+html[data-skin="vintage"][data-chat-bg="dark"] .home-grid-card::after,
+html[data-skin="vintage"][data-theme="dark"] .home-grid-card::after{opacity:.22}
+@media(prefers-color-scheme:dark){
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) .home-grid-card::after{opacity:.22}
 }
 
 /* Timeline：竖线换成那条丝带 */
