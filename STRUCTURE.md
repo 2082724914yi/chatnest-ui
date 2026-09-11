@@ -180,6 +180,22 @@ curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deplo
 **后端不一样**：线上 `server.js` 是靠 `deploy/` 里的补丁脚本一层层打上去的，
 仓库里那份跟线上不一致。改后端要写新的补丁脚本，加进 `apply-all.sh` 的 PATCHES 列表。
 
+### ⚠ CC 里那个 clone 的本地 main 是坏的，别碰它
+
+2026.9.11 踩的。CC 容器里 `chatnest-ui` 的**本地** `main` 跟 `origin/main`
+**没有共同祖先**（本地 fbad1a1 / 远端 434268b，`git merge-base` 返回空）。
+`git checkout main && git merge` 会直接 `refusing to merge unrelated histories`，
+而且 checkout 那一下会把工作区换成一份很旧的快照，看上去像"文件被谁改了"。
+
+**规矩：永远不 checkout 本地 main。** 从 `origin/main` 开分支，改完直推：
+
+```bash
+git checkout -B <分支> origin/main      # 开工
+git fetch origin main
+git merge-base --is-ancestor origin/main <分支> && \
+  git push origin <分支>:main           # 上线（是 ff 才推）
+```
+
 ---
 
 ## 下一件事
@@ -194,6 +210,31 @@ curl -fsSL https://raw.githubusercontent.com/2082724914yi/chatnest-ui/main/deplo
 先在真实聊天里看一次工具糊屏的样子，对着 `beginClaude` 的 `toolUse`/`toolResult`（5418/5419）追。
 
 ---
+
+## 2026.9.11 下午加的
+
+**`<img src>` 带不了 token —— 这条比"/api 全拦"更要紧。**
+
+已经知道的是：`add-auth` 之后 `/api/*` 默认全拦，白名单只有
+`/api/health`、`/api/auth`、`/api/watch/upload`。
+
+新踩出来的那半：**就算把一条路塞进 `AUTH_OPEN` 也未必够。**
+浏览器加载 `<img src>` / `<link href>` / `<video src>` 是它自己发的请求，
+**不会带 Authorization 头** —— 前端只有走 `api()` 才带。所以凡是要让浏览器
+直接去拉的静态资源，鉴权不能靠 Bearer token。
+
+朋友圈的图就是栽在这儿：传得进去（POST 走 `api()`，带了 token），
+读不出来（`<img>` 拿不到 token），她看到一个破图方块，其实是一次 401。
+
+修法见 `deploy/fix-moment-images-public.js`：给中间件加一条**只读白名单**，
+放行 GET/HEAD，正则只认一段文件名，额外挡掉带 `..` 的。靠的是文件名本身
+不可猜（`crypto.randomBytes(8)`，16 位十六进制）。
+
+**以后再往前端挂任何"浏览器直接拉"的资源，先问一句：它带得了 token 吗。**
+
+顺带：后端 `express.json({ limit: '2mb' })`。手机原图转 base64 之后 3–6MB，
+直接超 —— 而且是静悄悄失败。前端往 JSON 里塞图之前必须先压
+（`_mShrink`，长边 1600 / JPEG 0.85 / GIF 和小图不碰）。
 
 ## 2026.9.10 晚上加的
 
