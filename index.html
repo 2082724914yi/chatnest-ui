@@ -2785,6 +2785,78 @@ html[data-skin="vintage"][data-theme="dark"] body::before{mix-blend-mode:screen;
 @media(prefers-reduced-motion:reduce){
   html[data-skin="vintage"] body::before{opacity:.03}
 }
+/* ── 主题第二期：真装饰件 ──────────────────────────────────
+   素材在 /assets/theme/，由 deploy/setup-private-assets.sh 从私有仓库
+   拉到 VPS（不进这个公开仓库，PERSONAL USE ONLY）。
+   文件没到位也不会坏：贴不上就是没有，界面照常。
+   ───────────────────────────────────────────────────── */
+
+/* 首页第一张大卡：右上角一朵角花。
+   corner_rose 是从信纸上裁的矩形（带纸底），直接贴四条硬边全露在外面 ——
+   用径向遮罩从右上角化开，边缘就没了。只给第一张，三张都贴太吵。 */
+html[data-skin="vintage"] #home .home-panel:first-of-type{overflow:hidden}
+html[data-skin="vintage"] #home .home-panel:first-of-type::after{
+  content:"";position:absolute;right:0;top:0;width:118px;height:94px;
+  background:url("/assets/theme/corner_rose.webp") no-repeat right top/cover;
+  opacity:.34;pointer-events:none;mix-blend-mode:multiply;
+  -webkit-mask:radial-gradient(125% 125% at 100% 0%,#000 34%,rgba(0,0,0,.55) 58%,transparent 82%);
+  mask:radial-gradient(125% 125% at 100% 0%,#000 34%,rgba(0,0,0,.55) 58%,transparent 82%);
+}
+html[data-skin="vintage"][data-chat-bg="dark"] #home .home-panel:first-of-type::after,
+html[data-skin="vintage"][data-theme="dark"] #home .home-panel:first-of-type::after{mix-blend-mode:screen;opacity:.2}
+@media(prefers-color-scheme:dark){
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) #home .home-panel:first-of-type::after{mix-blend-mode:screen;opacity:.2}
+}
+
+/* Timeline：竖线换成那条丝带 */
+html[data-skin="vintage"] .tl-line::before{
+  left:16px;width:30px;
+  background:url("/assets/theme/ribbon.webp") repeat-y center top/100% auto!important;
+  opacity:.40;
+}
+/* 月份分段处打一个结 —— 结就是分界，不用读字也知道翻到哪个月了 */
+html[data-skin="vintage"] .tl-month{position:relative}
+html[data-skin="vintage"] .tl-month::before{
+  /* 宽 38 + 左 5 = 右边界 43，卡在文字起点 50px 之前，压不到「八月」两个字 */
+  content:"";position:absolute;left:5px;top:50%;transform:translateY(-50%);
+  width:38px;height:38px;
+  background:url("/assets/theme/bow.webp") no-repeat center/contain;
+  opacity:.85;pointer-events:none;
+}
+html[data-skin="vintage"] .tl-month-t{opacity:.34}
+/* 节点换成珍珠 */
+html[data-skin="vintage"] .tl-dot{
+  background:radial-gradient(circle at 32% 28%,#FFF 0 18%,#E7D2CD 45%,#C08C87 100%);
+  box-shadow:0 1px 2px rgba(90,60,50,.28);
+}
+html[data-skin="vintage"] .tl-day.is-big .tl-dot{
+  background:radial-gradient(circle at 32% 28%,#FFF 0 16%,#D9A9A2 42%,#A87470 100%);
+  box-shadow:0 0 0 3px rgba(192,140,135,.18),0 1px 2px rgba(90,60,50,.3);
+}
+
+/* 空状态：最该放图的地方 */
+html[data-skin="vintage"] .tl-empty,
+html[data-skin="vintage"] .ks-empty,
+html[data-skin="vintage"] .diary-empty,
+html[data-skin="vintage"] .files-empty{
+  padding-top:112px!important;background-repeat:no-repeat;background-position:center 10px;
+  background-size:auto 92px;
+}
+html[data-skin="vintage"] .tl-empty{background-image:url("/assets/theme/cage.webp")}
+html[data-skin="vintage"] .diary-empty{background-image:url("/assets/theme/chair.webp")}
+html[data-skin="vintage"] .ks-empty{background-image:url("/assets/theme/letter.webp")}
+html[data-skin="vintage"] .files-empty{background-image:url("/assets/theme/books.webp")}
+html[data-skin="vintage"] .ks-empty-icon{display:none}
+
+/* 蕾丝：面板标题底下那条分隔 */
+html[data-skin="vintage"] .settings-section-title::after{
+  content:"";display:block;height:15px;margin-top:5px;
+  background:url("/assets/theme/lace_band.webp") repeat-x left center/auto 100%;
+  opacity:.5;mix-blend-mode:multiply;
+}
+html[data-skin="vintage"][data-chat-bg="dark"] .settings-section-title::after,
+html[data-skin="vintage"][data-theme="dark"] .settings-section-title::after{mix-blend-mode:screen;opacity:.3}
+
 /* 主题选择卡（偏好设置里那两张） */
 .skin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .skin-card{
