@@ -2687,6 +2687,116 @@ html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .diary-se
 html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-search-bubble{color:rgba(32,31,29,1.00)!important}
 html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-search-icon{color:rgba(32,31,29,0.79)!important}
 html[data-wall-photo]:not([data-chat-bg="dark"])[data-chat-bg="light"] .memory-search-input::placeholder{color:rgba(32,31,29,0.73)!important}
+
+/* ══ 主题「纸与蕾丝」（2026.9.11）══════════════════════════════════
+   偏好设置 → 主题 里切。默认不写 data-skin，就是原来的样子。
+   跟 data-chat-bg（壁纸明暗）是两套独立的东西，互不干扰。
+
+   这一期只动颜色 / 字体 / 圆角 + 一层纸纹，不引用任何图片。
+   ⚠ 装饰件（蕾丝、丝带、香水瓶那些）标着 PERSONAL USE ONLY，
+     不能进这个公开仓库。贴图那一期等素材单独上到 VPS 的
+     /assets/theme/ 之后再做 —— 素材和切图脚本在 cc-/theme-assets/。
+   ══════════════════════════════════════════════════════════════ */
+html[data-skin="vintage"]{
+  --bg-primary:#F3EDE3;--bg-surface:#EBE0D0;--bg-sunken:#E2D4C0;--bubble-user:#EBDED4;
+  --text-primary:#3B322A;--text-secondary:#6E6053;--text-faint:#9A8B7B;
+  --accent:#C08C87;--accent-hover:#A87470;--accent-fg:#FFF9F4;
+  --border:rgba(59,50,42,.14);--border-strong:rgba(59,50,42,.24);
+  --font-serif:"Cormorant Garamond",ui-serif,Georgia,"Songti SC","Source Han Serif SC",serif;
+  --radius-md:10px;--radius-lg:20px;--radius-bubble:18px;
+  --claude-main-surface:#F3EDE3;--claude-main-surface-soft:#EFE7DA;--claude-sidebar-bg:#EBE0D0;
+  --claude-text-primary:#3B322A;--claude-text-secondary:#6E6053;--claude-text-muted:#9A8B7B;
+  --claude-border-soft:#DCCDB8;--claude-selected-bg:#E4D6C2;--claude-selected-bg-dim:#DCCDB8;
+  --claude-accent-orange:#C08C87;--claude-accent-orange-deep:#A87470;
+  --claude-pill-bg:#5A4A3B;--claude-pill-text:#F3EDE3;
+  --claude-new-chat-bg:#5A4A3B;--claude-new-chat-text:#F3EDE3;
+  --claude-recents-label-color:#9A8B7B;--claude-recents-text-color:#3B322A;
+}
+html[data-skin="vintage"][data-chat-bg="dark"],
+html[data-skin="vintage"][data-theme="dark"]{
+  --bg-primary:#211C17;--bg-surface:#2A241E;--bg-sunken:#1A1611;--bubble-user:#3A302A;
+  --text-primary:#E7DCCB;--text-secondary:#B3A392;--text-faint:#7C6E60;
+  --accent:#C99A94;--accent-hover:#D8AFA8;--accent-fg:#211C17;
+  --border:rgba(231,220,203,.12);--border-strong:rgba(231,220,203,.2);
+  --claude-main-surface:#211C17;--claude-main-surface-soft:#2A241E;--claude-sidebar-bg:#1A1611;
+  --claude-text-primary:#E7DCCB;--claude-text-secondary:#B3A392;--claude-text-muted:#7C6E60;
+  --claude-border-soft:#4A3F34;--claude-selected-bg:#332B24;--claude-selected-bg-dim:#2A241E;
+  --claude-accent-orange:#C99A94;--claude-accent-orange-deep:#D8AFA8;
+  --claude-pill-bg:#E7DCCB;--claude-pill-text:#211C17;
+  --claude-new-chat-bg:#E7DCCB;--claude-new-chat-text:#211C17;
+  --claude-recents-text-color:#E7DCCB;
+}
+/* 壁纸也得接管，不然整屏还是原来那张，主题等于没换。
+   不放花（素材进不了公开仓库），用旧纸的渐变 + 四角压暗，纸感靠上面那层噪点。 */
+html[data-skin="vintage"]{
+  --chat-wallpaper:
+    radial-gradient(120% 85% at 50% 0%, rgba(255,252,246,.85) 0%, rgba(255,252,246,0) 55%),
+    radial-gradient(130% 100% at 50% 100%, rgba(176,150,116,.16) 0%, rgba(176,150,116,0) 60%),
+    linear-gradient(168deg,#F6F0E5 0%,#F0E7D8 42%,#E9DDC9 100%) !important;
+}
+html[data-skin="vintage"][data-chat-bg="dark"],
+html[data-skin="vintage"][data-theme="dark"]{
+  --chat-wallpaper:
+    radial-gradient(120% 85% at 50% 0%, rgba(74,63,52,.5) 0%, rgba(74,63,52,0) 55%),
+    linear-gradient(168deg,#262019 0%,#1E1914 48%,#171310 100%) !important;
+}
+@media(prefers-color-scheme:dark){
+  html[data-skin="vintage"]:not([data-chat-bg="light"]){
+    --chat-wallpaper:
+      radial-gradient(120% 85% at 50% 0%, rgba(74,63,52,.5) 0%, rgba(74,63,52,0) 55%),
+      linear-gradient(168deg,#262019 0%,#1E1914 48%,#171310 100%) !important;
+  }
+}
+/* 卡片：原来靠阴影撑，纸上要靠一条描边才分得开层 */
+html[data-skin="vintage"] .home-panel,
+html[data-skin="vintage"] .home-grid-card{
+  border:1px solid var(--claude-border-soft);
+  box-shadow:0 10px 22px -20px rgba(90,74,59,.55);
+}
+/* 面板底色：这些地方的背景是写死的，得单独接上变量 */
+html[data-skin="vintage"] #gate,
+html[data-skin="vintage"] #home,
+html[data-skin="vintage"] #momentsPanel,
+html[data-skin="vintage"] #keepsakePanel,
+html[data-skin="vintage"] #pulsePanel,
+html[data-skin="vintage"] #memoryPanel,
+html[data-skin="vintage"] #latentHome,
+html[data-skin="vintage"] #obHome,
+html[data-skin="vintage"] #profileHome,
+html[data-skin="vintage"] #diaryPanel,
+html[data-skin="vintage"] #searchPanel,
+html[data-skin="vintage"] #projectsPanel,
+html[data-skin="vintage"] #settingsPanel,
+html[data-skin="vintage"] .moments-compose{
+  background-color:var(--bg-primary)!important;
+  color:var(--text-primary)!important;
+}
+/* 纸纹：一层极淡的噪点压在最上面。pointer-events:none，不挡任何操作 */
+html[data-skin="vintage"] body::before{
+  content:"";position:fixed;inset:0;z-index:9998;pointer-events:none;
+  opacity:.05;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html[data-skin="vintage"][data-chat-bg="dark"] body::before,
+html[data-skin="vintage"][data-theme="dark"] body::before{mix-blend-mode:screen;opacity:.07}
+@media(prefers-color-scheme:dark){
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) body::before{mix-blend-mode:screen;opacity:.07}
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-skin="vintage"] body::before{opacity:.03}
+}
+/* 主题选择卡（偏好设置里那两张） */
+.skin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.skin-card{
+  cursor:pointer;border-radius:12px;overflow:hidden;padding:0;text-align:left;
+  border:2.5px solid transparent;background:transparent;font:inherit;color:inherit;
+}
+.skin-card.on{border-color:var(--accent)}
+.skin-card .sw{height:62px;display:flex}
+.skin-card .sw i{flex:1}
+.skin-card .nm{padding:7px 10px 9px;background:var(--bg-surface)}
+.skin-card .nm b{display:block;font-size:14px;font-weight:600;color:var(--text-primary)}
+.skin-card .nm span{font-size:11.5px;color:var(--text-secondary)}
 </style>
 </head>
 <body>
@@ -6549,6 +6659,26 @@ function _renderColorMode(root){
   });
 }
 
+/* ── 主题「纸与蕾丝」 ─────────────────────────────────
+   skin 跟 data-chat-bg（壁纸明暗）是两套独立的东西，互不干扰。
+   衬线字体只在真切到 vintage 时才去加载 —— 默认那套一个字节都不多拉。
+   ───────────────────────────────────────────────── */
+const SKINS={
+  plain:  {name:'素的',      desc:'原来的样子',  sw:['#FAF6F1','#F2E4E1','#E8D5CF','#C17B7B']},
+  vintage:{name:'纸与蕾丝',  desc:'旧纸 · 干玫瑰', sw:['#F3EDE3','#EBE0D0','#C08C87','#8B9480']}
+};
+function _loadSkinFont(){
+  if(document.getElementById('skin-font')) return;
+  const l=document.createElement('link');
+  l.id='skin-font'; l.rel='stylesheet';
+  l.href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap';
+  document.head.append(l);
+}
+function _applySkin(skin){
+  const s=(skin!==undefined?skin:_settingsVal('skin','plain'));
+  if(s==='vintage'){ document.documentElement.setAttribute('data-skin','vintage'); _loadSkinFont(); }
+  else document.documentElement.removeAttribute('data-skin');
+}
 function _applyBubbleSettings(){
   let el=document.getElementById('chatnest-bubble-override');
   if(!el){el=document.createElement('style');el.id='chatnest-bubble-override';document.head.append(el)}
@@ -6759,7 +6889,17 @@ function _renderPreferences(root){
   const bgAlpha=_settingsVal('bgAlpha',50);
   const wallType=_settingsVal('wallpaperType','preset');
   const wallIdx=_settingsVal('wallpaperIndex',0);
+  const curSkin=_settingsVal('skin','plain');
   root.innerHTML=_settingsHeader('偏好设置',true)+`
+  <div class="settings-section"><div class="settings-section-title">主题</div><div class="settings-card" style="padding:12px 16px">
+    <div class="skin-grid" id="stgSkinGrid">${Object.keys(SKINS).map(k=>{
+      const s=SKINS[k];
+      return `<button type="button" class="skin-card${k===curSkin?' on':''}" data-skin="${k}" aria-pressed="${k===curSkin}">
+        <span class="sw">${s.sw.map(c=>`<i style="background:${c}"></i>`).join('')}</span>
+        <span class="nm"><b>${s.name}</b><span>${s.desc}</span></span>
+      </button>`;
+    }).join('')}</div>
+  </div></div>
   <div class="settings-section"><div class="settings-section-title">透明度</div><div class="settings-card">
     <div class="settings-slider-row"><div class="settings-slider-label"><span>气泡透明度</span><span id="stgBubbleVal">${bubbleAlpha}%</span></div><input type="range" class="settings-slider" id="stgBubbleSlider" min="0" max="100" value="${bubbleAlpha}"></div>
     <div class="settings-slider-row"><div class="settings-slider-label"><span>背景模糊度</span><span id="stgBgVal">${bgAlpha}%</span></div><input type="range" class="settings-slider" id="stgBgSlider" min="0" max="100" value="${bgAlpha}"></div>
@@ -6769,6 +6909,14 @@ function _renderPreferences(root){
     <button class="settings-btn outline" id="stgUploadWall" style="margin-top:12px;width:100%">+ 上传照片壁纸</button>
   </div></div>`;
   root.querySelector('#stgBack').onclick=()=>_renderSettingsRoot();
+  root.querySelector('#stgSkinGrid').addEventListener('click',e=>{
+    const b=e.target.closest('.skin-card'); if(!b) return;
+    _settingsSet('skin',b.dataset.skin); _applySkin(b.dataset.skin);
+    root.querySelectorAll('.skin-card').forEach(c=>{
+      const on=(c===b); c.classList.toggle('on',on); c.setAttribute('aria-pressed',on);
+    });
+    toast(b.dataset.skin==='vintage'?'换上「纸与蕾丝」了':'换回原来的样子');
+  });
   root.querySelector('#stgBubbleSlider').oninput=e=>{root.querySelector('#stgBubbleVal').textContent=e.target.value+'%';_settingsSet('bubbleAlpha',+e.target.value);_applyBubbleSettings()};
   root.querySelector('#stgBgSlider').oninput=e=>{root.querySelector('#stgBgVal').textContent=e.target.value+'%';_settingsSet('bgAlpha',+e.target.value);_applyBubbleSettings()};
 
@@ -10248,6 +10396,7 @@ if(state.token)showChat();else loadMsgAvatars();resetEmpty();loadModels();update
       Switch.set(cfg.wallpaperIndex);
     }
     _applyBubbleSettings();
+    _applySkin();
   }catch(e){}
 })();
 
