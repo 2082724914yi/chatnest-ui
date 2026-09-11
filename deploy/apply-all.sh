@@ -123,6 +123,7 @@ fix-wheel-tag.js|WHEEL_TAG_ZH_V1|轮盘摇出来的是三语对象，取中文�
 fix-room-inject.js|ROOM_INJECT_V2|卧室那段 prompt 真的到得了我眼前（原来挂在一个未必存在的 conv 上）
 fix-room-no-handoff.js|ROOM_NO_HANDOFF_V1|卧室不带接续包（每次进门都是新会话，客厅的尾巴一直被塞进来）
 fix-room-recap-cheap.js|ROOM_RECAP_CHEAP_V1|出门那一下别再当一整轮对话算（她发现额度一次掉几个点）
+add-room-voice.js|ROOM_VOICE_V1|她那份 NSFW 规范钉进卧室（不用她再开口说「按 ob 那个来」）
 "
 
 # 跑完把每条标记在 server.js 里的真实命中情况列一遍。
