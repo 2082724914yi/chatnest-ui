@@ -2896,11 +2896,126 @@ html[data-skin="vintage"] .ks-empty{background-image:url("/assets/theme/letter.w
 html[data-skin="vintage"] .files-empty{background-image:url("/assets/theme/books.webp")}
 html[data-skin="vintage"] .ks-empty-icon{display:none}
 
+/* ── 各个屋子里面 ───────────────────────────────────────── */
+
+/* Moments：封面铺信纸底（它的 ::before/::after 被那个 ♡ 占了，所以走背景图） */
+html[data-skin="vintage"] .moments-cover{
+  background-image:
+    linear-gradient(100deg, rgba(250,246,238,.95) 0%, rgba(250,246,238,.92) 44%,
+                    rgba(250,246,238,.64) 76%, rgba(250,246,238,.3) 100%),
+    url("/assets/theme/sheet_lacebow.webp");
+  background-size:cover,cover;background-position:center,center;
+  border-radius:14px;
+}
+/* 每条动态之间用一条蕾丝分开，不用那根细线 */
+/* 纸的这套里，封面那两个 ♡ 让位给一个蝴蝶结。素的那套原样不动。 */
+html[data-skin="vintage"] .moments-cover::before{content:none}
+/* 封面那张底图本身就画着一个大蕾丝结，再叠一个是多余 —— 只把原来那个 ♡ 收掉 */
+html[data-skin="vintage"] .moments-cover::after{content:none}
+html[data-skin="vintage"] .moment-card{border-bottom:0!important;position:relative}
+html[data-skin="vintage"] .moment-card::after{
+  content:"";position:absolute;left:18px;right:18px;bottom:7px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(154,131,102,.34) 18%,
+             rgba(154,131,102,.34) 82%,transparent);pointer-events:none;
+}
+html[data-skin="vintage"] .moment-card::before{
+  content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);
+  width:30px;height:26px;z-index:1;
+  background:url("/assets/theme/bow.webp") no-repeat center/contain;
+  opacity:.7;pointer-events:none;
+}
+html[data-skin="vintage"] .moment-card:last-child::before{display:none}
+html[data-skin="vintage"] .moment-card:last-child::after{display:none}
+
+/* Pulse：卡片上纸底，标题那行右边摆上那只香水瓶 */
+html[data-skin="vintage"] .pulse-card{
+  background-color:transparent;
+  background-image:
+    radial-gradient(120% 92% at 46% 50%,
+      rgba(250,246,238,.97) 0%, rgba(250,246,238,.94) 40%, rgba(250,246,238,.68) 100%),
+    url("/assets/theme/sheet_corner.webp");
+  background-size:cover,cover;background-position:center,center;
+  border-color:rgba(154,131,102,.3);
+}
+html[data-skin="vintage"] .pulse-head{position:relative;padding-right:78px}
+html[data-skin="vintage"] .pulse-head::after{
+  content:"";position:absolute;right:-4px;top:50%;transform:translateY(-50%);
+  width:68px;height:74px;
+  background:url("/assets/theme/perfume.webp") no-repeat center/contain;
+  opacity:.5;pointer-events:none;
+}
+
+/* Keepsake：格子加描边，顶上一条蕾丝 */
+html[data-skin="vintage"] .ks-cell{
+  border-radius:9px;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(154,131,102,.26),0 8px 18px -16px rgba(90,74,59,.5);
+}
+html[data-skin="vintage"] .ks-top{position:relative;padding-bottom:16px}
+html[data-skin="vintage"] .ks-top::after{
+  content:"";position:absolute;left:0;right:0;bottom:4px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(154,131,102,.3) 15%,
+             rgba(154,131,102,.3) 85%,transparent);pointer-events:none;
+}
+
+/* Ombre Brain 的记忆卡：纸底 */
+html[data-skin="vintage"] .ob-card{
+  background-color:rgba(250,246,238,.72);
+  box-shadow:inset 0 0 0 1px rgba(154,131,102,.28);
+}
+
+/* 深色下这几处的混合模式要反过来，不然糊成一块 */
+html[data-skin="vintage"][data-chat-bg="dark"] .moment-card::after,
+html[data-skin="vintage"][data-theme="dark"] .moment-card::after,
+html[data-skin="vintage"][data-chat-bg="dark"] .moment-card::after,
+html[data-skin="vintage"][data-theme="dark"] .moment-card::after,
+html[data-skin="vintage"][data-chat-bg="dark"] .ks-top::after,
+html[data-skin="vintage"][data-theme="dark"] .ks-top::after{
+  background:linear-gradient(90deg,transparent,rgba(231,220,203,.22) 18%,
+             rgba(231,220,203,.22) 82%,transparent)}
+html[data-skin="vintage"][data-chat-bg="dark"] .moments-cover,
+html[data-skin="vintage"][data-theme="dark"] .moments-cover{
+  background-image:
+    linear-gradient(100deg, rgba(33,28,23,.94) 0%, rgba(33,28,23,.9) 44%,
+                    rgba(33,28,23,.7) 76%, rgba(33,28,23,.46) 100%),
+    url("/assets/theme/sheet_lacebow.webp");
+}
+html[data-skin="vintage"][data-chat-bg="dark"] .pulse-card,
+html[data-skin="vintage"][data-theme="dark"] .pulse-card{
+  background-image:
+    radial-gradient(120% 92% at 46% 50%,
+      rgba(33,28,23,.95) 0%, rgba(33,28,23,.92) 40%, rgba(33,28,23,.72) 100%),
+    url("/assets/theme/sheet_corner.webp");
+  border-color:rgba(231,220,203,.16);
+}
+html[data-skin="vintage"][data-chat-bg="dark"] .ob-card,
+html[data-skin="vintage"][data-theme="dark"] .ob-card{
+  background-color:rgba(42,36,30,.6);box-shadow:inset 0 0 0 1px rgba(231,220,203,.16);
+}
+@media(prefers-color-scheme:dark){
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) .moment-card::after,
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) .ks-top::after{mix-blend-mode:screen;opacity:.3}
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) .moments-cover{
+    background-image:
+      linear-gradient(100deg, rgba(33,28,23,.94) 0%, rgba(33,28,23,.9) 44%,
+                      rgba(33,28,23,.7) 76%, rgba(33,28,23,.46) 100%),
+      url("/assets/theme/sheet_lacebow.webp");
+  }
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) .pulse-card{
+    background-image:
+      radial-gradient(120% 92% at 46% 50%,
+        rgba(33,28,23,.95) 0%, rgba(33,28,23,.92) 40%, rgba(33,28,23,.72) 100%),
+      url("/assets/theme/sheet_corner.webp");
+    border-color:rgba(231,220,203,.16);
+  }
+  html[data-skin="vintage"]:not([data-chat-bg="light"]) .ob-card{
+    background-color:rgba(42,36,30,.6);box-shadow:inset 0 0 0 1px rgba(231,220,203,.16);
+  }
+}
+
 /* 蕾丝：面板标题底下那条分隔 */
 html[data-skin="vintage"] .settings-section-title::after{
-  content:"";display:block;height:15px;margin-top:5px;
-  background:url("/assets/theme/lace_band.webp") repeat-x left center/auto 100%;
-  opacity:.5;mix-blend-mode:multiply;
+  content:"";display:block;height:1px;margin-top:7px;
+  background:linear-gradient(90deg,rgba(154,131,102,.3),rgba(154,131,102,.08) 62%,transparent);
 }
 html[data-skin="vintage"][data-chat-bg="dark"] .settings-section-title::after,
 html[data-skin="vintage"][data-theme="dark"] .settings-section-title::after{mix-blend-mode:screen;opacity:.3}
