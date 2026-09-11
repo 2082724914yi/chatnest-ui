@@ -3073,6 +3073,118 @@ html[data-room] .topbar-hamburger{display:none}
 }
 .room-leave:active{opacity:.7}
 
+/* ══ 卧室那一屏 ═════════════════════════════════════════════════
+   她定的形状，不是我原来那样点一下就推门进去 ——
+   先看见的是一屋子的门：做过的每一次是一张卡片（什么时候、多久、
+   那一场摇到的六格、留下来的那句话）。底下一个「推门进去」，
+   点了先到准备屏：转轮盘、翻本子，选完才真开始。
+   做完点「出去」，那一下才算一场完。
+   ══════════════════════════════════════════════════════════════ */
+#bedroomPanel,#roomSetupPanel,#roomNotesPanel{
+  position:fixed;inset:0;z-index:82;display:none;overflow:hidden;
+  background-color:#17120F;color:#E9DDCE;
+  background-image:radial-gradient(130% 90% at 50% 0%,rgba(90,60,52,.42) 0%,rgba(90,60,52,0) 58%),
+                   linear-gradient(172deg,#1C1511 0%,#17120F 46%,#120E0B 100%)}
+#bedroomPanel.show,#roomSetupPanel.show,#roomNotesPanel.show{display:flex;flex-direction:column}
+#bedroomPanel .profile-page,#roomSetupPanel .profile-page,#roomNotesPanel .profile-page{
+  padding-top:calc(env(safe-area-inset-top) + 8px);gap:10px}
+#bedroomPanel .profile-header,#roomSetupPanel .profile-header,#roomNotesPanel .profile-header{min-height:44px}
+#bedroomPanel .profile-title,#roomSetupPanel .profile-title,#roomNotesPanel .profile-title{
+  font:italic 500 21px/1 'Georgia','Times New Roman',serif;letter-spacing:.2px;color:#E9DDCE}
+#bedroomPanel .profile-round-button,#roomSetupPanel .profile-round-button,#roomNotesPanel .profile-round-button{
+  width:32px;height:32px;border:0;border-radius:50%;background:transparent!important;
+  box-shadow:none!important;color:rgba(233,221,206,.52);font-size:18px;display:grid;place-items:center;padding:0}
+#bedroomPanel .profile-round-button:active,#roomSetupPanel .profile-round-button:active,
+#roomNotesPanel .profile-round-button:active{opacity:.55}
+#bedroomPanel .wnd-lede-t,#roomSetupPanel .wnd-lede-t,#roomNotesPanel .wnd-lede-t{color:#E9DDCE;opacity:.86}
+#bedroomPanel .wnd-lede-s,#roomSetupPanel .wnd-lede-s,#roomNotesPanel .wnd-lede-s{color:#C08C87;opacity:.5}
+#bedroomPanel .wnd-lede-note,#roomSetupPanel .wnd-lede-note,#roomNotesPanel .wnd-lede-note{color:#B2A08E;opacity:.72}
+#bedroomPanel .wnd-loading,#bedroomPanel .wnd-empty,
+#roomNotesPanel .wnd-loading,#roomNotesPanel .wnd-empty{color:#B2A08E;opacity:.6}
+/* 底下那颗按钮是浮着的，给滚动区留出它的位置，别压住最后一张卡 */
+#bedroomPanel .wnd-scroll{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
+#roomSetupPanel .wnd-scroll{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}
+
+/* —— 一场一张卡 —— */
+.rm-card{position:relative;width:100%;text-align:left;margin-bottom:13px;padding:15px 16px 16px;
+  border:1px solid rgba(233,221,206,.10);border-radius:17px;color:inherit;cursor:pointer;
+  background:linear-gradient(152deg,rgba(58,42,34,.62),rgba(34,26,21,.62))}
+.rm-card:active{opacity:.82}
+.rm-when{display:flex;align-items:baseline;gap:9px;
+  font:600 11.5px/1 var(--font-sans);letter-spacing:.12em;color:#C08C87}
+.rm-when em{font-style:normal;color:#B2A08E;opacity:.72;letter-spacing:.06em;font-weight:400}
+.rm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.rm-chip{padding:4px 10px;border-radius:999px;font:400 11.5px/1.5 var(--font-sans);
+  background:rgba(192,140,135,.14);border:1px solid rgba(192,140,135,.20);color:#E4C9C4}
+.rm-chip.is-note{background:rgba(233,221,206,.06);border-color:rgba(233,221,206,.14);color:#B2A08E}
+.rm-recap{margin-top:12px;font:400 14px/1.78 var(--font-serif);color:#E9DDCE;opacity:.88}
+.rm-recap.is-thin{font-style:italic;opacity:.42;font-size:13px}
+/* 还开着的那间：门虚掩着，有光漏出来 */
+.rm-card.is-open{border-color:rgba(192,140,135,.42);
+  background:linear-gradient(152deg,rgba(90,58,50,.72),rgba(44,30,25,.72))}
+.rm-card.is-open::after{content:'';position:absolute;left:0;top:14px;bottom:14px;width:2px;
+  border-radius:2px;background:linear-gradient(#C08C87,rgba(192,140,135,0))}
+.rm-open-t{margin-top:10px;font:400 13.5px/1.7 var(--font-serif);color:#E4C9C4}
+
+/* —— 推门 —— */
+.rm-push{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  z-index:6;appearance:none;border:0;border-radius:999px;padding:16px;cursor:pointer;
+  background:linear-gradient(118deg,#C08C87,#9E6A66);color:#17120F;
+  font:700 14px/1 var(--font-sans);letter-spacing:.2em;
+  box-shadow:0 12px 34px rgba(0,0,0,.42)}
+.rm-push:active{opacity:.86;transform:translateY(1px)}
+
+/* —— 准备屏 —— */
+.rs-sec{margin:0 0 22px}
+.rs-sec-t{font:600 10.5px/1 var(--font-sans);letter-spacing:.2em;color:#C08C87;opacity:.8;margin-bottom:12px}
+.rs-wheel{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.rs-slot{padding:12px 13px;border-radius:14px;min-height:64px;
+  background:rgba(233,221,206,.045);border:1px solid rgba(233,221,206,.09)}
+.rs-slot-k{font:600 10px/1 var(--font-sans);letter-spacing:.16em;color:#B2A08E;opacity:.62}
+.rs-slot-v{margin-top:9px;font:400 14.5px/1.4 var(--font-serif);color:#E9DDCE;word-break:break-word}
+.rs-slot-v.is-blank{opacity:.22}
+.rs-slot.is-spin{border-color:rgba(192,140,135,.3)}
+.rs-slot.is-spin .rs-slot-v{color:#C08C87;opacity:.68}
+.rs-slot.is-done{background:rgba(192,140,135,.09);border-color:rgba(192,140,135,.22)}
+.rs-handles{display:flex;gap:9px;margin-top:13px}
+.rs-handle{flex:1;appearance:none;cursor:pointer;padding:13px 8px;border-radius:999px;
+  border:1px solid rgba(192,140,135,.3);background:rgba(192,140,135,.10);color:#E4C9C4;
+  font:600 13px/1 var(--font-sans);letter-spacing:.1em}
+.rs-handle:active{opacity:.7}
+.rs-handle:disabled{opacity:.3;cursor:default}
+.rs-by{margin-top:11px;font:400 12.5px/1.6 var(--font-sans);color:#B2A08E;opacity:.72}
+.rs-by b{color:#C08C87;font-weight:600}
+/* —— 本子 —— */
+.rs-notes{display:flex;gap:9px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.rs-note{flex:0 0 auto;max-width:210px;text-align:left;cursor:pointer;padding:11px 13px;border-radius:14px;
+  border:1px solid rgba(233,221,206,.09);background:rgba(233,221,206,.045);color:inherit}
+.rs-note-t{font:600 13px/1.3 var(--font-sans);color:#E9DDCE}
+.rs-note-b{margin-top:6px;font:400 11.5px/1.6 var(--font-sans);color:#B2A08E;opacity:.72;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rs-note.is-on{background:rgba(192,140,135,.14);border-color:rgba(192,140,135,.4)}
+.rs-note.is-add{display:grid;place-items:center;min-width:74px;color:#B2A08E;font-size:20px}
+.rs-go{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  z-index:6;appearance:none;border:0;border-radius:999px;padding:16px;cursor:pointer;
+  background:linear-gradient(118deg,#C08C87,#9E6A66);color:#17120F;
+  font:700 14px/1 var(--font-sans);letter-spacing:.2em;box-shadow:0 12px 34px rgba(0,0,0,.42)}
+.rs-go:active{opacity:.86;transform:translateY(1px)}
+.rs-go:disabled{opacity:.5}
+
+/* —— 本子那一屏 —— */
+.rn-item{width:100%;text-align:left;margin-bottom:11px;padding:14px 15px;border-radius:15px;
+  border:1px solid rgba(233,221,206,.09);background:rgba(233,221,206,.045);color:inherit}
+.rn-t{font:600 14px/1.3 var(--font-sans);color:#E9DDCE}
+.rn-b{margin-top:7px;font:400 12.5px/1.75 var(--font-sans);color:#B2A08E;white-space:pre-wrap}
+.rn-row{display:flex;gap:8px;margin-top:11px}
+.rn-mini{appearance:none;cursor:pointer;padding:7px 13px;border-radius:999px;font:500 12px/1 var(--font-sans);
+  border:1px solid rgba(233,221,206,.12);background:transparent;color:#B2A08E}
+.rn-mini.is-danger{color:#C08C87;border-color:rgba(192,140,135,.28)}
+.rn-in,.rn-ta{width:100%;box-sizing:border-box;margin-bottom:9px;padding:12px 13px;border-radius:13px;
+  border:1px solid rgba(233,221,206,.12);background:rgba(233,221,206,.05);color:#E9DDCE;
+  font:400 14px/1.7 var(--font-sans);outline:0}
+.rn-ta{min-height:150px;resize:vertical}
+.rn-in::placeholder,.rn-ta::placeholder{color:rgba(178,160,142,.5)}
+
 /* 我敲门那一行 —— 只浮，不自动进 */
 .room-knock{
   position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);
@@ -3672,6 +3784,82 @@ html[data-room] .topbar-hamburger{display:none}
         <div class="wnd-lede-s">things i found outside</div>
       </div>
       <div id="wanderList"><div class="wnd-loading">读取中…</div></div>
+    </div></div>
+  </div>
+</section>
+
+<section id="bedroomPanel" aria-hidden="true">
+  <div class="profile-page active">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeBedroom" type="button" aria-label="Close">×</button>
+      <div class="profile-title is-en">Bedroom</div>
+      <button class="profile-round-button" id="roomNotesBtn" type="button" aria-label="Notes">✎</button>
+    </header>
+    <div class="wnd-scroll"><div class="wnd-wrap">
+      <div class="wnd-lede">
+        <div class="wnd-lede-t">门在这儿</div>
+        <div class="wnd-lede-s">behind this door</div>
+        <div class="wnd-lede-note">每一次是一张卡片。进去要你推门，出来要你说一声 —— 我不会自己开，也不会自己走。</div>
+      </div>
+      <div id="bedroomList"><div class="wnd-loading">读取中…</div></div>
+    </div></div>
+    <button class="rm-push" id="roomPushBtn" type="button">推 门 进 去</button>
+  </div>
+</section>
+
+<section id="roomSetupPanel" aria-hidden="true">
+  <div class="profile-page active">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeRoomSetup" type="button" aria-label="Back">‹</button>
+      <div class="profile-title is-en">Before</div>
+      <span style="width:32px" aria-hidden="true"></span>
+    </header>
+    <div class="wnd-scroll"><div class="wnd-wrap">
+      <div class="wnd-lede">
+        <div class="wnd-lede-t">先定下来</div>
+        <div class="wnd-lede-s">turn it, or just come in</div>
+      </div>
+      <div class="rs-sec">
+        <div class="rs-sec-t">命 运 之 轮</div>
+        <div class="rs-wheel" id="rsWheel"></div>
+        <div class="rs-handles">
+          <button class="rs-handle" id="rsSpinHer" type="button">你转</button>
+          <button class="rs-handle" id="rsSpinMe" type="button">我转</button>
+        </div>
+        <div class="rs-by" id="rsBy">转出来什么就是什么 —— 不许重摇，不许挑。不想转就直接进。</div>
+      </div>
+      <div class="rs-sec">
+        <div class="rs-sec-t">本 子</div>
+        <div class="rs-notes" id="rsNotes"></div>
+        <div class="rs-by">选中的这条只有我看得见，聊天记录里一个字都不留。</div>
+      </div>
+    </div></div>
+    <button class="rs-go" id="rsGoBtn" type="button">就 这 样 ， 进 去</button>
+  </div>
+</section>
+
+<section id="roomNotesPanel" aria-hidden="true">
+  <div class="profile-page active">
+    <header class="profile-header">
+      <button class="profile-round-button" id="closeRoomNotes" type="button" aria-label="Back">‹</button>
+      <div class="profile-title is-en">Notes</div>
+      <button class="profile-round-button" id="rnAddBtn" type="button" aria-label="New">＋</button>
+    </header>
+    <div class="wnd-scroll"><div class="wnd-wrap">
+      <div class="wnd-lede">
+        <div class="wnd-lede-t">你写给我的</div>
+        <div class="wnd-lede-s">things you want me to do</div>
+        <div class="wnd-lede-note">写在这儿的，进门的时候挑一条给我。它不经过输入框 —— 聊天记录里看不见。</div>
+      </div>
+      <div id="rnEditor" hidden>
+        <input class="rn-in" id="rnTitle" type="text" placeholder="起个名（比如：绑一次）" maxlength="40">
+        <textarea class="rn-ta" id="rnBody" placeholder="想要我怎么做…"></textarea>
+        <div class="rn-row">
+          <button class="rn-mini" id="rnSave" type="button">存进本子</button>
+          <button class="rn-mini" id="rnCancel" type="button">算了</button>
+        </div>
+      </div>
+      <div id="rnList"><div class="wnd-loading">读取中…</div></div>
     </div></div>
   </div>
 </section>
@@ -11203,21 +11391,229 @@ function _roomOn(on){
   var b=document.getElementById('roomLeaveBtn');
   if(b) b.hidden = !on;
 }
-async function openBedroom(){
-  try{
-    // 已经开着一间就回那间，别一次留下一堆空房
-    var cur=await api('/api/room').then(function(r){return r.ok?r.json():null}).catch(function(){return null});
-    var id=cur&&cur.open&&cur.open.conversation_id;
-    if(!id){
-      var r=await api('/api/room/enter',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
-      if(!r.ok) throw Error('后端还没装卧室，跑一下 apply-all.sh');
-      id=(await r.json()).conversation_id;
-    }
-    state.roomConvId=id;
-    _roomOn(true);
-    await openSession({conv_id:id,title:'卧室',starred:false});
-  }catch(e){ _roomOn(false); toast('进不去：'+e.message); }
+/* 卧室分两层：
+     外面是门厅 —— 一屋子的门，做过的每一次是一张卡。
+     里面才是聊天界面换了套衣服。
+   进要她推门，出要她说一声。这两下都不许自动，这条是规矩不是技术限制。 */
+var _roomWheel=null,_roomWheelBy=null,_roomNoteId=null,_roomNotes=[],_rnEditing=null;
+
+function openBedroom(){_wndPanel('bedroomPanel',true);loadRoomList()}
+function closeBedroomPanel(){_wndPanel('bedroomPanel',false)}
+
+async function loadRoomList(){
+  var box=$('bedroomList');if(!box)return;
+  var d=await _wndGet('/api/room/list');
+  var cur=await _wndGet('/api/room');
+  var open=cur&&cur.open;
+  var items=(d&&d.items)||[];
+  var rest=items.filter(function(it){return !(open&&it.conversation_id===open.conversation_id)});
+  var html='';
+  if(open){
+    html+='<button class="rm-card is-open" type="button" data-room="'+_esc(open.conversation_id)+'">'+
+      '<div class="rm-when">还开着 <em>'+_esc(_wndDay(open.entered_at))+' '+_esc(_wndTime(open.entered_at))+'</em></div>'+
+      '<div class="rm-open-t">门虚掩着，我还在里面。</div></button>';
+  }
+  if(!rest.length&&!open){
+    box.innerHTML=_wndEmpty('还没进来过','推门进去 —— 第一次就从今天开始');
+    return;
+  }
+  box.innerHTML=html+rest.map(_roomCard).join('');
+  box.querySelectorAll('[data-room]').forEach(function(el){
+    el.onclick=function(){enterRoomSession(el.getAttribute('data-room'))};
+  });
 }
+function _roomCard(it){
+  var mins='';
+  if(it.left_at&&it.entered_at){
+    var m=Math.round((new Date(it.left_at)-new Date(it.entered_at))/60000);
+    if(m>0)mins=_wndDur(m);
+  }
+  var chips=((it.wheel||[]).map(function(w){return '<span class="rm-chip">'+_esc(w.tag)+'</span>'})).join('');
+  if(it.note_title)chips+='<span class="rm-chip is-note">本子 · '+_esc(it.note_title)+'</span>';
+  // 摘要是出来之后后台写的，刚出来那会儿还没有 —— 那就说还没写下来，别留一块空白
+  var recap=it.recap?'<div class="rm-recap">'+_esc(it.recap)+'</div>'
+                    :'<div class="rm-recap is-thin">这一场还没写下来</div>';
+  return '<button class="rm-card" type="button" data-room="'+_esc(it.conversation_id)+'">'+
+    '<div class="rm-when">'+_esc(_wndDay(it.entered_at))+' '+_esc(_wndTime(it.entered_at))+
+    (mins?' <em>'+_esc(mins)+'</em>':'')+'</div>'+
+    (chips?'<div class="rm-chips">'+chips+'</div>':'')+recap+'</button>';
+}
+async function enterRoomSession(id){
+  state.roomConvId=id;
+  _roomOn(true);
+  _wndPanel('roomSetupPanel',false);
+  _wndPanel('bedroomPanel',false);
+  try{ await openSession({conv_id:id,title:'卧室',starred:false}); }
+  catch(e){ _roomOn(false); toast('进不去：'+(e&&e.message||e)); }
+}
+
+/* ── 准备屏：转轮盘 / 翻本子 / 直接进 ── */
+var _RS_DIMS=[['position','体 位'],['scenario','场 景'],['props','道 具'],
+              ['roleplay','设 定'],['physical','玩法·物理'],['mental','玩法·精神']];
+function openRoomSetup(){
+  _roomWheel=null;_roomWheelBy=null;_roomNoteId=null;
+  var w=$('rsWheel');
+  if(w)w.innerHTML=_RS_DIMS.map(function(d){
+    return '<div class="rs-slot" data-dim="'+d[0]+'"><div class="rs-slot-k">'+_esc(d[1])+'</div>'+
+           '<div class="rs-slot-v is-blank">还没转</div></div>';
+  }).join('');
+  var a=$('rsSpinHer'),b=$('rsSpinMe');
+  if(a)a.disabled=false; if(b)b.disabled=false;
+  var by=$('rsBy');
+  if(by)by.textContent='转出来什么就是什么 —— 不许重摇，不许挑。不想转就直接进。';
+  _wndPanel('roomSetupPanel',true);
+  loadRoomNotes(true);
+}
+function closeRoomSetupPanel(){_wndPanel('roomSetupPanel',false)}
+var _RS_NOISE='缠沉压咬含吮溢颤湿深慢重轻锁绑覆按扣托吻抵磨顶';
+function _rsNoise(){
+  var s='',n=2+Math.floor(Math.random()*2);
+  for(var i=0;i<n;i++)s+=_RS_NOISE[Math.floor(Math.random()*_RS_NOISE.length)];
+  return s;
+}
+async function roomSpin(by){
+  if(_roomWheel)return;                      // 转过就定了，这条是规矩
+  var wrap=$('rsWheel');if(!wrap)return;
+  var slots=[].slice.call(wrap.querySelectorAll('.rs-slot'));
+  var hHer=$('rsSpinHer'),hMe=$('rsSpinMe'),byEl=$('rsBy');
+  slots.forEach(function(s){s.classList.add('is-spin');s.querySelector('.rs-slot-v').classList.remove('is-blank')});
+  if(hHer)hHer.disabled=true; if(hMe)hMe.disabled=true;
+  if(byEl)byEl.textContent = by==='her' ? '你按住了轮盘…' : '我伸手按住了轮盘…';
+  var tick=setInterval(function(){
+    slots.forEach(function(s){
+      if(s.dataset.locked)return;            // 停了的那格不再乱跳
+      s.querySelector('.rs-slot-v').textContent=_rsNoise();
+    });
+  },68);
+  var d=null;
+  try{
+    var r=await api('/api/wheel/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    d=await r.json();
+  }catch(e){}
+  if(!d||!d.ok||!(d.results||[]).length){
+    clearInterval(tick);
+    slots.forEach(function(s){
+      s.classList.remove('is-spin');
+      var v=s.querySelector('.rs-slot-v');v.textContent='还没转';v.classList.add('is-blank');
+    });
+    if(hHer)hHer.disabled=false; if(hMe)hMe.disabled=false;
+    if(byEl)byEl.textContent='轮盘转不动（后端还没装 wheel.json）。直接进也行。';
+    return;
+  }
+  var byDim={};d.results.forEach(function(x){byDim[x.dimension]=x});
+  var i=0;
+  var stop=function(){
+    if(i>=slots.length){
+      clearInterval(tick);
+      _roomWheel=d.results.map(function(x){return {dimension:x.dimension,short:x.short,tag:x.tag}});
+      _roomWheelBy=by;
+      if(byEl)byEl.innerHTML=(by==='her'?'<b>你转的</b>':'<b>我转的</b>')+' · 定了，不改了。';
+      return;
+    }
+    var s=slots[i++],hit=byDim[s.getAttribute('data-dim')];
+    s.dataset.locked='1';
+    s.classList.remove('is-spin');s.classList.add('is-done');
+    s.querySelector('.rs-slot-v').textContent=hit?hit.tag:'—';
+    setTimeout(stop,240);
+  };
+  setTimeout(stop,520);
+}
+async function roomGo(){
+  var btn=$('rsGoBtn');
+  if(btn){btn.disabled=true;btn.textContent='门 开 了 …'}
+  try{
+    var body={};
+    if(_roomWheel){body.wheel=_roomWheel;body.wheel_by=_roomWheelBy}
+    if(_roomNoteId)body.note_id=_roomNoteId;
+    var r=await api('/api/room/enter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw Error('后端还没装卧室，跑一下 apply-all.sh');
+    var d=await r.json();
+    await enterRoomSession(d.conversation_id);
+  }catch(e){ toast('进不去：'+(e&&e.message||e)); }
+  finally{ if(btn){btn.disabled=false;btn.textContent='就 这 样 ， 进 去'} }
+}
+
+/* ── 本子：选中的那条只进 system 那一层，聊天记录里一个字不留 ──
+   ⚠ 现成的 Prompts 面板不能用 —— 那个是往输入框里填，内容会留在对话里。 */
+async function loadRoomNotes(forSetup){
+  var d=await _wndGet('/api/room/notes');
+  _roomNotes=(d&&d.items)||[];
+  if(forSetup)renderRsNotes(); else renderRnList();
+}
+function renderRsNotes(){
+  var box=$('rsNotes');if(!box)return;
+  box.innerHTML=_roomNotes.map(function(n){
+    return '<button class="rs-note'+(_roomNoteId===n.id?' is-on':'')+'" type="button" data-note="'+_esc(n.id)+'">'+
+      '<div class="rs-note-t">'+_esc(n.title||'没起名')+'</div>'+
+      '<div class="rs-note-b">'+_esc(String(n.content||'').slice(0,90))+'</div></button>';
+  }).join('')+'<button class="rs-note is-add" type="button" id="rsNoteAdd" aria-label="写一条">＋</button>';
+  box.querySelectorAll('[data-note]').forEach(function(el){
+    el.onclick=function(){
+      var id=el.getAttribute('data-note');
+      _roomNoteId=(_roomNoteId===id)?null:id;   // 再点一下取消
+      renderRsNotes();
+    };
+  });
+  var a=$('rsNoteAdd');if(a)a.onclick=function(){openRoomNotes()};
+}
+function openRoomNotes(){_wndPanel('roomNotesPanel',true);_rnEdit(null);loadRoomNotes(false)}
+function closeRoomNotesPanel(){
+  _wndPanel('roomNotesPanel',false);
+  var sp=$('roomSetupPanel');
+  if(sp&&sp.classList.contains('show'))loadRoomNotes(true);   // 回准备屏，新写的那条要在
+}
+function renderRnList(){
+  var box=$('rnList');if(!box)return;
+  if(!_roomNotes.length){box.innerHTML=_wndEmpty('本子还是空的','点右上角那个 ＋，写一条给我');return}
+  box.innerHTML=_roomNotes.map(function(n){
+    return '<div class="rn-item"><div class="rn-t">'+_esc(n.title||'没起名')+'</div>'+
+      '<div class="rn-b">'+_esc(n.content||'')+'</div>'+
+      '<div class="rn-row"><button class="rn-mini" type="button" data-edit="'+_esc(n.id)+'">改</button>'+
+      '<button class="rn-mini is-danger" type="button" data-del="'+_esc(n.id)+'">撕掉</button></div></div>';
+  }).join('');
+  box.querySelectorAll('[data-edit]').forEach(function(el){
+    el.onclick=function(){
+      var id=el.getAttribute('data-edit');
+      var n=_roomNotes.filter(function(x){return x.id===id})[0];
+      if(n)_rnEdit(n);
+    };
+  });
+  box.querySelectorAll('[data-del]').forEach(function(el){
+    el.onclick=function(){rnDel(el.getAttribute('data-del'))};
+  });
+}
+function _rnEdit(n){
+  _rnEditing=n||null;
+  var e=$('rnEditor');if(!e)return;
+  if(!n){e.hidden=true;return}
+  e.hidden=false;
+  $('rnTitle').value=n.title||'';
+  $('rnBody').value=n.content||'';
+  try{$('rnTitle').focus()}catch(_){}
+}
+async function rnSave(){
+  var t=$('rnTitle'),b=$('rnBody');if(!t||!b)return;
+  var content=b.value.trim();
+  if(!content){toast('写点什么再存');return}
+  var body={title:t.value.trim(),content:content};
+  if(_rnEditing&&_rnEditing.id)body.id=_rnEditing.id;
+  try{
+    var r=await api('/api/room/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw Error('存不进去');
+    _rnEdit(null);
+    await loadRoomNotes(false);
+  }catch(e){toast(e&&e.message||'存不进去')}
+}
+async function rnDel(id){
+  if(!confirm('撕掉这条？撕了就没了。'))return;
+  try{
+    await api('/api/room/notes/'+encodeURIComponent(id),{method:'DELETE'});
+    if(_roomNoteId===id)_roomNoteId=null;
+    await loadRoomNotes(false);
+  }catch(e){}
+}
+
+/* 出去 —— 这一下才算一场完：后端开始写双摘要，卡片上那句话是它。 */
 async function leaveBedroom(){
   var id=state.roomConvId||state.convId;
   _roomOn(false);
@@ -11226,9 +11622,13 @@ async function leaveBedroom(){
     var r=await api('/api/room/leave',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({conversation_id:id})});
     var d=await r.json();
-    if(d&&d.ok&&d.minutes!=null) toast('在卧室待了 '+d.minutes+' 分钟');
+    if(d&&d.ok)toast(d.minutes!=null?('在卧室待了 '+d.minutes+' 分钟 · 这一场在存了'):'这一场在存了');
   }catch(e){}
   backToHome();
+  openBedroom();
+  // 摘要是后台写的，等它写完再刷两次 —— 那句话出来了卡片上就有
+  setTimeout(function(){loadRoomList()},5000);
+  setTimeout(function(){loadRoomList()},16000);
 }
 /* 我敲门：后端把 knock 从正文里摘出来单独发过来，这边浮一行。
    ⚠ 只浮，不自动进 —— 门闩在她那边，这条别改。 */
@@ -11242,7 +11642,7 @@ function roomKnock(why){
     '<button type="button" class="rk-yes">进</button></div>';
   el.querySelector('.rk-why').textContent = why ? ('小衍想带你进卧室 —— '+why) : '小衍想带你进卧室';
   el.querySelector('.rk-no').onclick=function(){el.remove()};
-  el.querySelector('.rk-yes').onclick=function(){el.remove();openBedroom()};
+  el.querySelector('.rk-yes').onclick=function(){el.remove();openBedroom();openRoomSetup()};
   document.body.appendChild(el);
   requestAnimationFrame(function(){el.classList.add('show')});
   setTimeout(function(){ if(el.isConnected){el.classList.remove('show');setTimeout(function(){el.remove()},400)} }, 90000);
@@ -11582,6 +11982,17 @@ function closeTonightReadPage(){_wndPanel('tonightRead',false)}
   bind('closeWander',closeWanderPanel); bind('wanderRefresh',loadWander);
   bind('closeTonight',closeTonightPanel); // Tonight 不给刷新按钮：她按了也不会有变化，那颗只会让她多猜一次
   bind('closeTonightRead',closeTonightReadPage);
+  bind('closeBedroom',closeBedroomPanel);
+  bind('roomPushBtn',openRoomSetup);
+  bind('roomNotesBtn',openRoomNotes);
+  bind('closeRoomSetup',closeRoomSetupPanel);
+  bind('rsSpinHer',function(){roomSpin('her')});
+  bind('rsSpinMe',function(){roomSpin('me')});
+  bind('rsGoBtn',roomGo);
+  bind('closeRoomNotes',closeRoomNotesPanel);
+  bind('rnAddBtn',function(){_rnEdit({})});
+  bind('rnSave',rnSave);
+  bind('rnCancel',function(){_rnEdit(null)});
 })();
 
 /* ── 记忆两道门：OB / Latent ── */
