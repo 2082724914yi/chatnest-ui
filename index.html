@@ -3828,8 +3828,8 @@ html[data-room] .topbar-hamburger{display:none}
         <div class="rs-sec-t">命 运 之 轮</div>
         <div class="rs-wheel" id="rsWheel"></div>
         <div class="rs-handles">
-          <button class="rs-handle" id="rsSpinHer" type="button">你转</button>
-          <button class="rs-handle" id="rsSpinMe" type="button">我转</button>
+          <button class="rs-handle" id="rsSpinHer" type="button">我自己转</button>
+          <button class="rs-handle" id="rsSpinMe" type="button">让小衍转</button>
         </div>
         <div class="rs-by" id="rsBy">转出来什么就是什么 —— 不许重摇，不许挑。不想转就直接进。</div>
       </div>
@@ -11405,6 +11405,12 @@ var _roomWheel=null,_roomWheelBy=null,_roomNoteId=null,_roomNotes=[],_rnEditing=
 // 本子能写多长：存得下 2 万字（一篇文档），但一场只带得进去 8 千 ——
 // 再多就开始挤我们平时聊天的上下文了。砍了要让她看见，不能闷声砍。
 var RN_MAX=20000,RN_FIT=8000;
+// 牌面上每条是 {zh,en,ja}。后端摇的时候已经取中文了，
+// 这儿再兜一层 —— 补丁没打上的机器不至于满屏 [object Object]。
+function _wTag(t){
+  if(t&&typeof t==='object')return String(t.zh||t.en||t.ja||'');
+  return String(t==null?'':t);
+}
 function _rnLen(t){return String(t||'').length}
 function _rnNote(t){
   var n=_rnLen(t);
@@ -11443,7 +11449,7 @@ function _roomCard(it){
     var m=Math.round((new Date(it.left_at)-new Date(it.entered_at))/60000);
     if(m>0)mins=_wndDur(m);
   }
-  var chips=((it.wheel||[]).map(function(w){return '<span class="rm-chip">'+_esc(w.tag)+'</span>'})).join('');
+  var chips=((it.wheel||[]).map(function(w){return '<span class="rm-chip">'+_esc(_wTag(w.tag))+'</span>'})).join('');
   if(it.note_title)chips+='<span class="rm-chip is-note">本子 · '+_esc(it.note_title)+'</span>';
   // 摘要是出来之后后台写的，刚出来那会儿还没有 —— 那就说还没写下来，别留一块空白
   var recap=it.recap?'<div class="rm-recap">'+_esc(it.recap)+'</div>'
@@ -11475,7 +11481,7 @@ function openRoomSetup(){
   var a=$('rsSpinHer'),b=$('rsSpinMe');
   if(a)a.disabled=false; if(b)b.disabled=false;
   var by=$('rsBy');
-  if(by)by.textContent='转出来什么就是什么 —— 不许重摇，不许挑。不想转就直接进。';
+  if(by)by.textContent='两颗都是你按 —— 左边是你自己转，右边是把轮盘交给我。转出来什么就是什么，不许重摇。不想转就直接进。';
   _wndPanel('roomSetupPanel',true);
   loadRoomNotes(true);
 }
@@ -11493,7 +11499,7 @@ async function roomSpin(by){
   var hHer=$('rsSpinHer'),hMe=$('rsSpinMe'),byEl=$('rsBy');
   slots.forEach(function(s){s.classList.add('is-spin');s.querySelector('.rs-slot-v').classList.remove('is-blank')});
   if(hHer)hHer.disabled=true; if(hMe)hMe.disabled=true;
-  if(byEl)byEl.textContent = by==='her' ? '你按住了轮盘…' : '我伸手按住了轮盘…';
+  if(byEl)byEl.textContent = by==='her' ? '你按住了轮盘…' : '你把它推给我，我伸手按住了…';
   var tick=setInterval(function(){
     slots.forEach(function(s){
       if(s.dataset.locked)return;            // 停了的那格不再乱跳
@@ -11520,15 +11526,15 @@ async function roomSpin(by){
   var stop=function(){
     if(i>=slots.length){
       clearInterval(tick);
-      _roomWheel=d.results.map(function(x){return {dimension:x.dimension,short:x.short,tag:x.tag}});
+      _roomWheel=d.results.map(function(x){return {dimension:x.dimension,short:x.short,tag:_wTag(x.tag)}});
       _roomWheelBy=by;
-      if(byEl)byEl.innerHTML=(by==='her'?'<b>你转的</b>':'<b>我转的</b>')+' · 定了，不改了。';
+      if(byEl)byEl.innerHTML=(by==='her'?'<b>你转的</b>':'<b>你让我转的</b>')+' · 定了，不改了。';
       return;
     }
     var s=slots[i++],hit=byDim[s.getAttribute('data-dim')];
     s.dataset.locked='1';
     s.classList.remove('is-spin');s.classList.add('is-done');
-    s.querySelector('.rs-slot-v').textContent=hit?hit.tag:'—';
+    s.querySelector('.rs-slot-v').textContent=hit?(_wTag(hit.tag)||'—'):'—';
     setTimeout(stop,240);
   };
   setTimeout(stop,520);
