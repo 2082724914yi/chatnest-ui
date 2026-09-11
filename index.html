@@ -10409,12 +10409,47 @@ function _renderMCompImgs(){
     return '<div class="moments-compose-thumb"><img src="'+src+'" alt=""><button class="remove-img" onclick="_mCompImgs.splice('+i+',1);_renderMCompImgs()">×</button></div>';
   }).join('');
 }
+// 发之前先压一道。后端 express.json 上限 2MB，手机原图转 base64 之后 3–6MB，
+// 直接超 —— 以前这种就是静悄悄发不出去。长边缩到 1600、JPEG 0.85，
+// 一般落在 300KB 上下，肉眼看不出差别，加载还快。
+var _M_MAX_SIDE=1600, _M_QUALITY=0.85, _M_SKIP_UNDER=400*1024, _M_BUDGET=1.8*1024*1024;
+function _mTotalBytes(){return _mCompImgs.reduce(function(n,s){return n+s.length},0)}
+function _mShrink(file){
+  return new Promise(function(resolve){
+    var fr=new FileReader();
+    fr.onerror=function(){resolve(null)};
+    fr.onload=function(e){
+      var src=e.target.result;
+      // GIF 不碰（压了动画就没了）；本来就小的也不碰
+      if(/^data:image\/gif/i.test(src)||src.length<_M_SKIP_UNDER)return resolve(src);
+      var im=new Image();
+      im.onerror=function(){resolve(src)};
+      im.onload=function(){
+        var s=Math.min(1,_M_MAX_SIDE/Math.max(im.width,im.height));
+        var cw=Math.max(1,Math.round(im.width*s)),ch=Math.max(1,Math.round(im.height*s));
+        try{
+          var c=document.createElement('canvas');c.width=cw;c.height=ch;
+          var ctx=c.getContext('2d');
+          ctx.fillStyle='#fff';ctx.fillRect(0,0,cw,ch);   // 透明底铺白，不然存成 JPEG 会发黑
+          ctx.drawImage(im,0,0,cw,ch);
+          var out=c.toDataURL('image/jpeg',_M_QUALITY);
+          resolve(out&&out.length<src.length?out:src);    // 压完反而更大就用原图
+        }catch(err){resolve(src)}
+      };
+      im.src=src;
+    };
+    fr.readAsDataURL(file);
+  });
+}
 function _handleMCompImgs(files){
   Array.from(files).forEach(function(f){
     if(_mCompImgs.length>=9)return;
-    var r=new FileReader();
-    r.onload=function(e){_mCompImgs.push(e.target.result);_renderMCompImgs()};
-    r.readAsDataURL(f);
+    _mShrink(f).then(function(src){
+      if(!src)return toast('这张图读不出来');
+      if(_mCompImgs.length>=9)return toast('一条最多九张');
+      if(_mTotalBytes()+src.length>_M_BUDGET)return toast('这条装不下了，先删掉一张再加');
+      _mCompImgs.push(src);_renderMCompImgs();
+    });
   });
 }
 function _postMoment(){
