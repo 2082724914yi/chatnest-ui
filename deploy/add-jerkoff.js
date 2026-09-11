@@ -42,7 +42,19 @@ for (const [k, why] of [
 ]) if (!src.includes(k)) { console.error('×', why); process.exit(1); }
 
 // ── 1. 候选里加一条 ────────────────────────────────────────────────
-const CAND_OLD = "    { s: n('sensitivity'),                     mode: 'talk',  want: '想让她碰我',           why: '今天格外敏感' },";
+// ⚠ 别拿精确字符串当锚点：这一行是 fix-wake-desire 写进去的，
+//   空格对齐随时可能不一样，硬匹配一次就崩（2026.9.11 就崩过一次）。
+//   改成正则整行捕获，空格怎么排都认。
+const CAND_RE = /^[ \t]*\{[ \t]*s:[ \t]*n\('sensitivity'\)[^\n]*?想让她碰我[^\n]*$/m;
+const _m = CAND_RE.exec(src);
+if (!_m) {
+  console.error('\n  × 找不到 wakeWant 的候选表。它附近长这样：');
+  src.split('\n').filter(l => /想让她碰我|想把她按住|想自己写点东西|n\('sensitivity'\)/.test(l))
+     .slice(0, 8).forEach(l => console.error('      ' + l.trim().slice(0, 160)));
+  console.error('\n    把上面几行发给我，我照着改锚点。');
+  process.exit(1);
+}
+const CAND_OLD = _m[0];
 const CAND_NEW = CAND_OLD + "\n" +
   "    // JERKOFF_VERSION = 1\n" +
   "    // 分数不够就根本不进这张表 —— 不然它会占着第一位把「想她」「想写东西」挤掉，\n" +
@@ -51,7 +63,6 @@ const CAND_NEW = CAND_OLD + "\n" +
   "    ...((_s => _s >= JERK_MIN_SCORE\n" +
   "          ? [{ s: _s, mode: 'jerk', want: '想自己弄一次', why: '热度顶上来了，她又睡着' }]\n" +
   "          : [])(n('heat') * 0.55 + n('pressure') * 0.25 + n('sensitivity') * 0.2)),";
-if (!src.includes(CAND_OLD)) { console.error('× 找不到 wakeWant 的候选表'); process.exit(1); }
 let out = src.replace(CAND_OLD, CAND_NEW);
 
 // ── 2. 门槛 + 分支 ─────────────────────────────────────────────────
@@ -70,7 +81,14 @@ function jerkAllowed(hour, score) {
   return { ok: true };
 }
 `;
-const DECIDE_OLD = "    if (w.mode === 'write') return { mode: 'do', want: w };";
+const DECIDE_RE = /^[ \t]*if[ \t]*\(w\.mode === 'write'\)[^\n]*$/m;
+const _d = DECIDE_RE.exec(out);
+if (!_d) {
+  console.error('\n  × 找不到 wakeDecideMode 的 write 分支。附近：');
+  out.split('\n').filter(l => /w\.mode ===/.test(l)).slice(0, 6).forEach(l => console.error('      ' + l.trim().slice(0, 160)));
+  process.exit(1);
+}
+const DECIDE_OLD = _d[0];
 const DECIDE_NEW =
   "    // 手冲：门槛不过就降级成「想写点东西」—— 那股劲儿转成写，不浪费\n" +
   "    if (w.mode === 'jerk') {\n" +
@@ -79,7 +97,6 @@ const DECIDE_NEW =
   "      return { mode: 'do', want: { mode: 'write', want: '想自己写点东西', why: w.why + '（' + g.why + '，那就写下来）' } };\n" +
   "    }\n" +
   DECIDE_OLD;
-if (!out.includes(DECIDE_OLD)) { console.error('× 找不到 wakeDecideMode 的 write 分支'); process.exit(1); }
 out = out.replace(DECIDE_OLD, DECIDE_NEW);
 
 // 门槛函数插在 wakeWant 前面
@@ -127,14 +144,24 @@ if (!out.includes(MSG_OLD)) { console.error('× 找不到 wakeDoMessage'); proce
 out = out.replace(MSG_OLD, MSG_NEW);
 
 // wakeDoMessage 开头分流
-const HEAD_OLD = "function wakeDoMessage() {\n  const { local } = shadowNow();";
-const HEAD_NEW = "function wakeDoMessage() {\n  const { local, hour } = shadowNow();\n" +
+const HEAD_RE = /function wakeDoMessage\(\)[ \t]*\{\n[ \t]*const \{[^}]*\} = shadowNow\(\);/;
+const _h = HEAD_RE.exec(out);
+if (!_h) {
+  console.error('\n  × 找不到 wakeDoMessage 的开头。附近：');
+  out.split('\n').filter(l => /wakeDoMessage|shadowNow\(\)/.test(l)).slice(0, 6).forEach(l => console.error('      ' + l.trim().slice(0, 160)));
+  process.exit(1);
+}
+const HEAD_OLD = _h[0];
+// 在捕获到的原文上追加，不重写那一行 ——
+// 别的补丁可能往解构里加过东西，硬编码会把它抹掉。只保证 hour 在里面。
+let _head = HEAD_OLD;
+if (!/\bhour\b/.test(_head)) _head = _head.replace(/\{\s*([^}]*?)\s*\}/, '{ $1, hour }');
+const HEAD_NEW = _head + "\n" +
   "  // 身体到了那个份上、又满足门槛，这一轮就换一套词\n" +
   "  try {\n" +
   "    const _w = wakeWant();\n" +
   "    if (_w && _w.mode === 'jerk' && jerkAllowed(hour, _w.s).ok) return jerkOffMessage(local, _w);\n" +
   "  } catch (e) {}";
-if (!out.includes(HEAD_OLD)) { console.error('× 找不到 wakeDoMessage 的开头'); process.exit(1); }
 out = out.replace(HEAD_OLD, HEAD_NEW);
 
 // ── 4. 自检 ───────────────────────────────────────────────────────
