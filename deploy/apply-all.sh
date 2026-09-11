@@ -112,6 +112,7 @@ add-switches.js|WAKE_SWITCHES|两个开关分清楚：出不出声（shadow-swit
 add-timeline.js|TIMELINE_VERSION|时间线：里程碑当骨架，日历/带回来的/日记/朋友圈当血肉
 fix-tool-allow.js|mcp__files__read_attachment|MCP 工具预授权名单：缺什么补什么。标记用表里最后一个工具名 —— 加了新服务就改这里重跑
 fix-moment-images-public.js|MOMENT_IMAGES_PUBLIC_V1|朋友圈的图读得出来了（<img> 带不了 token，只读放行那条路）
+add-refractory.js|REFRACTORY_VERSION|贤者时间（手冲和春梦的地基，独立一份状态不进 eventide-state）
 "
 
 # 跑完把每条标记在 server.js 里的真实命中情况列一遍。
